@@ -6,10 +6,11 @@ This provides a ready resource for those who want to apply the economical
 stm32f103c8t6 (or similar) to using libopencm3 alone or in concert with
 FreeRTOS.
 
-*** This project uses only open source tools ***
+THIS PROJECT USES ONLY OPEN SOURCE TOOLS
+----------------------------------------
 
 There is no need for Windows based IDE environments here. Linux and MacOS
-users rejoice (can you hear the cheers?)
+users rejoice (can't you hear the cheers?)
 
 PROJECT STRUCTURE:
 ------------------
