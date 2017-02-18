@@ -12,6 +12,9 @@ THIS PROJECT USES ONLY OPEN SOURCE TOOLS
 There is no need for Windows based IDE environments here. Linux and MacOS
 users rejoice (can't you hear the cheers?)
 
+This project exists to bring several components together in a manner
+that works for the STM32F013, out of the box!
+
 PROJECT STRUCTURE:
 ------------------
 
