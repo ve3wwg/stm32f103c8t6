@@ -1,4 +1,5 @@
 CREATE A NEW FreeRTOS PROJECT:
+------------------------------
 
 There is a Makefile at this level designed to setup new
 FreeRTOS projects in a subdirectory. To use it, simply
@@ -11,6 +12,7 @@ necessary source files and Makefile for that project.
 
 
 FreeRTOS SOURCE CODE:
+---------------------
 
 The Makefile depends upon having the FreeRTOS sources
 unzipped here (for example ./FreeRTOSv9.0.0). Once
