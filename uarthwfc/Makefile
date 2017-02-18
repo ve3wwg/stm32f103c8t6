@@ -3,7 +3,7 @@
 ######################################################################
 
 BINARY		= uarthwfc
-SRCFILES	= uarthwfc.cpp miniprintf.c
+SRCFILES	= uarthwfc.c miniprintf.c
 
 all: elf bin
 
