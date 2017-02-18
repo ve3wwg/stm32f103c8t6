@@ -3,7 +3,7 @@
 ######################################################################
 
 BINARY		= uart
-SRCFILES	= uart.cpp miniprintf.c
+SRCFILES	= uart.c miniprintf.c
 
 all: elf bin
 
