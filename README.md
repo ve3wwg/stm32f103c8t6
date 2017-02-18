@@ -2,18 +2,19 @@ Project stm32f103c8t6
 ---------------------
 
 This git project contains libopencm3 (only) and FreeRTOS+libopencm3 projects.
-This provides a ready resource for those who want to apply the economical
-stm32f103c8t6 (or similar) to using libopencm3 alone or in concert with
-FreeRTOS.
+This provides a ready development environment for those who want to apply the economical
+STM32F103 to using libopencm3 alone or in concert with
+FreeRTOS. Why struggle with  gleaning from forums etc.?
 
 THIS PROJECT USES ONLY OPEN SOURCE TOOLS
 ----------------------------------------
 
-There is no need for Windows based IDE environments here. Linux and MacOS
-users rejoice (can't you hear the cheers?)
+No Windows based IDE environments are used or implied! Linux and MacOS
+users rejoice (can you hear the cheers?) Vendors need reminding that
+not everyone uses Windows. 
 
 This project exists to bring several components together in a manner
-that works for the STM32F013, out of the box!
+that just works for the STM32F013 -- out of the box!
 
 PROJECT STRUCTURE:
 ------------------
