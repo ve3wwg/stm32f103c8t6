@@ -15,7 +15,7 @@ used by FreeRTOS builds in the ./rtos area.
 At the top level directory, projects like ./miniblink use libopencm3
 only (they do NOT use FreeRTOS).
 
-Under the subdirectory ./rtos projects in subdirectories there use
+Under the subdirectory ./rtos, projects in subdirectories there use
 FreeRTOS (and libopencm3).
 
     stm32f103c8t6/
@@ -54,7 +54,7 @@ PREREQUISITES:
     
     0b. It is also assumed that you have the st-link command installed
         on your system. You may need to download and install it. 
-	Google is your friend.
+        Google is your friend.
 
     1.  If you didn't use a --recursive git clone, then you need to make
         sure that libopencm3 is fetched now. From the top level apply:
@@ -68,7 +68,7 @@ PREREQUISITES:
     3.  For FreeRTOS, cd into ./rtos and unzip your FreeRTOS download
         there. It should create a subdirectory FreeRTOSv9.0.0 or 
         similar. If the release differs, you'll need to change the
-        variable assignment in rtos/Makefile FREERTOS := ....
+        variable assignment in rtos/Makefile FREERTOS ?= ....
         to match, or use the shell: export FREERTOS=whatever
     
     4.  Do NOT compile FreeRTOS, since portions of it will be copied
@@ -97,6 +97,16 @@ will build your FreeRTOS blink example.
 
 If you are encountering make errors, then try forcing the use
 of Gnu make (it may be installed as "gmake").
+
+CREATING NEW FreeRTOS PROJECTS:
+-------------------------------
+
+    1. cd ./rtos
+    2. make PROJECT=name
+    3. cd ./name
+    4. Tweak and build
+
+See ./rtos/README.md for more details.
 
 LICENSE:
 --------
