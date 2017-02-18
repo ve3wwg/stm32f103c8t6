@@ -10,7 +10,7 @@ THIS PROJECT USES ONLY OPEN SOURCE TOOLS
 ----------------------------------------
 
 No Windows based IDE environments are used or implied! Linux and MacOS
-users rejoice (can you hear the cheers?) Vendors need reminding that
+users rejoice (can you hear the cheers?) Vendors need to be reminded that
 not everyone uses Windows. 
 
 This project exists to bring several components together in a manner
