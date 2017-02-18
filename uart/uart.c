@@ -1,8 +1,6 @@
-//////////////////////////////////////////////////////////////////////
-// uart.cpp -- UART1 Demo using libopencm3, no flow control
-// Date: Sat Feb 11 15:38:36 2017  (C) Warren W. Gay VE3WWG 
-///////////////////////////////////////////////////////////////////////
-
+/* uart.cpp -- UART1 Demo using libopencm3, no flow control
+ * Date: Sat Feb 11 15:38:36 2017  (C) Warren W. Gay VE3WWG 
+ */
 #include "miniprintf.h"
 
 #include <libopencm3/stm32/rcc.h>
@@ -111,4 +109,4 @@ main(void) {
 	return 0;
 }
 
-// End uart.cpp
+/* End uart.cpp */
