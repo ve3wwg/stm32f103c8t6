@@ -14,7 +14,7 @@ users rejoice (can you hear the cheers?) Vendors need to be reminded that
 not everyone uses Windows. 
 
 This project exists to bring several components together in a manner
-that just works for the STM32F013 -- out of the box!
+that just works for the STM32F103 -- out of the box!
 
 PROJECT STRUCTURE:
 ------------------
