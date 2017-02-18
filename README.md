@@ -67,9 +67,12 @@ PREREQUISITES:
         Google is your friend.
 
     1.  If you didn't use a --recursive git clone, then you need to make
-        sure that libopencm3 is fetched now. From the top level apply:
+        sure that libopencm3 is fetched now. From the top level apply
+        one of:
     
-        git submodule update --recursive
+            $ git submodule update --init --recursive   # First time
+
+            $ git submodule update --recursive          # Subsequent
     
     2.  Go into ./libopencm3 and type "make". This should build the 
         static libraries that will be needed. Any issues there should
