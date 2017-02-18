@@ -1,8 +1,6 @@
-//////////////////////////////////////////////////////////////////////
-// uarthwfc.cpp -- UART1 Demo using libopencm3, with hardware flow control
-// Date: Sat Feb 11 15:38:36 2017  (C) Warren W. Gay VE3WWG 
-///////////////////////////////////////////////////////////////////////
-
+/* uarthwfc.cpp -- UART1 Demo using libopencm3, with hardware flow control
+ * Date: Sat Feb 11 15:38:36 2017  (C) Warren W. Gay VE3WWG 
+ */
 #include "miniprintf.h"
 
 #include <libopencm3/stm32/rcc.h>
