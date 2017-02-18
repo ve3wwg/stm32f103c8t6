@@ -109,4 +109,4 @@ main(void) {
 	return 0;
 }
 
-// End uart.cpp
+/* End uart.cpp */
