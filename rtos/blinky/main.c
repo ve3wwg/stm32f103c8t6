@@ -25,6 +25,7 @@ vApplicationStackOverflowHook(xTaskHandle *pxTask,signed portCHAR *pcTaskName) {
 static void
 gpio_setup(void) {
 
+	rcc_clock_setup_in_hse_16mhz_out_72mhz();	// Use this for "blue pill"
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 }
@@ -37,7 +38,7 @@ task1(void *args) {
 
 	for (;;) {
 		gpio_toggle(GPIOC,GPIO13);
-		for (i = 0; i < 300000; i++)
+		for (i = 0; i < 1000000; i++)
 			__asm__("nop");
 	}
 }
