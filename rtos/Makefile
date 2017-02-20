@@ -125,9 +125,8 @@ group4:
 #
 $(PROJECT)/FreeRTOSConfig.h:
 	@echo "Editing $(PROJRTOS)/FreeRTOSConfig.h"
-	@sed <$(FREERTOSDIR)/FreeRTOS/Demo/CORTEX_STM32F103_Primer_GCC/FreeRTOSConfig.h \
-	    >$(PROJECT)/FreeRTOSConfig.h \
-		's|\(#include *"stm32f10x_lib.h"\)|/* \1 */|;/#define configUSE_TICK_HOOK/s|1|0|'
+	sed <$(FREERTOSDIR)/FreeRTOS/Demo/CORTEX_STM32F103_Primer_GCC/FreeRTOSConfig.h \
+	    >$(PROJECT)/FreeRTOSConfig.h -f $(RTOSDIR)/src/alters.sed
 
 $(PROJECT)/stm32f103c8t6.ld:
 	cp $(RTOSDIR)/src/stm32f103c8t6.ld $(PROJECT)/stm32f103c8t6.ld
