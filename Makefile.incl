@@ -119,7 +119,8 @@ print-%:
 
 clean:
 	@#printf "  CLEAN\n"
-	$(RM) *.o *.d generated.* ${OBJS} ${OBJS:%.o:%.d}
+	$(RM) *.o *.d generated.* $(OBJS) $(patsubst %.o,%.d,$(OBJS))
+
 
 clobber: clean
 	rm -f *.elf *.bin *.hex *.srec *.list *.map
