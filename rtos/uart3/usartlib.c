@@ -286,7 +286,7 @@ getc_usart_nb(uint32_t usart) {
  *********************************************************************/
 
 char
-get_usart(uint32_t usart) {
+getc_usart(uint32_t usart) {
 	int ux;
 	struct s_usart *uptr = find_usart(usart,&ux);
 	int rch;
