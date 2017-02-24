@@ -12,8 +12,11 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/cm3/nvic.h>
 
 #include "usartlib.h"
+
+#define IRQ_PRIORITY 	4
 
 #define USART_BUF_DEPTH	32
 
@@ -25,26 +28,29 @@ struct s_usart {
 };
 
 static struct s_usart *usart_data[3] = { 0, 0, 0 };
-
-void usart1_isr(void);
-void usart2_isr(void);
-void usart3_isr(void);
+static int count = 0;
 
 /*********************************************************************
  * Receive data for USART
  *********************************************************************/
 
 static void
-usart_common_isr(struct s_usart *usart) {
-	
-	while ( usart_get_flag(usart->usart,USART_SR_RXNE) ) {
-		usart->buf[usart->tail] = USART_DR(usart);
-		usart->tail = (usart->tail + 1) % USART_BUF_DEPTH;
+usart_common_isr(struct s_usart *usartp) {
+	uint32_t usart;
+
+	if ( !usartp )
+		return;
+	usart = usartp->usart;
+
+	while ( USART_SR(usart) & USART_SR_RXNE ) {
+		usartp->buf[usartp->tail] = USART_DR(usart);
+		usartp->tail = (usartp->tail + 1) % USART_BUF_DEPTH;
 	}
 }
 
 void
 usart1_isr(void) {
+	++count;
 	usart_common_isr(usart_data[0]);
 }
 
@@ -67,29 +73,32 @@ usart3_isr(void) {
 
 int
 open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts,int cts) {
-	uint32_t ux=0, rcc, stopb, iomode, parity, fc;
+	uint32_t ux=0, rcc=RCC_USART1, stopb, iomode, parity, fc, irq = 0;
 	bool rxintf = false;
+
+	usart_disable_rx_interrupt(usart);
 
 	/*************************************************************
 	 * Which USART?
 	 *************************************************************/
 
 	switch ( usart ) {
-	case USART1_BASE:
+	case USART1:
 		ux = 0;
 		rcc = RCC_USART1;
+		irq = NVIC_USART1_IRQ;
 		break;
-	case USART2_BASE:
+	case USART2:
 		ux = 1;
-		rcc = RCC_USART1;
+		rcc = RCC_USART2;
+		irq = NVIC_USART2_IRQ;
 		break;
-	case USART3_BASE:
+	case USART3:
 		ux = 2;
-		rcc = RCC_USART1;
+		rcc = RCC_USART3;
+		irq = NVIC_USART3_IRQ;
 		break;
 	}
-
-	usart_disable_rx_interrupt(usart);
 
 	/*************************************************************
 	 * Parity
@@ -149,11 +158,10 @@ open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts
 	 *************************************************************/
 
 	if ( rxintf ) {
-		if ( usart_data[ux] == 0 ) {
+		if ( usart_data[ux] == 0 )
 			usart_data[ux] = malloc(sizeof(struct s_usart));
-			usart_data[ux]->head = 	usart_data[ux]->tail = 0;
-			usart_data[ux]->usart = usart;
-		}
+		usart_data[ux]->usart = usart;
+		usart_data[ux]->head = 	usart_data[ux]->tail = 0;
 	}	
 
 	/*************************************************************
@@ -165,7 +173,7 @@ open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts
 		if ( cts )
 			fc = USART_FLOWCONTROL_RTS_CTS;
 		else	fc = USART_FLOWCONTROL_RTS;
-	} else	{
+	} else if ( cts ) {
 		fc = USART_FLOWCONTROL_CTS;
 	}
 
@@ -180,8 +188,15 @@ open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts
 	usart_set_mode(usart,iomode);
 	usart_set_parity(usart,parity);
 	usart_set_flow_control(usart,fc);
+
+	nvic_enable_irq(irq);
 	usart_enable(usart);
+
+//	nvic_set_priority(irq,IRQ_PRIORITY);
+//	nvic_set_priority(irq,0);
+//	nvic_clear_pending_irq(irq);
 	usart_enable_rx_interrupt(usart);
+
 	return 0;		/* Success */
 }
 
@@ -189,7 +204,7 @@ open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts
  * Put one character to device, non-blocking
  *********************************************************************/
 int
-put_usart_nb(uint32_t usart,char ch) {
+putc_usart_nb(uint32_t usart,char ch) {
 
 	if ( (USART_SR(usart) & USART_SR_TXE) == 0 )
 		return -1;	/* Busy */
@@ -201,7 +216,7 @@ put_usart_nb(uint32_t usart,char ch) {
  * Put one character to device, block (yield) until TX ready (blocking)
  *********************************************************************/
 void
-put_usart(uint32_t usart,char ch) {
+putc_usart(uint32_t usart,char ch) {
 
 	while ( (USART_SR(usart) & USART_SR_TXE) == 0 )
 		taskYIELD();	
