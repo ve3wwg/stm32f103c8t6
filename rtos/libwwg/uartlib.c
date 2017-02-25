@@ -96,10 +96,27 @@ usart3_isr(void) {
 }
 
 /*********************************************************************
- * Examples:
- * open_uart(1,38400,"8N1","w",0,0);	UART1, TX, No RTS/CTS
- * open_uart(2,19200,"7E1","rw",0,0);	UART2, RX+TX, No RTS/CTS
- * open_uart(3,115200,"8N1","rw",1,1);	UART3, RX+TX, RTS/CTS
+ * Open the UART for I/O:
+ *
+ * ARGUMENTS:
+ *	1.	uartno		1 == USART1, ... 3 == USART3
+ *	2.	baud		Baud rate, eg. 38400
+ *	3.	cfg		Config: eg. "8N1"
+ *	4.	mode		"r", "rw" or just "w"
+ *	5.	rts		When True: Use RTS
+ *	6.	cts		When True: Use CTS
+ *
+ * RETURNS:
+ *	0	Success
+ *	-1	Fail: Bad uartno
+ *	-2	Fail: Bad parity config
+ *	-3	Fail: Bad mode config (r/w)
+ *	-4	Fail: Bad stop bits config
+ *
+ * EXAMPLES:
+ * 	open_uart(1,38400,"8N1","w",0,0);	UART1, TX, No RTS/CTS
+ * 	open_uart(2,19200,"7E1","rw",0,0);	UART2, RX+TX, No RTS/CTS
+ * 	open_uart(3,115200,"8N1","rw",1,1);	UART3, RX+TX, RTS/CTS
  *********************************************************************/
 
 int
@@ -131,7 +148,7 @@ open_uart(uint32_t uartno,uint32_t baud,const char *cfg,const char *mode,int rts
 		break;
 	/* No Mark parity? Use 2-stop bits for that? */
 	default:
-		return -1;		// Bad parity
+		return -2;		// Bad parity
 	}
 
 	/*************************************************************
@@ -152,6 +169,9 @@ open_uart(uint32_t uartno,uint32_t baud,const char *cfg,const char *mode,int rts
 		break;
 	case '2':
 		stopb = USART_STOPBITS_2;
+		break;
+	default:
+		return -4;
 	}
 
 	/*************************************************************
@@ -166,7 +186,7 @@ open_uart(uint32_t uartno,uint32_t baud,const char *cfg,const char *mode,int rts
 		rxintf = true;
 	} else if ( mode[0] == 'w' )
 		iomode =  USART_MODE_TX;
-	else	return -1;		/* Mode fail */
+	else	return -3;		/* Mode fail */
 
 	/*************************************************************
 	 * Setup RX ISR
@@ -212,6 +232,10 @@ open_uart(uint32_t uartno,uint32_t baud,const char *cfg,const char *mode,int rts
 
 /*********************************************************************
  * Put one character to device, non-blocking
+ *
+ * RETURNS:
+ *	0	Sent char
+ *	-1	Device busy
  *********************************************************************/
 int
 putc_uart_nb(uint32_t uartno,char ch) {

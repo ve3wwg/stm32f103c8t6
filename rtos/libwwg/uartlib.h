@@ -11,8 +11,10 @@
  *		GPIOA, A11 is Output (RTS, when used)
  *		GPIOA, A12 is Input (CTS, when used)
  *
- *	(2) open_uart() will start the peripheral RCC.
- *	(3) open_uart() enables rx interrupts, when required.
+ *	(2) These routines all use a "uart number", with 1 == USART1, 2==USART2
+ *	    etc. This approach provided some opportunity for code optimization.
+ *	(3) open_uart() will start the peripheral RCC.
+ *	(4) open_uart() enables rx interrupts, when required.
  *
  */
 #ifndef UARTLIB_H
