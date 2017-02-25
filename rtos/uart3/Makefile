@@ -3,7 +3,7 @@
 ######################################################################
 
 BINARY		= uart
-SRCFILES	= uart.c usartlib.c rtos/heap_4.c rtos/list.c rtos/port.c rtos/queue.c rtos/tasks.c rtos/opencm3.c
+SRCFILES	= uart.c uartlib.c rtos/heap_4.c rtos/list.c rtos/port.c rtos/queue.c rtos/tasks.c rtos/opencm3.c
 LDSCRIPT	= stm32f103c8t6.ld
 
 # start: elf bin
@@ -11,7 +11,15 @@ LDSCRIPT	= stm32f103c8t6.ld
 include ../../Makefile.incl
 include ../Makefile.rtos
 
-usartlib.o: usartlib.h
+uartlib.c: ../libwwg/uartlib.c
+	cp ../libwwg/uartlib.c .
+
+uartlib.h: ../libwwg/uartlib.h
+	cp ../libwwg/uartlib.h .
+
+uartlib.o: uartlib.h
+
+CLOBBER += uartlib.h uartlib.c
 
 ######################################################################
 #  NOTES:
