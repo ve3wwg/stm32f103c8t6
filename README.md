@@ -134,3 +134,8 @@ LICENSE:
 See the file LICENSE, which applies to all files in this repo except for
 FreeRTOS files that may be copied to some of the project subdirectories.
 Licensing of libopencm3 and FreeRTOS are specified by those projects alone.
+
+All files covered by _this_ repo (_except_ those files copied from
+libopencm3 and FreeRTOS), are covered by the Gnu Lesser General Public
+License Version 3.
+
