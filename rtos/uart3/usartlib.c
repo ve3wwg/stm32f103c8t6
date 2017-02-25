@@ -21,14 +21,13 @@
 #define USART_BUF_DEPTH	32
 
 struct s_usart {
-	uint32_t	usart;
-	uint16_t	head;
-	uint16_t	tail;
-	uint8_t		buf[USART_BUF_DEPTH];
+	uint32_t	usart;					/* Reference USART1, 2 or 3 */
+	uint16_t	head;					/* Buffer head index (pop) */
+	uint16_t	tail;					/* Buffer tail index (push) */
+	uint8_t		buf[USART_BUF_DEPTH];			/* Circular receive buffer */
 };
 
 static struct s_usart *usart_data[3] = { 0, 0, 0 };
-static int count = 0;
 
 /*********************************************************************
  * Receive data for USART
@@ -36,21 +35,27 @@ static int count = 0;
 
 static void
 usart_common_isr(struct s_usart *usartp) {
-	uint32_t usart;
+	uint32_t usart, ntail;
+	char ch;
 
 	if ( !usartp )
 		return;
 	usart = usartp->usart;
 
-	while ( USART_SR(usart) & USART_SR_RXNE ) {
-		usartp->buf[usartp->tail] = USART_DR(usart);
-		usartp->tail = (usartp->tail + 1) % USART_BUF_DEPTH;
+	while ( USART_SR(usart) & USART_SR_RXNE ) {		/* Read status */
+		ch = USART_DR(usart);				/* Read data */
+		ntail = (usartp->tail + 1) % USART_BUF_DEPTH;	/* Calc next tail index */
+
+		/* Save data if the buffer is not full */
+		if ( ntail != usartp->head ) {
+			usartp->buf[usartp->tail] = ch;		/* Stow into buffer */
+			usartp->tail = ntail;			/* Advance tail index */
+		}
 	}
 }
 
 void
 usart1_isr(void) {
-	++count;
 	usart_common_isr(usart_data[0]);
 }
 
