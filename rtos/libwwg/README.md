@@ -7,7 +7,7 @@ potentially differently configured FreeRTOS builds.
 
 Define your project in the usual way listing all of the input source
 files for your project build. Also add the library modules to be
-included (these will be copied here). I'll use uartlib.c and .h for this
+included (these will be copied). I'll use uartlib.c and .h for this
 example:
 
 BINARY		= main
