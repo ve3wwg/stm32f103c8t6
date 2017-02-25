@@ -1,3 +1,6 @@
+DEMO UART3
+----------
+
 This is a UART demo using library libwwg/uartlib.c, and of FreeRTOS
 queues. Task demo_task() continually sends messages to the terminal
 (through the UART), through the FreeRTOS queue (using uart_puts()). The
@@ -19,24 +22,26 @@ as the first input character and prompts for the rest of the line.
 Once the user has typed CR (or LF), the line is terminated and returned
 to the uart_task(). This in turn reports the input line received.
 
-The following is a sample terminal session.
+SAMPLE SESSION
+--------------
 
-Now this is a message..
-  sent via FreeRTOS queues.
+    Now this is a message..
+      sent via FreeRTOS queues.
+    
+    Just start typing to enter a line, or..
+    hit Enter first, then enter your input.
+    
+    
+    
+    ENTER INPUT: yes master?
+    Received input 'yes master?'
+    
+    Resuming prints...
+    Now this is a message..
+      sent via FreeRTOS queues.
 
-Just start typing to enter a line, or..
-hit Enter first, then enter your input.
-
-
-
-ENTER INPUT: yes master?
-Received input 'yes master?'
-
-Resuming prints...
-Now this is a message..
-  sent via FreeRTOS queues.
-
-
+BACKSPACE NOTE:
+---------------
 
 Note that while getline_uart() allows the user to backspace and edit
 their input, you cannot backspace over the first character, if your
