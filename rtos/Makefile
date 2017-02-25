@@ -16,9 +16,9 @@ RTOSDIR 	:= $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 FREERTOSDIR	:= $(abspath $(RTOSDIR)/$(FREERTOS))
 PROJRTOS	= $(PROJECT)/rtos
 
-.PHONY:	rsrc all group1 group2 group3 group4 setup
+.PHONY:	rsrc all group1 group2 group3 group4 license setup
 
-all:	check rsrc group1 group2 group3 group4 \
+all:	check rsrc group1 group2 group3 group4 license \
 	  $(PROJECT)/stm32f103c8t6.ld setup \
 	  $(PROJECT)/FreeRTOSConfig.h
 	@echo "****************************************************************"
@@ -119,6 +119,9 @@ group4:
 		portable.h semphr.h timers.h deprecated_definitions.h ; do \
 		cp $(FREERTOSDIR)/FreeRTOS/Source/include/$$f $(PROJRTOS)/. ; \
 	done
+
+license:
+	cp $(FREERTOSDIR)/FreeRTOS/License/license.txt $(PROJRTOS)/LICENSE
 
 # We don't use stm32f10x_lib.h because libopencm3 provides our device driver 
 # facilities. So we comment that line out of FreeRTOSConfig.h
