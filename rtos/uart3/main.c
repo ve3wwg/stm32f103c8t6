@@ -74,10 +74,17 @@ uart_task(void *args) {
 	for (;;) {
 		if ( (gc = getc_uart_nb(1)) != -1 ) {
 			puts_uart(1,"\r\n\nENTER INPUT: ");
-			kbuf[0] = ch = gc;
-			putc_uart(1,ch);
 
-			getline_uart(1,kbuf+1,sizeof kbuf-1);
+			ch = (char)gc;
+			if ( ch != '\r' && ch != '\n' ) {
+				/* Already received first character */
+				kbuf[0] = ch;
+				putc_uart(1,ch);
+				getline_uart(1,kbuf+1,sizeof kbuf-1);
+			} else	{
+				/* Read the entire line */
+				getline_uart(1,kbuf,sizeof kbuf);
+			}
 
 			puts_uart(1,"\r\nReceived input '");
 			puts_uart(1,kbuf);
@@ -118,6 +125,9 @@ demo_task(void *args) {
 		uart_puts("Now this is a message..\n\r");
 		uart_puts("  sent via FreeRTOS queues.\n\n\r");
 		vTaskDelay(pdMS_TO_TICKS(1000));
+		uart_puts("Just start typing to enter a line, or..\n\r"
+			"hit Enter first, then enter your input.\n\n\r");
+		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 }
 
