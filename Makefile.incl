@@ -66,11 +66,11 @@ LDLIBS		+= -L$(OPENCM3_DIR)/lib -lopencm3_stm32f1
 .SECONDEXPANSION:
 .SECONDARY:
 
-elf:	$(BINARY).elf
-bin:	$(BINARY).bin
-hex:	$(BINARY).hex
-srec:	$(BINARY).srec
-list:	$(BINARY).list
+elf:	$(DEPS) $(BINARY).elf
+bin:	$(DEPS) $(BINARY).bin
+hex:	$(DEPS) $(BINARY).hex
+srec:	$(DEPS) $(BINARY).srec
+list:	$(DEPS) $(BINARY).list
 
 # Define a helper macro for debugging make errors online
 # you can type "make print-OPENCM3_DIR" and it will show you
