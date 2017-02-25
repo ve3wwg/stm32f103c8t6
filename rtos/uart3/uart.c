@@ -41,7 +41,10 @@ gpio_setup(void) {
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_USART1_TX);
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO11);
+
 	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO_USART1_RX);
+	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO12);
 }
 
 /*********************************************************************
@@ -51,32 +54,7 @@ gpio_setup(void) {
 static void
 uart_setup(void) {
 
-	open_usart(USART1,38400,"8N1","rw",0,0);
-#if 0
-	/*************************************************************
-	 *	RX:	A9  <====> TX of TTL serial
-	 *	TX:	A10 <====> RX of TTL serial
-	 *	CTS:	A11 (not used)
-	 *	RTS:	A12 (not used)
-	 *	Baud:	38400
-	 * Caution:
-	 *	Not all GPIO pins are 5V tolerant, so be careful to
-	 *	get the wiring correct.
-	 *************************************************************/
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_USART1);
-
-	/* GPIO_USART1_TX/GPIO13 on GPIO port A for tx */
-	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_USART1_TX);
-
-	usart_set_baudrate(USART1,38400);
-	usart_set_databits(USART1,8);
-	usart_set_stopbits(USART1,USART_STOPBITS_1);
-	usart_set_mode(USART1,USART_MODE_TX);
-	usart_set_parity(USART1,USART_PARITY_NONE);
-	usart_set_flow_control(USART1,USART_FLOWCONTROL_NONE);
-	usart_enable(USART1);
-#endif
+	open_usart(USART1,38400,"8N1","rw",1,1);
 
 	/*************************************************************
 	 * Create a queue for data to transmit from UART
