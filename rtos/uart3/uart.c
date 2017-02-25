@@ -13,7 +13,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 
-#include "usartlib.h"
+#include "uartlib.h"
 
 #define mainECHO_TASK_PRIORITY				( tskIDLE_PRIORITY + 1 )
 
@@ -54,7 +54,7 @@ gpio_setup(void) {
 static void
 uart_setup(void) {
 
-	open_usart(USART1,38400,"8N1","rw",1,1);
+	open_uart(1,38400,"8N1","rw",1,1);
 
 	/*************************************************************
 	 * Create a queue for data to transmit from UART
@@ -73,17 +73,19 @@ uart_task(void *args) {
 
 	(void)args;
 
+	puts_uart(1,"\n\ruart_task() has begun:\n\r");
+
 	for (;;) {
-		if ( (gc = getc_usart_nb(USART1)) != -1 ) {
+		if ( (gc = getc_uart_nb(1)) != -1 ) {
 			/* Echo input in <braces> */
-			putc_usart(USART1,'<');
-			putc_usart(USART1,gc);
-			putc_usart(USART1,'>');
+			putc_uart(1,'<');
+			putc_uart(1,gc);
+			putc_uart(1,'>');
 		}
 
 		/* Receive char to be TX */
 		if ( xQueueReceive(uart_txq,&ch,10) == pdPASS )
-			putc_usart(USART1,ch);
+			putc_uart(1,ch);
 		/* Toggle LED to show signs of life */
 		gpio_toggle(GPIOC,GPIO13);
 	}
