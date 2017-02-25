@@ -5,8 +5,8 @@
 BINARY		= uart
 SRCFILES	= uart.c uartlib.c rtos/heap_4.c rtos/list.c rtos/port.c rtos/queue.c rtos/tasks.c rtos/opencm3.c
 LDSCRIPT	= stm32f103c8t6.ld
-
-# start: elf bin
+DEPS		= uartlib.c uartlib.h
+CLOBBER 	+= uartlib.h uartlib.c
 
 include ../../Makefile.incl
 include ../Makefile.rtos
@@ -19,7 +19,6 @@ uartlib.h: ../libwwg/uartlib.h
 
 uartlib.o: uartlib.h
 
-CLOBBER += uartlib.h uartlib.c
 
 ######################################################################
 #  NOTES:
