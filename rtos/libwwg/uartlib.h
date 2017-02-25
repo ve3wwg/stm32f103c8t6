@@ -29,6 +29,8 @@ void write_uart(uint32_t uartno,const char *buf,uint32_t size); /* blocking */
 void puts_uart(uint32_t uartno,const char *buf);		/* blocking */
 int getc_uart_nb(uint32_t uartno);				/* non-blocking */
 char getc_uart(uint32_t uartno);				/* blocking */
+int getline_uart(uint32_t uartno,char *buf,uint32_t bufsiz);	/* blocking */
+
 
 #endif // UARTLIB_H
 
