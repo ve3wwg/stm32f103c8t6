@@ -1,7 +1,6 @@
 /* Interrupt driven USART Library
  * Warren W. Gay VE3WWG		Tue Feb 21 20:35:54 2017
  */
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,17 +15,19 @@
 
 #include "usartlib.h"
 
-#define IRQ_PRIORITY 	4
+/*********************************************************************
+ * Receive buffers
+ *********************************************************************/
 
 #define USART_BUF_DEPTH	32
 
 struct s_usart {
-	uint32_t	usart;					/* Reference USART1, 2 or 3 */
 	uint16_t	head;					/* Buffer head index (pop) */
 	uint16_t	tail;					/* Buffer tail index (push) */
 	uint8_t		buf[USART_BUF_DEPTH];			/* Circular receive buffer */
 };
 
+static const uint32_t usarts[3] = { USART1, USART2, USART3 };
 static struct s_usart *usart_data[3] = { 0, 0, 0 };
 
 /*********************************************************************
@@ -34,21 +35,22 @@ static struct s_usart *usart_data[3] = { 0, 0, 0 };
  *********************************************************************/
 
 static void
-usart_common_isr(struct s_usart *usartp) {
-	uint32_t usart, ntail;
-	char ch;
+usart_common_isr(unsigned ux) {
+	struct s_usart *usartp = usart_data[ux];		/* Access USART's buffer */
+	uint32_t usart = usarts[ux];				/* Lookup USART address */
+	uint32_t ntail;						/* Next tail index */
+	char ch;						/* Read data byte */
 
 	if ( !usartp )
-		return;
-	usart = usartp->usart;
+		return;						/* Not open for ISR receiving! */
 
 	while ( USART_SR(usart) & USART_SR_RXNE ) {		/* Read status */
 		ch = USART_DR(usart);				/* Read data */
 		ntail = (usartp->tail + 1) % USART_BUF_DEPTH;	/* Calc next tail index */
 
 		/* Save data if the buffer is not full */
-		if ( ntail != usartp->head ) {
-			usartp->buf[usartp->tail] = ch;		/* Stow into buffer */
+		if ( ntail != usartp->head ) {			/* Not full? */
+			usartp->buf[usartp->tail] = ch;		/* No, stow into buffer */
 			usartp->tail = ntail;			/* Advance tail index */
 		}
 	}
@@ -56,17 +58,17 @@ usart_common_isr(struct s_usart *usartp) {
 
 void
 usart1_isr(void) {
-	usart_common_isr(usart_data[0]);
+	usart_common_isr(0);
 }
 
 void
 usart2_isr(void) {
-	usart_common_isr(usart_data[1]);
+	usart_common_isr(1);
 }
 
 void
 usart3_isr(void) {
-	usart_common_isr(usart_data[2]);
+	usart_common_isr(2);
 }
 
 /*********************************************************************
@@ -165,7 +167,6 @@ open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts
 	if ( rxintf ) {
 		if ( usart_data[ux] == 0 )
 			usart_data[ux] = malloc(sizeof(struct s_usart));
-		usart_data[ux]->usart = usart;
 		usart_data[ux]->head = 	usart_data[ux]->tail = 0;
 	}	
 
@@ -196,10 +197,6 @@ open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts
 
 	nvic_enable_irq(irq);
 	usart_enable(usart);
-
-//	nvic_set_priority(irq,IRQ_PRIORITY);
-//	nvic_set_priority(irq,0);
-//	nvic_clear_pending_irq(irq);
 	usart_enable_rx_interrupt(usart);
 
 	return 0;		/* Success */
@@ -266,7 +263,7 @@ find_usart(uint32_t usart,int *ux) {
 
 	for ( x=0; x<3; ++x ) {
 		*ux = x;
-		if ( usart_data[x]->usart == usart )
+		if ( usarts[x] == usart )
 			return usart_data[x];
 	}
 	return 0;
