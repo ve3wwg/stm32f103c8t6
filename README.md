@@ -47,10 +47,17 @@ FreeRTOS (and libopencm3).
             |- Makefile.rtos    Rules for rtos project builds
             |- src/
                 |- *            Files used for project creastion
+            |- libwwg
+                |- uartlib.c    Shared library routines..
+                |- uartlib.h    etc..
             |- blinky           Test FreeRTOS project
                 |- *            Blinky project related files
                 |- rtos
                     |- *        RTOS Support files for blinky
+            |- uart3            Another project..
+                |- *
+                |- rtos
+                    |- *        etc.
         
 PREREQUISITES:
 --------------
