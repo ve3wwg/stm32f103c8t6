@@ -92,8 +92,8 @@ PREREQUISITES:
         to match, or use the shell: export FREERTOS=whatever
     
     4.  Do NOT compile FreeRTOS, since portions of it will be copied
-        to your project subdirectory for further optional
-        customization.
+        to your project subdirectory for further customization. Each
+        project is capable of running a different FreeRTOS configuration.
 
 TEST EXAMPLES:
 --------------
