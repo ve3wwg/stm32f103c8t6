@@ -7,7 +7,7 @@
 int open_usart(uint32_t usart,uint32_t baud,const char *cfg,const char *mode,int rts,int cts);
 void close_usart(uint32_t usart);
 
-int put_usart_nb(uint32_t usart,char ch);			/* non-blocking */
+int putc_usart_nb(uint32_t usart,char ch);			/* non-blocking */
 void putc_usart(uint32_t usart,char ch);			/* blocking */
 void write_usart(uint32_t usart,const char *buf,uint32_t size); /* blocking */
 void puts_usart(uint32_t usart,const char *buf);		/* blocking */
