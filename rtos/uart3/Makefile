@@ -11,6 +11,8 @@ LDSCRIPT	= stm32f103c8t6.ld
 include ../../Makefile.incl
 include ../Makefile.rtos
 
+usartlib.o: usartlib.h
+
 ######################################################################
 #  NOTES:
 #
