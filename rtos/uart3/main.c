@@ -1,7 +1,7 @@
 /* Task based UART demo, using queued communication and
  * non-blocking I/O call.
  *
- * 38400 baud, 8N1, no flow control.
+ * 115200 baud, 8N1, rts/cts flow control.
  */
 #include <string.h>
 
@@ -54,11 +54,7 @@ gpio_setup(void) {
 static void
 uart_setup(void) {
 
-	open_uart(1,38400,"8N1","rw",1,1);
-
-	/*************************************************************
-	 * Create a queue for data to transmit from UART
-	 *************************************************************/
+	open_uart(1,115200,"8N1","rw",1,1);
 	uart_txq = xQueueCreate(256,sizeof(char));
 }
 
@@ -69,18 +65,23 @@ uart_setup(void) {
 static void
 uart_task(void *args) {
 	int gc;
-	char ch;
-
+	char kbuf[256], ch;
+	
 	(void)args;
 
 	puts_uart(1,"\n\ruart_task() has begun:\n\r");
 
 	for (;;) {
 		if ( (gc = getc_uart_nb(1)) != -1 ) {
-			/* Echo input in <braces> */
-			putc_uart(1,'<');
-			putc_uart(1,gc);
-			putc_uart(1,'>');
+			puts_uart(1,"\r\n\nENTER INPUT: ");
+			kbuf[0] = ch = gc;
+			putc_uart(1,ch);
+
+			getline_uart(1,kbuf+1,sizeof kbuf-1);
+
+			puts_uart(1,"\r\nReceived input '");
+			puts_uart(1,kbuf);
+			puts_uart(1,"'\n\r\nResuming prints...\n\r");
 		}
 
 		/* Receive char to be TX */
@@ -130,7 +131,7 @@ main(void) {
 	gpio_setup();
 	uart_setup();
 
-	xTaskCreate(uart_task,"UART",100,NULL,configMAX_PRIORITIES-1,NULL);	/* Highest priority */
+	xTaskCreate(uart_task,"UART",200,NULL,configMAX_PRIORITIES-1,NULL);	/* Highest priority */
 	xTaskCreate(demo_task,"DEMO",100,NULL,configMAX_PRIORITIES-2,NULL);	/* Lower priority */
 
 	vTaskStartScheduler();

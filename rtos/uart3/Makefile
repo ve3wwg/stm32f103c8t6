@@ -2,8 +2,8 @@
 #  Project Makefile
 ######################################################################
 
-BINARY		= uart
-SRCFILES	= uart.c uartlib.c rtos/heap_4.c rtos/list.c rtos/port.c rtos/queue.c rtos/tasks.c rtos/opencm3.c
+BINARY		= main
+SRCFILES	= main.c uartlib.c rtos/heap_4.c rtos/list.c rtos/port.c rtos/queue.c rtos/tasks.c rtos/opencm3.c
 LDSCRIPT	= stm32f103c8t6.ld
 DEPS		= uartlib.c uartlib.h
 CLOBBER 	+= uartlib.h uartlib.c
