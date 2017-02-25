@@ -22,9 +22,9 @@
 #define USART_BUF_DEPTH	32
 
 struct s_uart {
-	uint16_t	head;					/* Buffer head index (pop) */
-	uint16_t	tail;					/* Buffer tail index (push) */
-	uint8_t		buf[USART_BUF_DEPTH];			/* Circular receive buffer */
+	volatile uint16_t head;			/* Buffer head index (pop) */
+	volatile uint16_t tail;			/* Buffer tail index (push) */
+	uint8_t		buf[USART_BUF_DEPTH];	/* Circular receive buffer */
 };
 
 struct s_uart_info {
@@ -331,6 +331,38 @@ getc_uart(uint32_t uartno) {
 	while ( (rch = get_char(uptr)) == -1 )
 		taskYIELD();
 	return (char)rch;
+}
+
+/*********************************************************************
+ * Get cooked input line
+ *********************************************************************/
+
+int
+getline_uart(uint32_t uartno,char *buf,uint32_t bufsiz) {
+	uint32_t kx = 0;
+	char ch;
+
+	while ( kx + 1 < bufsiz ) {
+		ch = getc_uart(uartno);
+		if ( ch == '\r' || ch == '\n' )
+			break;
+
+		switch ( ch ) {
+		case '\b':	/* Backspace */
+		case 0x7F: 	/* DEL/Rubout */
+			if ( kx > 0 ) {
+				puts_uart(uartno,"\b \b");
+				--kx;
+			}
+			break;
+		default:
+			putc_uart(uartno,ch);
+			buf[kx++] = ch;
+		}
+	}
+
+	buf[kx] = 0;
+	return kx;
 }
 
 /*********************************************************************
