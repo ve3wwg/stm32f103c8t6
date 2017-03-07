@@ -104,6 +104,26 @@ uart_puts(const char *s) {
 		xQueueSend(uart_txq,s,portMAX_DELAY); /* blocks when queue is full */
 }
 
+static void
+put_rccmsg(void) {
+	uint32_t rcc = RCC_CFGR;
+	int x, n;
+	char s[2];
+	s[1] = 0;
+	
+	uart_puts("0x");
+	for ( x=0; x<8; ++x ) {
+		n = (rcc & 0xF0000000) >> 28;
+		rcc <<= 4;
+		if ( n <= 9 )
+			n += '0';
+		else	n = n - 10 + 'A';
+		s[0] = n;
+		uart_puts(s);
+	}
+	uart_puts(";\r\n");
+}
+
 /*********************************************************************
  * Demo Task:
  *	Simply queues up two line messages to be TX, one seconds
@@ -118,6 +138,7 @@ demo_task(void *args) {
 	for (;;) {
 		uart_puts("Now this is a message..\n\r");
 		uart_puts("  sent via FreeRTOS queues.\n\n\r");
+put_rccmsg();
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
