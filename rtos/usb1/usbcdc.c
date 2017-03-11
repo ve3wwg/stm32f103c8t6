@@ -25,6 +25,10 @@
 #include <libopencm3/usb/cdc.h>
 #include <libopencm3/cm3/scb.h>
 
+void blink(int times);
+void led(int on);
+static void sleep(int times);
+
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
@@ -190,6 +194,8 @@ cdcacm_control_request(
 	(void)buf;
 	(void)usbd_dev;
 
+blink(8);
+
 	switch (req->bRequest) {
 	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
 		/*
@@ -213,7 +219,7 @@ static void
 cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
 	(void)ep;
 
-//	gpio_toggle(GPIOC,GPIO13);
+blink(12);
 
 	char buf[64];
 	int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
@@ -227,7 +233,7 @@ static void
 cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 	(void)wValue;
 
-	gpio_toggle(GPIOC,GPIO13);
+blink(6);
 
 	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK,64,cdcacm_data_rx_cb);
 	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK,64,NULL);
@@ -240,52 +246,77 @@ cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 				cdcacm_control_request);
 }
 
+static void
+pause(void) {
+	int x;
+
+	for ( x=0; x<2000000; x++)
+		__asm__("nop");
+}
+
+static void
+sleep(int times) {
+
+	while ( times-- > 0 )
+		pause();
+}
+
+void
+blink(int times) {
+
+	while ( times-- > 0 ) {
+		gpio_clear(GPIOC,GPIO13);
+		pause();
+		gpio_set(GPIOC,GPIO13);
+		pause();
+	}
+	sleep(3);
+}
+
+void
+led(int on) {
+	if ( on )
+		gpio_clear(GPIOC,GPIO13);
+	else	gpio_set(GPIOC,GPIO13);
+}	
+
 int
 main(void) {
-	int i;
-	uint32_t data;
+	int x;
 	usbd_device *usbd_dev;
 
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_GPIOB);
-	rcc_periph_clock_enable(RCC_GPIOC);
-//	rcc_periph_clock_enable(RCC_OTGFS);
+	rcc_set_usbpre(RCC_CFGR_USBPRE_PLL_CLK_DIV1_5);	// 48 MHz
 
-	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11|GPIO12);
+	rcc_periph_clock_enable(RCC_GPIOA);
+	rcc_periph_clock_enable(RCC_GPIOC);
+
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11);
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO12);
+
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-//	rcc_clock_setup_in_hsi_out_48mhz();
-	rcc_periph_clock_enable(RCC_USB);
-	rcc_periph_clock_enable(RCC_AFIO);
 	rcc_periph_clock_enable(RCC_CRC);
+	rcc_periph_clock_enable(RCC_USB);
 
-//	AFIO_MAPR |= AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON;
+	rcc_periph_clock_enable(RCC_AHBENR_OTGFSEN);
+	rcc_periph_clock_enable(RCC_AHBENR_CRCEN);
 
-	/* Unmap JTAG Pins so we can reuse as GPIO */
-	data = AFIO_MAPR;
-	data &= ~AFIO_MAPR_SWJ_MASK;
-	data |= AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF;
-	AFIO_MAPR = data;
+	blink(5);
 
-
-#if 0
-//	gpio_mode_setup(GPIOA,GPIO_MODE_AF,GPIO_PUPD_NONE,GPIO9|GPIO11|GPIO12);	// ?
-//	gpio_set_af(GPIOA,GPIO_AF10,GPIO9|GPIO11|GPIO12);			// ?
+#if 1
+	gpio_set(GPIOA,GPIO11);
+	for (x = 0; x < 0x800000; x++)	// 800000 originally
+		__asm__("nop");
 #endif
-
-	gpio_clear(GPIOC,GPIO13);
-
-	usbd_dev = usbd_init(&otgfs_usb_driver,&dev,&config,
+	led(1);
+	usbd_dev = usbd_init(&stm32f107_usb_driver,&dev,&config,
 		usb_strings,3,
 		usbd_control_buffer,sizeof(usbd_control_buffer));
+	blink(3);
 
 	usbd_register_set_config_callback(usbd_dev,cdcacm_set_config);
-
-	for (i = 0; i < 0x800000; i++)
-		__asm__("nop");
-
-	gpio_set(GPIOC,GPIO13);
+	blink(4);
 
 	for (;;) {
 		usbd_poll(usbd_dev);
