@@ -290,29 +290,34 @@ main(void) {
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOC);
+	rcc_periph_clock_enable(RCC_APB1ENR);		// Needed?
+	rcc_periph_clock_enable(RCC_APB2ENR);		// Needed?
+	rcc_periph_clock_enable(RCC_APB2ENR_AFIOEN);	// Needed?
+	rcc_periph_clock_enable(RCC_AHBENR_OTGFSEN);
+	rcc_periph_clock_enable(RCC_AHBENR_CRCEN);
+
+	rcc_periph_clock_enable(RCC_CRC);
+	rcc_periph_clock_enable(RCC_USB);
 
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11);
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO12);
 
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	rcc_periph_clock_enable(RCC_CRC);
-	rcc_periph_clock_enable(RCC_USB);
-
-	rcc_periph_clock_enable(RCC_AHBENR_OTGFSEN);
-	rcc_periph_clock_enable(RCC_AHBENR_CRCEN);
-
 	blink(5);
 
-#if 1
+#if 0
 	gpio_set(GPIOA,GPIO11);
 	for (x = 0; x < 0x800000; x++)	// 800000 originally
 		__asm__("nop");
 #endif
-	led(1);
+	led(1); /* ok so far.. */
+
 	usbd_dev = usbd_init(&stm32f107_usb_driver,&dev,&config,
 		usb_strings,3,
 		usbd_control_buffer,sizeof(usbd_control_buffer));
+
+	/* Control never comes back here.. */
 	blink(3);
 
 	usbd_register_set_config_callback(usbd_dev,cdcacm_set_config);

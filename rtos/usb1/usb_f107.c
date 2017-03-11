@@ -62,13 +62,20 @@ const struct _usbd_driver stm32f107_usb_driver = {
 static usbd_device *stm32f107_usbd_init(void)
 {
 	rcc_periph_clock_enable(RCC_OTGFS);
+	/* Control gets to here ok.. */
+
 blink(2);
+
+	/* And then hangs here.. */
 	OTG_FS_GUSBCFG |= OTG_GUSBCFG_PHYSEL;
+
 blink(3);
 
 	/* Wait for AHB idle. */
 	while (!(OTG_FS_GRSTCTL & OTG_GRSTCTL_AHBIDL));
+
 blink(4);
+
 	/* Do core soft reset. */
 	OTG_FS_GRSTCTL |= OTG_GRSTCTL_CSRST;
 	while (OTG_FS_GRSTCTL & OTG_GRSTCTL_CSRST);
