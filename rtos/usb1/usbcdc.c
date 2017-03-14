@@ -1,4 +1,3 @@
-#warning Not yet working..
 /*
  * This file is part of the libopencm3 project.
  *
@@ -19,15 +18,24 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 #include <libopencm3/cm3/scb.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
 void blink(int times);
+void toggle(void);
 void led(int on);
 static void sleep(int times);
+
+static volatile bool initialized = false;
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -174,7 +182,7 @@ static const struct usb_config_descriptor config = {
 };
 
 static const char * usb_strings[] = {
-	"WG Black Sphere Technologies",
+	"Warren's experimental code",
 	"WG CDC-ACM Demo",
 	"WGDEMO",
 };
@@ -193,8 +201,6 @@ cdcacm_control_request(
 	(void)complete;
 	(void)buf;
 	(void)usbd_dev;
-
-blink(8);
 
 	switch (req->bRequest) {
 	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
@@ -219,13 +225,17 @@ static void
 cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
 	(void)ep;
 
-blink(12);
-
 	char buf[64];
 	int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
 
-	if (len) {
-		while (usbd_ep_write_packet(usbd_dev, 0x82, buf, len) == 0);
+	if ( len > 0 ) {
+		for ( int x=0; x<len; ++x )
+			if ( buf[x] >= 'a' && buf[x] <= 'z' )
+				buf[x] ^= 0x20;
+
+		while ( usbd_ep_write_packet(usbd_dev,0x82,buf,len) == 0 );
+	} else	{
+		while ( usbd_ep_write_packet(usbd_dev,0x82,"Hmmm..",6) == 0 );
 	}
 }
 
@@ -233,17 +243,17 @@ static void
 cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 	(void)wValue;
 
-blink(6);
-
-	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK,64,cdcacm_data_rx_cb);
-	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK,64,NULL);
-	usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+	usbd_ep_setup(usbd_dev,0x01,USB_ENDPOINT_ATTR_BULK,64,cdcacm_data_rx_cb);
+	usbd_ep_setup(usbd_dev,0x82,USB_ENDPOINT_ATTR_BULK,64,NULL);
+	usbd_ep_setup(usbd_dev,0x83,USB_ENDPOINT_ATTR_INTERRUPT,16,NULL);
 
 	usbd_register_control_callback(
-				usbd_dev,
-				USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-				USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-				cdcacm_control_request);
+		usbd_dev,
+		USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
+		USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+		cdcacm_control_request);
+
+	initialized = true;
 }
 
 static void
@@ -274,56 +284,73 @@ blink(int times) {
 }
 
 void
+toggle(void) {
+	gpio_toggle(GPIOC,GPIO13);
+}
+
+void
 led(int on) {
 	if ( on )
 		gpio_clear(GPIOC,GPIO13);
 	else	gpio_set(GPIOC,GPIO13);
 }	
 
+#if 0
+static void
+tx_task(void *arg) {
+	static const char msg[] = "Info from tx_task()\r\n";
+	int msglen = strlen(msg);
+	usbd_device *udev = (usbd_device *)arg;
+	
+	for (;;) {
+		while ( usbd_ep_write_packet(udev,0x82,msg,msglen) == 0 )
+			;
+		toggle();
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	}
+}
+#endif
+
+static void
+usb_task(void *arg) {
+	usbd_device *udev = (usbd_device *)arg;
+	int rc = 0;
+
+	for (;;) {
+		usbd_poll(udev);
+		if ( initialized ) {
+			if ( !rc )
+				rc = usbd_ep_write_packet(udev,0x82,"Hmm..",5);
+			else	rc = 0;
+		}
+	}
+}
+
 int
 main(void) {
-	int x;
-	usbd_device *usbd_dev;
+	usbd_device *udev = 0;
 
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
-	rcc_set_usbpre(RCC_CFGR_USBPRE_PLL_CLK_DIV1_5);	// 48 MHz
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOC);
-	rcc_periph_clock_enable(RCC_APB1ENR);		// Needed?
-	rcc_periph_clock_enable(RCC_APB2ENR);		// Needed?
-	rcc_periph_clock_enable(RCC_APB2ENR_AFIOEN);	// Needed?
-	rcc_periph_clock_enable(RCC_AHBENR_OTGFSEN);
-	rcc_periph_clock_enable(RCC_AHBENR_CRCEN);
-
 	rcc_periph_clock_enable(RCC_CRC);
 	rcc_periph_clock_enable(RCC_USB);
 
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11);
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO12);
-
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	blink(5);
-
-#if 0
-	gpio_set(GPIOA,GPIO11);
-	for (x = 0; x < 0x800000; x++)	// 800000 originally
-		__asm__("nop");
-#endif
-	led(1); /* ok so far.. */
-
-	usbd_dev = usbd_init(&stm32f107_usb_driver,&dev,&config,
+	udev = usbd_init(&st_usbfs_v1_usb_driver,&dev,&config,
 		usb_strings,3,
 		usbd_control_buffer,sizeof(usbd_control_buffer));
 
-	/* Control never comes back here.. */
-	blink(3);
+	usbd_register_set_config_callback(udev,cdcacm_set_config);
+	led(1); /* ok so far.. */
 
-	usbd_register_set_config_callback(usbd_dev,cdcacm_set_config);
-	blink(4);
+	xTaskCreate(usb_task,"USB",200,udev,configMAX_PRIORITIES-1,NULL);
+//	xTaskCreate(tx_task,"TX",200,udev,configMAX_PRIORITIES-1,NULL);
 
-	for (;;) {
-		usbd_poll(usbd_dev);
-	}
+	vTaskStartScheduler();
+	for (;;);
 }
