@@ -35,7 +35,8 @@ void toggle(void);
 void led(int on);
 static void sleep(int times);
 
-static volatile bool initialized = false;
+static volatile bool initialized = false;		// True when USB configured
+static QueueHandle_t usb_txq;				// USB transmit queue
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -295,33 +296,45 @@ led(int on) {
 	else	gpio_set(GPIOC,GPIO13);
 }	
 
-#if 0
+static void
+putch(char ch) {
+	xQueueSend(usb_txq,&ch,portMAX_DELAY); /* blocks when full */
+}
+
+static void
+putstr(const char *buf) {
+
+	while ( *buf )
+		putch(*buf++);
+}
+
 static void
 tx_task(void *arg) {
 	static const char msg[] = "Info from tx_task()\r\n";
-	int msglen = strlen(msg);
-	usbd_device *udev = (usbd_device *)arg;
 	
+	(void)arg;
+
 	for (;;) {
-		while ( usbd_ep_write_packet(udev,0x82,msg,msglen) == 0 )
-			;
+		putstr(msg);
 		toggle();
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
-#endif
 
 static void
 usb_task(void *arg) {
 	usbd_device *udev = (usbd_device *)arg;
-	int rc = 0;
+	char txbuf[32];
+	unsigned txlen = 0;
 
 	for (;;) {
 		usbd_poll(udev);
 		if ( initialized ) {
-			if ( !rc )
-				rc = usbd_ep_write_packet(udev,0x82,"Hmm..",5);
-			else	rc = 0;
+			while ( txlen < sizeof txbuf && xQueueReceive(usb_txq,&txbuf[txlen],0) == pdPASS )
+				++txlen;
+			if ( txlen > 0 && usbd_ep_write_packet(udev,0x82,txbuf,txlen) != 0 )
+				txlen = 0;
+			else	taskYIELD();
 		}
 	}
 }
@@ -348,8 +361,10 @@ main(void) {
 	usbd_register_set_config_callback(udev,cdcacm_set_config);
 	led(1); /* ok so far.. */
 
+	usb_txq = xQueueCreate(256,sizeof(char));
+
 	xTaskCreate(usb_task,"USB",200,udev,configMAX_PRIORITIES-1,NULL);
-//	xTaskCreate(tx_task,"TX",200,udev,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(tx_task,"TX",200,udev,configMAX_PRIORITIES-1,NULL);
 
 	vTaskStartScheduler();
 	for (;;);
