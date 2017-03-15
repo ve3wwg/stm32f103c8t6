@@ -1,5 +1,5 @@
-/*
- * This file is part of the libopencm3 project.
+/* This module was cloned and modified, from the libopencm3 project
+ * with the original code written by:
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  *
@@ -15,11 +15,17 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * MODIFICATIONS:
+ * --------------
+ *
+ *	The FreeRTOS modifications are by Warren Gay VE3WWG,
+ *	Tue Mar 14 20:36:30 2017
  */
-
 #include <stdlib.h>
 #include <string.h>
 
+#include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/usb/usbd.h>
@@ -37,6 +43,7 @@ static void sleep(int times);
 
 static volatile bool initialized = false;		// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
+static QueueHandle_t usb_rxq;				// USB receive queue
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -183,7 +190,7 @@ static const struct usb_config_descriptor config = {
 };
 
 static const char * usb_strings[] = {
-	"Warren's experimental code",
+	"Warren's experimental demo",
 	"WG CDC-ACM Demo",
 	"WGDEMO",
 };
@@ -224,20 +231,20 @@ cdcacm_control_request(
 
 static void
 cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
+	unsigned rx_avail = uxQueueSpacesAvailable(usb_rxq);	/* How much queue capacity left? */
+	char buf[64];						/* rx buffer */
+	int len, x;
+
 	(void)ep;
 
-	char buf[64];
-	int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
+	if ( rx_avail <= 0 )
+		return;						/* No space to rx */
 
-	if ( len > 0 ) {
-		for ( int x=0; x<len; ++x )
-			if ( buf[x] >= 'a' && buf[x] <= 'z' )
-				buf[x] ^= 0x20;
+	len = sizeof buf < rx_avail ? sizeof buf : rx_avail;	/* Bytes to read */
+	len = usbd_ep_read_packet(usbd_dev,0x01,buf,len);	/* Read what we can, leave the rest */
 
-		while ( usbd_ep_write_packet(usbd_dev,0x82,buf,len) == 0 );
-	} else	{
-		while ( usbd_ep_write_packet(usbd_dev,0x82,"Hmmm..",6) == 0 );
-	}
+	for ( x=0; x<len; ++x )
+		xQueueSend(usb_rxq,&buf[x],0);			/* Send data to the rx queue */
 }
 
 static void
@@ -255,6 +262,30 @@ cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 		cdcacm_control_request);
 
 	initialized = true;
+}
+
+/*
+ * USB Driver task:
+ */
+static void
+usb_task(void *arg) {
+	usbd_device *udev = (usbd_device *)arg;
+	char txbuf[32];
+	unsigned txlen = 0;
+
+	for (;;) {
+		usbd_poll(udev);			/* Allow driver to do it's thing */
+		if ( initialized ) {
+			while ( txlen < sizeof txbuf && xQueueReceive(usb_txq,&txbuf[txlen],0) == pdPASS )
+				++txlen;		/* Read data to be sent */
+			if ( txlen > 0 ) {
+				if ( usbd_ep_write_packet(udev,0x82,txbuf,txlen) != 0 )
+					txlen = 0;	/* Reset if data sent ok */
+			} else	{
+				taskYIELD();		/* Then give up CPU */
+			}
+		}
+	}
 }
 
 static void
@@ -298,6 +329,7 @@ led(int on) {
 
 static void
 putch(char ch) {
+
 	xQueueSend(usb_txq,&ch,portMAX_DELAY); /* blocks when full */
 }
 
@@ -308,40 +340,35 @@ putstr(const char *buf) {
 		putch(*buf++);
 }
 
+/*
+ * I/O Task:
+ */
 static void
-tx_task(void *arg) {
-	static const char msg[] = "Info from tx_task()\r\n";
+rxtx_task(void *arg) {
+	char ch;
 	
 	(void)arg;
+	while ( !initialized )
+		taskYIELD();
 
 	for (;;) {
-		putstr(msg);
-		toggle();
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		if ( xQueueReceive(usb_rxq,&ch,0) == pdPASS ) {
+			/* Invert case to show we processed the data */
+			if ( ( ch >= 'A' && ch <= 'Z' ) || ( ch >= 'a' && ch <= 'z' ) )
+				ch ^= 0x20;
+			putch(ch);
+		} else	taskYIELD();
 	}
 }
 
-static void
-usb_task(void *arg) {
-	usbd_device *udev = (usbd_device *)arg;
-	char txbuf[32];
-	unsigned txlen = 0;
-
-	for (;;) {
-		usbd_poll(udev);
-		if ( initialized ) {
-			while ( txlen < sizeof txbuf && xQueueReceive(usb_txq,&txbuf[txlen],0) == pdPASS )
-				++txlen;
-			if ( txlen > 0 && usbd_ep_write_packet(udev,0x82,txbuf,txlen) != 0 )
-				txlen = 0;
-			else	taskYIELD();
-		}
-	}
-}
-
+/*
+ * Main program: Device initialization etc.
+ */
 int
 main(void) {
 	usbd_device *udev = 0;
+
+	SCB_CCR &= ~SCB_CCR_UNALIGN_TRP;		// Make sure alignment is not enabled
 
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
 
@@ -359,12 +386,12 @@ main(void) {
 		usbd_control_buffer,sizeof(usbd_control_buffer));
 
 	usbd_register_set_config_callback(udev,cdcacm_set_config);
-	led(1); /* ok so far.. */
 
-	usb_txq = xQueueCreate(256,sizeof(char));
+	usb_txq = xQueueCreate(128,sizeof(char));
+	usb_rxq = xQueueCreate(128,sizeof(char));
 
 	xTaskCreate(usb_task,"USB",200,udev,configMAX_PRIORITIES-1,NULL);
-	xTaskCreate(tx_task,"TX",200,udev,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(rxtx_task,"RXTX",200,udev,configMAX_PRIORITIES-1,NULL);
 
 	vTaskStartScheduler();
 	for (;;);
