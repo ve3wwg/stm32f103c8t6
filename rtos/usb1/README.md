@@ -1,10 +1,13 @@
-This demo now enumerates and appears as a serial device under MacOS. It
-should also work for Linux and Windows.
+NOTES:
+------
 
-This program will report the message:
+This is a demo of a USB CDC device for the STM32F103C8T6 (tested under
+MacOS). Any input data that is alphabetic, will be echoed back with 
+the case inverted: lower case becomes upper and vice versa. All other
+input data is echoed back to the terminal as is.
 
-    Info from tx_task()
-
-one seconds apart. Any alpha characters typed will be uppercased and
-echoed back.
-
+This demo performs data flow control, but not reading the USB device
+when input capacity has been reached (FreeRTOS rx queue is full). Once
+the rxtx_task() has caught up, the remaining input will be read without
+data loss. An easy way to test this is to paste text into your terminal
+window (minicom etc.)
