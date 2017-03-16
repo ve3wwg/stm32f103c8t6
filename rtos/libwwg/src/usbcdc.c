@@ -17,10 +17,12 @@
 #include "queue.h"
 
 #include "usbcdc.h"
+#include "miniprintf.h"
 
 static volatile char initialized = 0;			// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
 static QueueHandle_t usb_rxq;				// USB receive queue
+static volatile char cooked_mode = 1;			// True when using "cooked mode"
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -266,13 +268,18 @@ usb_task(void *arg) {
 }
 
 /*
- * Put character to USB:
+ * Put character to USB (blocks):
  */
 void
 usb_putch(char ch) {
+	static const char cr = '\r';
+
 	while ( !usb_ready() )
 		taskYIELD();
-	xQueueSend(usb_txq,&ch,portMAX_DELAY); /* blocks when full */
+
+	if ( cooked_mode && ch == '\n' )
+		xQueueSend(usb_txq,&cr,portMAX_DELAY);
+	xQueueSend(usb_txq,&ch,portMAX_DELAY);
 }
 
 /*
@@ -283,6 +290,20 @@ usb_puts(const char *buf) {
 
 	while ( *buf )
 		usb_putch(*buf++);
+}
+
+/*
+ * Printf to USB:
+ */
+int
+usb_printf(const char *format,...) {
+	int rc;
+	va_list args;
+
+	va_start(args,format);
+	rc = mini_vprintf_uncooked(usb_putch,format,args);
+	va_end(args);
+	return rc;
 }
 
 /*
@@ -392,6 +413,20 @@ usb_start(bool gpio_init) {
 	xTaskCreate(usb_task,"USB",200,udev,configMAX_PRIORITIES-1,NULL);
 }
 
+/*
+ * Enable/Disable cooked mode ('\n' becomes "\r\n"):
+ */
+int
+usb_set_cooked(int cooked) {
+	int rc = cooked_mode;
+
+	cooked_mode = !!cooked;
+	return rc;
+}
+
+/*
+ * Return True if the USB connection + driver initialized and ready.
+ */
 int
 usb_ready(void) {
 	return initialized;
