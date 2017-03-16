@@ -42,6 +42,7 @@ TGT_CFLAGS	+= -Wextra -Wshadow -Wimplicit-function-declaration
 TGT_CFLAGS	+= -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
 TGT_CFLAGS	+= -fno-common -ffunction-sections -fdata-sections
 TGT_CFLAGS	+= -I$(OPENCM3_DIR)/include
+TGT_CFLAGS	+= -I$(TOP_DIR)/rtos/libwwg/include
 
 TGT_CXXFLAGS	+= $(OPT) $(CXXSTD)
 TGT_CXXFLAGS	+= $(ARCH_FLAGS)
@@ -52,6 +53,7 @@ TGT_CPPFLAGS	+= -MD
 TGT_CPPFLAGS	+= -Wall -Wundef
 TGT_CPPFLAGS	+= $(DEFS)
 TGT_CPPFLAGS	+= -I$(OPENCM3_DIR)/include
+TGT_CPPFLAGS	+= -I$(TOP_DIR)/rtos/libwwg/include
 
 TGT_LDFLAGS	+= --static -nostartfiles
 TGT_LDFLAGS	+= -T$(LDSCRIPT)
@@ -60,6 +62,7 @@ TGT_LDFLAGS	+= -Wl,-Map=$(*).map
 TGT_LDFLAGS	+= -Wl,--gc-sections
 
 LDLIBS		+= -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
+LDLIBS		+= -L$(TOP_DIR)/rtos/libwwg -lwwg
 LDLIBS		+= -L$(OPENCM3_DIR)/lib -lopencm3_stm32f1
 
 .SUFFIXES:	.elf .bin .hex .srec .list .map .images
