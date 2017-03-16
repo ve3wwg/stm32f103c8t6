@@ -48,8 +48,10 @@ FreeRTOS (and libopencm3).
             |- src/
                 |- *            Files used for project creastion
             |- libwwg
-                |- uartlib.c    Shared library routines..
-                |- uartlib.h    etc..
+                |- Makefile
+                |- include/*.h
+                |- src/*.c
+                |- libwwg.a
             |- blinky           Test FreeRTOS project
                 |- *            Blinky project related files
                 |- rtos
@@ -57,7 +59,9 @@ FreeRTOS (and libopencm3).
             |- uart3            Another project..
                 |- *
                 |- rtos
-                    |- *        etc.
+                    |- *
+            |- usbcdc           USB CDC Demo
+                |- etc.
         
 PREREQUISITES:
 --------------
