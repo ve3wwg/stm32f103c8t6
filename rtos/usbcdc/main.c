@@ -32,9 +32,13 @@ rxtx_task(void *arg) {
 	for (;;) {
 		ch = usb_getch();
 		gpio_toggle(GPIOC,GPIO13);
-		if ( ( ch >= 'A' && ch <= 'Z' ) || ( ch >= 'a' && ch <= 'z' ) )
-			ch ^= 0x20;
-		usb_putch(ch);
+		if ( ch < ' ' && ch != '\r' && ch != '\n' ) {
+			usb_printf("^%c (0x%02X)\n",ch+'@',ch);
+		} else	{
+			if ( ( ch >= 'A' && ch <= 'Z' ) || ( ch >= 'a' && ch <= 'z' ) )
+				ch ^= 0x20;
+			usb_putch(ch);
+		}
 	}
 }
 
