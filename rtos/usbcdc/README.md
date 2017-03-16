@@ -4,7 +4,9 @@ NOTES:
 This is a demo of a USB CDC device for the STM32F103C8T6 (tested using
 MacOS). Any input data that is alphabetic, will be echoed back with 
 the case inverted: lower case becomes upper and vice versa. All other
-input data is echoed back to the terminal as is.
+input data is echoed back to the terminal as is (except for control
+characters that are printed as "^X (0xXX)", to test out the 
+usb_printf() command.
 
 This demo performs data flow control, by not reading the USB device
 when input capacity has been reached (FreeRTOS rx queue is full). Once
