@@ -9,9 +9,11 @@
 
 extern void usb_start(bool gpio_init);
 extern int usb_ready(void);
+extern int usb_set_cooked(int cooked);
 
 extern void usb_putch(char ch);
 extern void usb_puts(const char *buf);
+extern int usb_printf(const char *format,...);
 
 extern int usb_getch(void);
 extern int usb_peek(void);
