@@ -25,3 +25,9 @@ uart2
 This demo makes use of a FreeRTOS queue, which allows a 
 task to queue up characters to be sent from the UART. The
 serial parameters are 38400, 8N1 with no flow control.
+
+usbcdc
+------
+
+This demo uses the USB peripheral to communicate as if it 
+were a serial port.
