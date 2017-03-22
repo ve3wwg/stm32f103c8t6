@@ -2,3 +2,6 @@
 	path = libopencm3
 	url = https://github.com/libopencm3/libopencm3.git
 
+[submodule "stlink"]
+	path = stlink
+	url = git@github.com:ve3wwg/stlink.git
