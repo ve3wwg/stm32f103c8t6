@@ -1,0 +1,25 @@
+######################################################################
+#  Makefile settings
+######################################################################
+
+TOPDIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
+
+INCL	   = -I. -I/usr/local/include
+OPTZ	   = -g -O0 $(DEFNS)
+DEFNS	   = $(NDEBUG)
+CXXOPTS	   = $(OPTZ) $(INCL) -std=c++11
+COPTS	   = $(OPTZ) $(INCL)
+
+LDFLAGS	   = -L/usr/local/lib -lusb
+
+CXX	= g++ -Wall $(CXXOPTS)
+CC	= gcc -Wall $(COPTS)
+AR	= ar
+
+.cpp.o:
+	$(CXX) -c $(COPTS) $< -o $@
+
+.c.o:
+	$(CC) -c $(COPTS) $< -o $@
+
+# End
