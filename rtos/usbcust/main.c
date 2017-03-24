@@ -49,14 +49,14 @@ static const struct usb_endpoint_descriptor data_endp[] = {
 		.bEndpointAddress = 0x01,		/* From Host */
 		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
 		.wMaxPacketSize = 64,
-		.bInterval = 0,
+		.bInterval = 1,
 	}, {
 		.bLength = USB_DT_ENDPOINT_SIZE,
 		.bDescriptorType = USB_DT_ENDPOINT,
 		.bEndpointAddress = 0x82,		/* To Host */
 		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
 		.wMaxPacketSize = 64,
-		.bInterval = 0,
+		.bInterval = 1,
 	}
 };
 
@@ -65,7 +65,7 @@ static const struct usb_interface_descriptor iface = {
 	.bDescriptorType = USB_DT_INTERFACE,
 	.bInterfaceNumber = 0,
 	.bAlternateSetting = 0,
-	.bNumEndpoints = 0,
+	.bNumEndpoints = 2,
 	.bInterfaceClass = 0xFF,
 	.bInterfaceSubClass = 0,
 	.bInterfaceProtocol = 0,
@@ -78,7 +78,7 @@ static const struct usb_interface_descriptor data_iface[] = {
 		.bDescriptorType = USB_DT_INTERFACE,
 		.bInterfaceNumber = 0,
 		.bAlternateSetting = 0,
-		.bNumEndpoints = 0,
+		.bNumEndpoints = 2,
 		.bInterfaceClass = 0xFF,
 		.bInterfaceSubClass = 0,
 		.bInterfaceProtocol = 0,
@@ -129,15 +129,15 @@ custom_control_request(
 	(void)usbd_dev;
 	(void)len;
 
-	gpio_set(GPIOC,GPIO13);
-
 	switch ( req->bRequest ) {
 	case USB_REQ_GET_STATUS:
 		return 1;
 	case USB_REQ_SET_FEATURE:
+#if 0
 		if ( req->wValue & 1 )
 			gpio_clear(GPIOC,GPIO13);
 		else	gpio_set(GPIOC,GPIO13);
+#endif
 		return 1;
 	default:
 		;
@@ -155,6 +155,7 @@ custom_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
 
 	len = sizeof buf;
 	len = usbd_ep_read_packet(usbd_dev,0x01,buf,len);	/* Read what we can, leave the rest */
+gpio_set(GPIOC,GPIO13);
 }
 
 static void
@@ -185,7 +186,7 @@ main(void) {
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11);
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO12);
 
-	led(0);
+	led(1);
 
 	udev = usbd_init(&st_usbfs_v1_usb_driver,&dev,&config,
 		usb_strings,3,
