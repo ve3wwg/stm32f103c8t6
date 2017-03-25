@@ -3,6 +3,7 @@
  * The LED on PC13 is toggled in task1.
  */
 #include <string.h>
+#include <ctype.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -133,11 +134,9 @@ custom_control_request(
 	case USB_REQ_GET_STATUS:
 		return 1;
 	case USB_REQ_SET_FEATURE:
-#if 0
 		if ( req->wValue & 1 )
 			gpio_clear(GPIOC,GPIO13);
 		else	gpio_set(GPIOC,GPIO13);
-#endif
 		return 1;
 	default:
 		;
@@ -148,14 +147,34 @@ custom_control_request(
 
 static void
 custom_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
-	char buf[64];						/* rx buffer */
-	int len;
+	static char in_rx = 0;
+	char buf[64], *bp;					/* rx buffer */
+	int len, x, ch;
 
-	(void)ep;
+	if ( in_rx > 0 )
+		return;						/* Avoid recursion */
+	++in_rx;
 
-	len = sizeof buf;
-	len = usbd_ep_read_packet(usbd_dev,0x01,buf,len);	/* Read what we can, leave the rest */
-gpio_set(GPIOC,GPIO13);
+	len = usbd_ep_read_packet(usbd_dev,ep,buf,sizeof buf);	/* Read what we can, leave the rest */
+
+	for ( x=0; x<len; ++x ) {
+		ch = buf[x];
+		if ( isalpha(ch) )
+			buf[x] ^= 0x20;				/* Swap case */
+	}
+
+	bp = buf;
+	do	{
+		x = usbd_ep_write_packet(usbd_dev,0x82,bp,len); /* Echo back to host with case inverted */
+		if ( x > 0 ) {
+			len -= x;
+			bp += x;
+		}
+		if ( x < len )
+			usbd_poll(usbd_dev);
+	} while ( len > 0 );
+
+	--in_rx;			
 }
 
 static void
