@@ -1,13 +1,19 @@
+//////////////////////////////////////////////////////////////////////
+// test1.cpp -- POSIX test program to exercise control and bulk ep
+// Date: Fri Mar 24 22:05:37 2017  (C) Warren W. Gay VE3WWG 
 ///////////////////////////////////////////////////////////////////////
 //
 // This test program:
 //
 //	1)  Enumerates devices and locates the Vendor and Product
-//	2)  Then opens the device
-//	3)  Turns off the remote device's LED (or on if active low)
-//	4)  Sleeps 2 seconds
-//	5)  Turns on the remote device's LED 
-//	6)  Closes and exits.
+//	2)  Opens the USB device
+//	3)  Claims interface 0
+//	4)  Turns on the remote device's LED
+//	5)  Sends three bulk messages and then
+//	6)  Receives the echoed messages (with case inverted)
+//	7)  Turns off the remote device's LED 
+//	8)  Releases usb interface
+//	9)  Closes usb interface
 //
 ///////////////////////////////////////////////////////////////////////
 
@@ -21,119 +27,122 @@
 
 #include <usb.h>
 
-// Device: 005 16c0:0001, manuf 1 (VE3WWG module)
-
-#define VEND_ID		0x16C0
+#define VEND_ID		0x16C0		// This is a V-USB vendor ID
 #define PROD_ID		0x0001
+
+static struct usb_device *usb_dev = 0;
+static struct usb_dev_handle *handle = 0;
+
+//////////////////////////////////////////////////////////////////////
+// Release interface and close USB device upon exit
+//////////////////////////////////////////////////////////////////////
+
+static void
+exit_cleanup() {
+
+	if ( handle ) {
+		usb_release_interface(handle,0);
+		usb_close(handle);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+// Main program: No command line arguments supported
+//////////////////////////////////////////////////////////////////////
 
 int
 main(int argc,char **argv) {
-	struct usb_bus *bus;
-	struct usb_device *dev, *usb_dev = 0;
-	int rc;
+	static const char *msg[] = { "Message One", "Message Two.", "Message Three" };
+	const char *p;
+	char rxbuf[65];
+	int rc, sent;
 
 	usb_init();             	// initialize libusb
-usb_set_debug(7);
+	usb_set_debug(7);		// useful when things don't work
+
+	//////////////////////////////////////////////////////////////
+	// Locate our USB device:  Set usb_dev when found.
+	//////////////////////////////////////////////////////////////
+
 	usb_find_busses();
 	usb_find_devices();
 
-	for ( bus=usb_get_busses(); bus && !usb_dev; bus=bus->next ) {
-		for( dev=bus->devices; dev && !usb_dev; dev=dev->next ) {
-			struct usb_device_descriptor& desc = dev->descriptor;
-#if 0
-			usb_dev_handle *dh = usb_open(dev);
-			char buf[50];
+	{
+		struct usb_bus *bus;
+		struct usb_device *dev;
 
-			if ( dh ) {
-				if ( usb_get_string_simple(dh,desc.iProduct,buf,sizeof buf) <= 0 )
-					strcpy(buf,"?");
-				usb_close(dh);
-				dh = 0;
-			} else	*buf = 0;
+		for ( bus=usb_get_busses(); bus && !usb_dev; bus=bus->next ) {
+			for( dev=bus->devices; dev && !usb_dev; dev=dev->next ) {
+				struct usb_device_descriptor& desc = dev->descriptor;
 
-			printf("Device: %s %04x:%04x, manuf %u (%s)\n",
-				dev->filename,
-				desc.idVendor,
-				desc.idProduct,
-				desc.iManufacturer,
-				buf);
-#endif
-			if ( desc.idVendor == VEND_ID && desc.idProduct == PROD_ID ) {
-#if 0
-				printf("  Device %s is the test USB device!\n",
-					dev->filename);
-#endif
-				usb_dev = dev;
+				if ( desc.idVendor == VEND_ID && desc.idProduct == PROD_ID )
+					usb_dev = dev;
 			}
 		}
 	}
 
 	if ( !usb_dev ) {
-		// Bail out if the device was not found:
-		fprintf(stderr,"USB device was not found.\n");
-		return 1;
+		fprintf(stderr,"USB device was not found (plugged in?).\n");
+		exit(1);
 	}
 
 	//////////////////////////////////////////////////////////////
-	// Open and communicate with the device
+	// Open USB device
 	//////////////////////////////////////////////////////////////
 
-	usb_dev_handle *handle = usb_open(usb_dev);
-
+	handle = usb_open(usb_dev);
 	if ( !handle ) {
-		fprintf(stderr,"Unable to open device.\n");
-		return 4;
+		fprintf(stderr,"Unable to open device: usb_open(%p)\n",usb_dev);
+		exit(2);
 	}
 
-	printf("USB Device opened..\n");
+	atexit(exit_cleanup);				// Close usb if we exit early
+
+	//////////////////////////////////////////////////////////////
+	// Choose configuration and claim interface:
+	//////////////////////////////////////////////////////////////
 
 	rc = usb_set_configuration(handle,1);
 	if ( rc )
-		printf("%s: rc=%d, usb_set_configuration(1)\n",strerror(-rc),rc);
+		fprintf(stderr,"%s: usb_set_configuration(1)\n",strerror(-rc));
 
-	rc = usb_claim_interface(handle,0);			// Claim it
-	if ( rc ) printf("%s: rc=%d, usb_claim_interface(0)\n",strerror(-rc),rc);
-
-	rc = usb_set_altinterface(handle,0);
-	if ( rc ) printf("%s: rc=%d, usb_set_altinterface(0)\n",strerror(-rc),rc);
+	rc = usb_claim_interface(handle,0);		// Claim interface # 0
+	if ( rc )
+		fprintf(stderr,"%s: usb_claim_interface(0)\n",strerror(-rc));;
 
 	//////////////////////////////////////////////////////////////
+	// Send a control message via endpoint 0:
+	//
 	// wValue and wIndex can be any application specific data,
 	// in addition to the data buffer (not used here). Here we
 	// set wValue = 0, to turn off the remove LED
 	//////////////////////////////////////////////////////////////
 
-	printf("Sending to Test device..\n");
-
-	int txbytes = usb_control_msg(
+	rc = usb_control_msg(
 		handle,
-		USB_TYPE_VENDOR|USB_RECIP_DEVICE|USB_ENDPOINT_OUT, // bRequestType
+		USB_TYPE_VENDOR|USB_RECIP_DEVICE|USB_ENDPOINT_OUT,
 		USB_REQ_SET_FEATURE,
 		1,	          	// wValue (LED on)
 		0, 	         	// wIndex
 		0,			// pointer to buffer containing data (no data here)
 		0,			// wLength (no data here)
-		1000			// timeout ms
+		100			// timeout ms
 	);
-
-	printf("Sent %d bytes: LED should be ON.\n",txbytes);
-
-	sleep(2);
+	if ( rc < 0 )
+		fprintf(stderr,"%s: usb_control_msg()\n",strerror(-rc));
+	else	printf("Sent control, %d bytes: LED is ON.\n",rc);
 
 	//////////////////////////////////////////////////////////////
-	// Test bulk endpoints, using simple synchronous calls:
+	// Bulk endpoint test:
 	//////////////////////////////////////////////////////////////
 
-	puts("Sending three bulk messages to be echoed back..");
-
-	static const char *msg[] = { "Message One", "Message Two.", "Message Three" };
-	const char *p;
-	char rxbuf[65];
-	int sent;
+	puts("\nSending three bulk messages to be echoed back..");
 
 	for ( int x=0; x<3; ++x ) {
+
+		// Send bulk message:
+
 		for ( p = msg[x]; p && *p; ) {
-			printf("usb_bulk_write()..\n");
 			rc = usb_bulk_write(
 				handle,
 				0x01,
@@ -143,8 +152,9 @@ usb_set_debug(7);
 			if ( rc >= 0 ) {
 				p += rc;
 			} else	{
-				printf("%s: rc = %d, usb_bulk_write()\n",strerror(-rc),rc);
-				exit(1);
+				fprintf(stderr,"%s: usb_bulk_write()\n",
+					strerror(-rc));
+				exit(3);
 			}
 		}
 		printf("#%d sent: '%s'\n",x,msg[x]);
@@ -163,17 +173,17 @@ usb_set_debug(7);
 				printf("Recv '%s' (%d)\n",rxbuf,rc);
 				sent -= rc;
 			} else	{
-				printf("%s: rc = %d, usb_bulk_read()\n",strerror(-rc),rc);
-				exit(2);
+				fprintf(stderr,"%s: usb_bulk_read()\n",strerror(-rc));
+				exit(4);
 			}			
 		}
 	}
 
 	//////////////////////////////////////////////////////////////
-	// Send wValue = 1 to turn on the remote LED
+	// Another control message to turn off LED:
 	//////////////////////////////////////////////////////////////
 
-	txbytes = usb_control_msg(
+	rc = usb_control_msg(
 		handle,
 		USB_TYPE_VENDOR|USB_RECIP_DEVICE|USB_ENDPOINT_OUT, // bRequestType
 		USB_REQ_SET_FEATURE,
@@ -184,16 +194,12 @@ usb_set_debug(7);
 		1000			// timeout ms
 	);
 
-	printf("Sent %d bytes: LED should be OFF again.\n",txbytes);
+	if ( rc < 0 )
+		fprintf(stderr,"%s: usb_control_msg()\n",strerror(-rc));
+	else	printf("\nSent control, %d bytes: LED is OFF.\n",rc);
 
-	//////////////////////////////////////////////////////////////
-	// Release the Text device
-	//////////////////////////////////////////////////////////////
-
-	usb_release_interface(handle,0);
-	usb_close(handle);
-
-	return 0;
+	return 0;			// cleanup_exit() will close
 }
 
-// End test2.cpp
+// End test1.cpp
+
