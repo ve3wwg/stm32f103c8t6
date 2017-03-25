@@ -14,8 +14,11 @@
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/usbstd.h>
+#include <libopencm3/stm32/st_usbfs.h>
 
-#define mainECHO_TASK_PRIORITY				( tskIDLE_PRIORITY + 1 )
+#define mainECHO_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
+
+static usbd_device *udev = NULL;	// USB Device
 
 extern void led(int on);
 
@@ -190,9 +193,21 @@ custom_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 		custom_control_request);
 }
 
+static void
+usb_task(void *arg) {
+	unsigned istr;
+	(void)arg;
+
+	for (;;) {
+		istr = *USB_ISTR_REG;
+		usbd_poll(udev);
+		if ( *USB_ISTR_REG == istr )
+			taskYIELD();
+	}
+}
+
 int
 main(void) {
-	usbd_device *udev = NULL;
 
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
 
@@ -213,14 +228,12 @@ main(void) {
 
 	usbd_register_set_config_callback(udev,custom_set_config);
 
-/*	vTaskStartScheduler(); */
+	xTaskCreate(usb_task,"USB",100,udev,configMAX_PRIORITIES-1,NULL);
+	vTaskStartScheduler();
 
-	for (;;) {
-		usbd_poll(udev);
-	}
 	for (;;)
 		;
 	return 0;
 }
 
-// End
+// End main.c
