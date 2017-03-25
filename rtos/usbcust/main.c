@@ -1,6 +1,9 @@
 /* SIMPLE LED task demo:
+ * Fri Mar 24 22:45:55 2017	Warren Gay Ve3WWG
  *
- * The LED on PC13 is toggled in task1.
+ * 1) The LED on PC13 is on/off by USB control messages.
+ * 2) Bulk endpoint messages are received (EP 0x01)
+ * 3) Case inverted message is echoed back on EP 0x82.
  */
 #include <string.h>
 #include <ctype.h>
@@ -117,7 +120,9 @@ static const char * usb_strings[] = {
 	"ve3wwg",
 };
 
-/* Buffer to be used for control requests. */
+/*
+ * Control Requests:
+ */
 uint8_t usbd_control_buffer[128];
 
 static int
@@ -136,10 +141,9 @@ custom_control_request(
 	switch ( req->bRequest ) {
 	case USB_REQ_GET_STATUS:
 		return 1;
+
 	case USB_REQ_SET_FEATURE:
-		if ( req->wValue & 1 )
-			gpio_clear(GPIOC,GPIO13);
-		else	gpio_set(GPIOC,GPIO13);
+		led(req->wValue&1);	// Set/reset LED
 		return 1;
 	default:
 		;
@@ -148,27 +152,33 @@ custom_control_request(
 	return 0;
 }
 
+/*
+ * Bulk receive callback:
+ */
 static void
-custom_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
-	static char in_rx = 0;
-	char buf[64], *bp;					/* rx buffer */
-	int len, x, ch;
+bulk_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
+	static char in_rx = 0;			// Nest count to avoid recursion
+	char buf[64], *bp;			// rx buffer & ptr
+	int len, x, ch;				// Received len..
 
 	if ( in_rx > 0 )
-		return;						/* Avoid recursion */
-	++in_rx;
+		return;				// Don't recurse
+	++in_rx;				// In rx cb..
 
-	len = usbd_ep_read_packet(usbd_dev,ep,buf,sizeof buf);	/* Read what we can, leave the rest */
+	// Read what we can, leave rest:
+	len = usbd_ep_read_packet(usbd_dev,ep,buf,sizeof buf);
 
+	// Invert case of message received:
 	for ( x=0; x<len; ++x ) {
 		ch = buf[x];
 		if ( isalpha(ch) )
-			buf[x] ^= 0x20;				/* Swap case */
+			buf[x] ^= 0x20;		// Invert case
 	}
 
+	// Echo back the message, until fully sent:
 	bp = buf;
 	do	{
-		x = usbd_ep_write_packet(usbd_dev,0x82,bp,len); /* Echo back to host with case inverted */
+		x = usbd_ep_write_packet(usbd_dev,0x82,bp,len);
 		if ( x > 0 ) {
 			len -= x;
 			bp += x;
@@ -177,14 +187,17 @@ custom_data_rx_cb(usbd_device *usbd_dev, uint8_t ep) {
 			usbd_poll(usbd_dev);
 	} while ( len > 0 );
 
-	--in_rx;			
+	--in_rx;				// Out of rx cb
 }
 
+/*
+ * Configure:
+ */
 static void
-custom_set_config(usbd_device *usbd_dev, uint16_t wValue) {
+set_config(usbd_device *usbd_dev, uint16_t wValue) {
 	(void)wValue;
 
-	usbd_ep_setup(usbd_dev,0x01,USB_ENDPOINT_ATTR_BULK,64,custom_data_rx_cb);
+	usbd_ep_setup(usbd_dev,0x01,USB_ENDPOINT_ATTR_BULK,64,bulk_rx_cb);
 	usbd_ep_setup(usbd_dev,0x82,USB_ENDPOINT_ATTR_BULK,64,NULL);
 	usbd_register_control_callback(
 		usbd_dev,
@@ -193,46 +206,53 @@ custom_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 		custom_control_request);
 }
 
+/*
+ * Poll any USB device events:
+ */
 static void
 usb_task(void *arg) {
 	unsigned istr;
 	(void)arg;
 
 	for (;;) {
-		istr = *USB_ISTR_REG;
-		usbd_poll(udev);
-		if ( *USB_ISTR_REG == istr )
-			taskYIELD();
+		istr = *USB_ISTR_REG;		// Capture USB interrupt flags
+		usbd_poll(udev);		// Handle interrupt flags
+		if ( *USB_ISTR_REG == istr )	// No change?
+			taskYIELD();		// No events, so safe to yeild
 	}
 }
 
+/*
+ * Main program:
+ */
 int
 main(void) {
 
-	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
+	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
+	// For LED on C13
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
+	// For USB:
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_CRC);
 	rcc_periph_clock_enable(RCC_USB);
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11);
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO12);
 
-	led(1);
+	led(0); // Turn off LED
 
 	udev = usbd_init(&st_usbfs_v1_usb_driver,&dev,&config,
 		usb_strings,3,
 		usbd_control_buffer,sizeof(usbd_control_buffer));
 
-	usbd_register_set_config_callback(udev,custom_set_config);
+	usbd_register_set_config_callback(udev,set_config);
 
 	xTaskCreate(usb_task,"USB",100,udev,configMAX_PRIORITIES-1,NULL);
 	vTaskStartScheduler();
 
-	for (;;)
-		;
+	for (;;);	// Should never get here
 	return 0;
 }
 
