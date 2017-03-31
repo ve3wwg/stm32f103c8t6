@@ -51,7 +51,7 @@ dump_reg(uint32_t reg,const char *descrip,struct bdesc *desc,int n) {
 	uint32_t v, mask, shiftr;
 	int x, w, tw, b;
 
-	usb_printf("  %10s: $%08X\n",descrip,reg);
+	usb_printf("  %12s: $%08X\n",descrip,reg);
 
 	usb_printf("  ");
 	for ( x=0; x<n; ++x ) {
@@ -136,9 +136,57 @@ dump_rcc(void) {
 		{ 3, 2, Binary, 3, "SWS" },
 		{ 1, 2, Binary, 2, "SW" }
 	};
+	static struct bdesc rcc_cir[] = {
+		{ 31, 8, Binary, 8, "res" },
+		{ 23, 1, Binary, 4, "CSSC" },
+		{ 22, 2, Binary, 3, "res" },
+		{ 20, 1, Binary, 7, "PLLRDYC" },
+		{ 19, 1, Binary, 7, "HSERDYC" },
+		{ 18, 1, Binary, 7, "HSIRDYC" },
+		{ 17, 1, Binary, 7, "LSERDYC" },
+		{ 16, 1, Binary, 7, "LSIRDYC" },
+		{ 15, 3, Binary, 3, "res" },
+		{ 12, 1, Binary, 8, "PLLRDYIE" },
+		{ 11, 1, Binary, 8, "HSERDYIE" },
+		{ 10, 1, Binary, 8, "HSIRDYIE" },
+		{ 9, 1, Binary, 8, "LSERDYIE" },
+		{ 8, 1, Binary, 8, "LSIRDYIE" },
+		{ 7, 1, Binary, 4, "CSSF" },
+		{ 6, 2, Binary, 3, "res" },
+		{ 4, 1, Binary, 7, "PLLRDYF" },
+		{ 3, 1, Binary, 7, "HSERDYF" },
+		{ 2, 1, Binary, 7, "HSIRDYF" },
+		{ 1, 1, Binary, 7, "LSERDYF" },
+		{ 0, 1, Binary, 7, "LSIRDYF" },
+	};
+	static struct bdesc rcc_apb2rstr[] = {
+		{ 31, 10, Binary, 10, "res" },
+		{ 21, 1, Binary, 8, "TIM11RST" },
+		{ 20, 1, Binary, 8, "TIM10RST" },
+		{ 19, 1, Binary, 7, "TIM9RST" },
+		{ 18, 3, Binary, 3, "res" },
+		{ 15, 1, Binary, 7, "ADC3RST" },
+		{ 14, 1, Binary, 9, "USART1RST" },
+		{ 13, 1, Binary, 7, "TIM8RST" },
+		{ 12, 1, Binary, 7, "SPI1RST" },
+		{ 11, 1, Binary, 7, "TIM1RST" },
+		{ 10, 1, Binary, 7, "ADC2RST" },
+		{ 9, 1, Binary, 7, "ADC1RST" },
+		{ 8, 1, Binary, 7, "IOPGRST" },
+		{ 7, 1, Binary, 7, "IOPFRST" },
+		{ 6, 1, Binary, 7, "IOPERST" },
+		{ 5, 1, Binary, 7, "IOPDRST" },
+		{ 4, 1, Binary, 7, "IOPCRST" },
+		{ 3, 1, Binary, 7, "IOPBRST" },
+		{ 2, 1, Binary, 7, "IOPARST" },
+		{ 1, 1, Binary, 3, "res" },
+		{ 0, 1, Binary, 7, "AFIORST" }
+	};
 
 	dump_reg(RCC_CR,"RCC_CR",rcc_cr,13);
 	dump_reg(RCC_CFGR,"RCC_CFGR",rcc_cfgr,13);
+	dump_reg(RCC_CIR,"RCC_CIR",rcc_cir,21);
+	dump_reg(RCC_APB2RSTR,"RCC_APB2RSTR",rcc_apb2rstr,21);
 }
 
 /*
