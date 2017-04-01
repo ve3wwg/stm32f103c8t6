@@ -50,16 +50,15 @@ putbin(char *buf,uint32_t v,unsigned bits) {
 
 static int
 dump_hdrs(int x,const struct bdesc *desc,int n) {
-	int w, tw, b;
-	bool firstf = !x;
+	int w, tw, b, first=x;
 
 	usb_printf("  ");
 	for ( ; x<n; ++x ) {
 		w = desc[x].width;
 		tw = strlen(desc[x].desc);
 
-		if ( firstf && w < 0 ) {
-			usb_printf("|\n");
+		if ( x > first && w < 0 ) {
+			usb_putch('\n');
 			return x;
 		} else if ( w < 0 )
 			w = -w;
@@ -82,14 +81,13 @@ static void
 dump_vals(int x,uint32_t reg,const struct bdesc *desc,int n) {
 	char buf[40];
 	uint32_t v, mask, shiftr;
-	int w, tw, b;
-	bool firstf = !x;
+	int w, tw, b, first=x;
 
 	usb_printf("  ");
 	for ( ; x<n; ++x ) {
 		w = desc[x].width;
-		if ( firstf && w < 0 ) {
-			usb_printf("|\n");
+		if ( x>first && w < 0 ) {
+			usb_putch('\n');
 			break;
 		} else if ( w < 0 )
 			w = -w;
@@ -444,15 +442,93 @@ dump_gpio_locks(void) {
 	dump_reg(&GPIOD_LCKR,"GPIOD_LCKR",gpiox_lckr,18);
 }
 
+static void
+dump_afio(void) {
+	static const struct bdesc afio_evcr[] = {
+		{ 31, 15, Binary, 15, "res" },
+		{ 15,  8, Binary,  8, "res" },
+		{  7,  1, Binary,  4, "EVOE" },
+		{  6,  3, Binary,  4, "PORT" },
+		{  3,  3, Binary,  3, "PIN" }
+	};
+	static const struct bdesc afio_mapr[] = {
+		{ 31,  5, Binary,   3, "res" },
+		{ 26,  3, Binary,   7, "SQW_CFG" },
+		{ 23,  3, Binary,   3, "res" },
+		{ 20,  1, Binary,  16, "ADCETRGREG_REMAP" },
+		{ 19,  1, Binary, -18, "ADCw_ETRGINJ_REMAP" },
+		{ 18,  1, Binary,  17, "ADC1_TRGREG_REMAP" },
+		{ 17,  1, Binary,  18,  "ADC1_ETRGINJ_REMAP" },
+		{ 16,  1, Binary,  15, "TIME5CH4_IREMAP" },
+		{ 15,  1, Binary, -11, "PD001_REMAP" },
+		{ 14,  2, Binary,   9, "CAN_REMAP" },
+		{ 12,  1, Binary,  10, "TIM4_REMAP" },
+		{ 11,  2, Binary,  10, "TIM3_REMAP" },
+		{  9,  2, Binary,  10, "TIM2_REMAP" },
+		{  7,  2, Binary,  10, "TIM1_REMAP" },
+		{  5,  2, Binary, -12, "USART3_REMAP" },
+		{  3,  1, Binary,  12, "USART2_REMAP" },
+		{  2,  1, Binary,  12, "USART1_REMAP" },
+		{  1,  1, Binary,  10, "I2C1_REMAP" },
+		{  0,  1, Binary,  10, "SPI1_REMAP" },
+	};
+	static const struct bdesc afio_mapr2[] = {
+		{ 31, 16, Binary,  16, "res" },
+		{ 15,  5, Binary,   5, "res" },
+		{ 10,  1, Binary,   9, "FSMC_NADV" },
+		{  9,  1, Binary,  11, "TIM14_REMAP" },
+		{  8,  1, Binary,  11, "TIM13_REMAP" },
+		{  7,  1, Binary,  11, "TIM11_REMAP" },
+		{  6,  1, Binary,  11, "TIM10_REMAP" },
+		{  5,  1, Binary,  10, "TIM9_REMAP" },
+		{  4,  5, Binary,   5, "res" },
+	};
+	static const struct bdesc afio_exticr1[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  5, "EXTI3" },
+		{ 11,  4, Binary,  5, "EXTI2" },
+		{  7,  4, Binary,  5, "EXTI1" },
+		{  3,  4, Binary,  5, "EXTI0" },
+	};
+	static const struct bdesc afio_exticr2[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  5, "EXTI7" },
+		{ 11,  4, Binary,  5, "EXTI6" },
+		{  7,  4, Binary,  5, "EXTI5" },
+		{  3,  4, Binary,  5, "EXTI4" },
+	};
+	static const struct bdesc afio_exticr3[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  6, "EXTI11" },
+		{ 11,  4, Binary,  6, "EXTI10" },
+		{  7,  4, Binary,  5, "EXTI9" },
+		{  3,  4, Binary,  5, "EXTI8" },
+	};
+	static const struct bdesc afio_exticr4[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  6, "EXTI15" },
+		{ 11,  4, Binary,  6, "EXTI14" },
+		{  7,  4, Binary,  6, "EXTI13" },
+		{  3,  4, Binary,  6, "EXTI12" },
+	};
+
+	dump_reg(&AFIO_EVCR,"AFIO_EVCR",afio_evcr,5);
+	usb_printf("  PORT: 000=A, 001=B, 010=C, 011=D. 100=E\n");
+	dump_reg(&AFIO_MAPR,"AFIO_MAPR",afio_mapr,19);
+	dump_reg(&AFIO_MAPR2,"AFIO_MAPR2",afio_mapr2,9);
+
+	dump_reg(&AFIO_EXTICR1,"AFIO_EXTICR1",afio_exticr1,5);
+	dump_reg(&AFIO_EXTICR2,"AFIO_EXTICR2",afio_exticr2,5);
+	dump_reg(&AFIO_EXTICR3,"AFIO_EXTICR3",afio_exticr3,5);
+	dump_reg(&AFIO_EXTICR4,"AFIO_EXTICR4",afio_exticr4,5);
+	usb_printf("  EXTIx: 0000=A, 0001=B, 0010=C, 0011=D\n");
+}
+
 /*
- * I/O Task: Here we:
- *
- *	1) Read a character from USB
- *	2) Switch case, if character is alpha
- *	3) Echo character back to USB (and toggle LED)
+ * Menu driven task:
  */
 static void
-rxtx_task(void *arg __attribute((unused))) {
+menu_task(void *arg __attribute((unused))) {
 	int ch;
 	bool menuf = true;
 	
@@ -460,6 +536,7 @@ rxtx_task(void *arg __attribute((unused))) {
 		if ( menuf )
 			usb_printf(
 				"\nMenu:\n"
+				"  a) AFIO Registers\n"
 				"  i) GPIO Inputs (GPIO_IDR)\n"
 				"  o) GPIO Outputs (GPIO_ODR)\n"
 				"  l) GPIO Lock (GPIOx_LCKR)\n"
@@ -481,6 +558,10 @@ rxtx_task(void *arg __attribute((unused))) {
 		case '\n':
 			menuf = true;
 			break;		
+
+		case 'A':
+			dump_afio();
+			break;
 
 		case 'G' :
 			dump_gpio();
@@ -522,7 +603,7 @@ main(void) {
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	xTaskCreate(rxtx_task,"RXTX",200,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(menu_task,"RXTX",200,NULL,configMAX_PRIORITIES-1,NULL);
 
 	usb_start(1);
 	gpio_clear(GPIOC,GPIO13);
