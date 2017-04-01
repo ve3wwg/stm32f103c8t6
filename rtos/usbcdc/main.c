@@ -136,46 +136,6 @@ dump_reg(volatile uint32_t *raddr,const char *descrip,const struct bdesc *desc,i
 		x2 = dump_hdrs(x,desc,n);
 		dump_vals(x,reg,desc,n);
 	}
-
-#if 0
-	usb_printf("  ");
-	for ( x=0; x<n; ++x ) {
-		if ( first && desc[x].width < 0 )
-			break;
-		if ( !first && desc[x].width < 0 ) {
-		}
-
-		mask = (1 << (31 - desc[x].sbit)) - 1;
-		shiftr = desc[x].sbit - desc[x].bits + 1;
-		v = (reg >> shiftr) & mask;
-		switch ( desc[x].format ) {
-		case Binary:
-			putbin(buf,v,desc[x].bits);
-			break;
-		case Decimal:
-			mini_snprintf(buf,sizeof buf,"%d",(int)v);
-			break;
-		case Hex:
-			mini_snprintf(buf,sizeof buf,"$%X",(unsigned)v);
-			break;
-		default:
-			buf[0] = '?';
-			buf[1] = 0;
-		}
-
-		w = desc[x].width;
-		tw = strlen(buf);
-
-		if ( tw > w )
-			b = tw - w;
-		else	b = w - tw;
-
-		while ( b-- > 0 )
-			usb_putch(' ');
-
-		usb_printf("%s%c",buf,x+1 < n ? '|' : '\n');
-	}
-#endif
 }
 
 static void
@@ -360,6 +320,127 @@ dump_rcc(void) {
 	dump_reg(&RCC_CSR,"RCC_CSR",rcc_csr,12);
 }
 
+static void
+dump_gpio(void) {
+	static const struct bdesc gpiox_crlh[] = {
+		{ 31, 2, Binary, 4, "CNF7" },
+		{ 29, 2, Binary, 5, "MODE7" },
+		{ 27, 2, Binary, 4, "CNF6" },
+		{ 25, 2, Binary, 5, "MODE6" },
+		{ 23, 2, Binary, 4, "CNF5" },
+		{ 21, 2, Binary, 5, "MODE5" },
+		{ 19, 2, Binary, 4, "CNF4" },
+		{ 17, 2, Binary, 5, "MODE4" },
+		{ 15, 2, Binary, 4, "CNF3" },
+		{ 13, 2, Binary, 5, "MODE3" },
+		{ 11, 2, Binary, 4, "CNF2" },
+		{  9, 2, Binary, 5, "MODE2" },
+		{  7, 2, Binary, 4, "CNF1" },
+		{  5, 2, Binary, 5, "MODE1" },
+		{  3, 2, Binary, 4, "CNF0" },
+		{  1, 2, Binary, 5, "MODE0" },
+	};
+
+	dump_reg(&GPIOA_CRL,"GPIOA_CRL",gpiox_crlh,16);
+	dump_reg(&GPIOB_CRL,"GPIOB_CRL",gpiox_crlh,16);
+	dump_reg(&GPIOC_CRL,"GPIOC_CRL",gpiox_crlh,16);
+	dump_reg(&GPIOD_CRL,"GPIOD_CRL",gpiox_crlh,16);
+
+	dump_reg(&GPIOA_CRH,"GPIOA_CRH",gpiox_crlh,16);
+	dump_reg(&GPIOB_CRH,"GPIOB_CRH",gpiox_crlh,16);
+	dump_reg(&GPIOC_CRH,"GPIOC_CRH",gpiox_crlh,16);
+	dump_reg(&GPIOD_CRH,"GPIOD_CRH",gpiox_crlh,16);
+
+	usb_printf("\n  CNFx In 00=Analog,    01=Floating input, 10=Input Pull-up/down, 11= Reserved\n");
+	usb_printf(  "      Out 00=Push/Pull, 01=Open-Drain,     10=AF Push/Pull,       11=AF Open Drain\n");
+	usb_printf(  "  MODEy:  00=Input,     01=Output 10 MHz,  10=Output 2 MHz,       11=Output 50 MHz\n");
+}
+
+static void
+dump_gpio_inputs(void) {
+	static const struct bdesc gpiox_idr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  1, Binary,  5, "IDR15" },
+		{ 14,  1, Binary,  5, "IDR14" },
+		{ 13,  1, Binary,  5, "IDR13" },
+		{ 12,  1, Binary,  5, "IDR12" },
+		{ 11,  1, Binary,  5, "IDR11" },
+		{ 10,  1, Binary,  5, "IDR10" },
+		{  9,  1, Binary,  4, "IDR9" },
+		{  8,  1, Binary,  4, "IDR8" },
+		{  7,  1, Binary,  4, "IDR7" },
+		{  6,  1, Binary,  4, "IDR6" },
+		{  5,  1, Binary,  4, "IDR5" },
+		{  4,  1, Binary,  4, "IDR4" },
+		{  3,  1, Binary,  4, "IDR3" },
+		{  2,  1, Binary,  4, "IDR2" },
+		{  1,  1, Binary,  4, "IDR1" },
+		{  0,  1, Binary,  4, "IDR0" },
+	};
+
+	dump_reg(&GPIOA_IDR,"GPIOA_IDR",gpiox_idr,17);
+	dump_reg(&GPIOB_IDR,"GPIOB_IDR",gpiox_idr,17);
+	dump_reg(&GPIOC_IDR,"GPIOC_IDR",gpiox_idr,17);
+	dump_reg(&GPIOD_IDR,"GPIOD_IDR",gpiox_idr,17);
+}
+
+static void
+dump_gpio_outputs(void) {
+	static const struct bdesc gpiox_odr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  1, Binary,  5, "ODR15" },
+		{ 14,  1, Binary,  5, "ODR14" },
+		{ 13,  1, Binary,  5, "ODR13" },
+		{ 12,  1, Binary,  5, "ODR12" },
+		{ 11,  1, Binary,  5, "ODR11" },
+		{ 10,  1, Binary,  5, "ODR10" },
+		{  9,  1, Binary,  4, "ODR9" },
+		{  8,  1, Binary,  4, "ODR8" },
+		{  7,  1, Binary,  4, "ODR7" },
+		{  6,  1, Binary,  4, "ODR6" },
+		{  5,  1, Binary,  4, "ODR5" },
+		{  4,  1, Binary,  4, "ODR4" },
+		{  3,  1, Binary,  4, "ODR3" },
+		{  2,  1, Binary,  4, "ODR2" },
+		{  1,  1, Binary,  4, "ODR1" },
+		{  0,  1, Binary,  4, "ODR0" },
+	};
+
+	dump_reg(&GPIOA_ODR,"GPIOA_ODR",gpiox_odr,17);
+	dump_reg(&GPIOB_ODR,"GPIOB_ODR",gpiox_odr,17);
+	dump_reg(&GPIOC_ODR,"GPIOC_ODR",gpiox_odr,17);
+	dump_reg(&GPIOD_ODR,"GPIOD_ODR",gpiox_odr,17);
+}
+
+static void
+dump_gpio_locks(void) {
+	static const struct bdesc gpiox_lckr[] = {
+		{ 31, 15, Binary, 15, "res" },
+		{ 16,  1, Binary,  4, "LCKK" },
+		{ 15,  1, Binary,  5, "LCK15" },
+		{ 14,  1, Binary,  5, "LCK14" },
+		{ 13,  1, Binary,  5, "LCK13" },
+		{ 12,  1, Binary,  5, "LCK12" },
+		{ 11,  1, Binary,  5, "LCK11" },
+		{ 10,  1, Binary,  5, "LCK10" },
+		{  9,  1, Binary,  4, "LCK9" },
+		{  8,  1, Binary,  4, "LCK8" },
+		{  7,  1, Binary,  4, "LCK7" },
+		{  6,  1, Binary,  4, "LCK6" },
+		{  5,  1, Binary,  4, "LCK5" },
+		{  4,  1, Binary,  4, "LCK4" },
+		{  3,  1, Binary,  4, "LCK3" },
+		{  2,  1, Binary,  4, "LCK2" },
+		{  1,  1, Binary,  4, "LCK1" },
+		{  0,  1, Binary,  4, "LCK0" },
+	};
+
+	dump_reg(&GPIOA_LCKR,"GPIOA_LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOB_LCKR,"GPIOB_LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOC_LCKR,"GPIOC_LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOD_LCKR,"GPIOD_LCKR",gpiox_lckr,18);
+}
+
 /*
  * I/O Task: Here we:
  *
@@ -374,7 +455,15 @@ rxtx_task(void *arg __attribute((unused))) {
 	
 	for (;;) {
 		if ( menuf )
-			usb_printf("\nMenu:\n  r) RCC Registers\n");
+			usb_printf(
+				"\nMenu:\n"
+				"  i) GPIO Inputs (GPIO_IDR)\n"
+				"  o) GPIO Outputs (GPIO_ODR)\n"
+				"  l) GPIO Lock (GPIOx_LCKR)\n"
+				"  g) GPIO Config/Mode Registers\n"
+				"  r) RCC Registers\n"
+			);
+		menuf = false;
 
 		usb_printf("\n: ");
 		ch = usb_getch();
@@ -390,23 +479,30 @@ rxtx_task(void *arg __attribute((unused))) {
 			menuf = true;
 			break;		
 
+		case 'G' :
+			dump_gpio();
+			break;
+
+		case 'I':
+			dump_gpio_inputs();
+			break;
+
+		case 'L':
+			dump_gpio_locks();
+			break;
+
+		case 'O':
+			dump_gpio_outputs();
+			break;
+
 		case 'R':
 			dump_rcc();
 			break;
 
 		default:
 			usb_printf(" ???\n");
+			menuf = true;
 		}
-#if 0
-		gpio_toggle(GPIOC,GPIO13);
-		if ( ch < ' ' && ch != '\r' && ch != '\n' ) {
-			usb_printf("^%c (0x%02X)\n",ch+'@',ch);
-		} else	{
-			if ( ( ch >= 'A' && ch <= 'Z' ) || ( ch >= 'a' && ch <= 'z' ) )
-				ch ^= 0x20;
-			usb_putch(ch);
-		}
-#endif
 	}
 }
 
