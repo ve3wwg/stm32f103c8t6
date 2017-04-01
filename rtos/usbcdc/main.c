@@ -15,6 +15,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/exti.h>
+#include <libopencm3/stm32/adc.h>
 
 #include "usbcdc.h"
 #include "miniprintf.h"
@@ -628,6 +629,86 @@ dump_intr(void) {
 	dump_reg(&EXTI_PR,"EXTI_PR",exti_pr,21);
 }
 
+static void
+dump_adc(void) {
+	static const struct bdesc adc_sr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 11, Binary, 11, "res" },
+		{  4,  1, Binary,  4, "STRT" },
+		{  3,  1, Binary,  5, "JSTRT" },
+		{  2,  1, Binary,  4, "JEOC" },
+		{  1,  1, Binary,  3, "EOC" },
+		{  0,  1, Binary,  3, "AWD" },
+	};
+	static const struct bdesc adc_cr1[] = {
+		{ 31,  8, Binary,  8, "res" },
+		{ 23,  1, Binary,  5, "AWDEN" },
+		{ 22,  1, Binary,  6, "JAWDEN" },
+		{ 21,  2, Binary,  3, "res" },
+		{ 19,  4, Binary,  7, "DUALMOD" },
+		{ 15,  3, Binary,  7, "DISCNUM" },
+		{ 12,  1, Binary,  7, "JDISCEN" },
+		{ 11,  1, Binary,  6, "DISCEN" },
+		{ 10,  1, Binary,  5, "JAUTO" },
+		{  9,  1, Binary,  6, "AWDSGL" },
+		{  8,  1, Binary,  4, "SCAN" },
+		{  7,  1, Binary,  6, "JEOCIE" },
+		{  6,  1, Binary,  5, "AWDIE" },
+		{  5,  1, Binary,  5, "EOCIE" },
+		{  4,  5, Decimal, 5, "AWDCH" },
+	};
+	static const struct bdesc adc_cr2[] = {
+		{ 31, 8, Binary,  8, "res" },
+		{ 23, 1, Binary,  7, "TSVREFE" },
+		{ 22, 1, Binary,  7, "SWSTART" },
+		{ 21, 1, Binary,  8, "JSWSTART" },
+		{ 20, 1, Binary,  7, "EXTTRIG" },
+		{ 19, 1, Binary,  6, "EXTSEL" },
+		{ 16, 1, Binary,  3, "res" },
+		{ 15, 1, Binary,  8, "JEXTTRIG" },
+		{ 14, 3, Binary,  7, "JEXTSEL" },
+		{ 11, 1, Binary,  5, "ALIGN" },
+		{ 10, 2, Binary,  3, "res" },
+		{  8, 1, Binary,  3, "DMA" },
+		{  7, 4, Binary,  4, "res" },
+		{  3, 1, Binary,  6, "RSTCAL" },
+		{  2, 1, Binary,  3, "CAL" },
+		{  1, 1, Binary,  4, "CONT" },
+		{  0, 1, Binary,  4, "ADON" },
+	};
+	static const struct bdesc adc_smpr1[] = {
+		{ 31, 8, Binary,  8, "res" },
+		{ 23, 3, Binary,  5, "SMP17" },
+		{ 20, 3, Binary,  5, "SMP16" },
+		{ 17, 3, Binary,  5, "SMP15" },
+		{ 14, 3, Binary,  5, "SMP14" },
+		{ 11, 3, Binary,  5, "SMP13" },
+		{  8, 3, Binary,  5, "SMP12" },
+		{  5, 3, Binary,  5, "SMP11" },
+		{  2, 3, Binary,  5, "SMP10" },
+	};
+	static const struct bdesc adc_smpr2[] = {
+		{ 31, 2, Binary,  3, "res" },
+		{ 29, 3, Binary,  4, "SMP9" },
+		{ 26, 3, Binary,  4, "SMP8" },
+		{ 23, 3, Binary,  4, "SMP7" },
+		{ 20, 3, Binary,  4, "SMP6" },
+		{ 17, 3, Binary,  4, "SMP5" },
+		{ 14, 3, Binary,  4, "SMP4" },
+		{ 11, 3, Binary,  4, "SMP3" },
+		{  8, 3, Binary,  4, "SMP2" },
+		{  5, 3, Binary,  4, "SMP1" },
+		{  2, 3, Binary,  4, "SMP0" },
+	};
+
+	dump_reg(&ADC1_SR,"ADC1_SR",adc_sr,7);
+	dump_reg(&ADC1_CR1,"ADC1_CR1",adc_cr1,15);
+	dump_reg(&ADC1_CR2,"ADC1_CR2",adc_cr2,17);
+	dump_reg(&ADC1_SMPR1,"ADC1_SMPR1",adc_smpr1,9);
+	dump_reg(&ADC1_SMPR2,"ADC1_SMPR2",adc_smpr2,11);
+	// ADC_JOFRx
+}
+
 /*
  * Menu driven task:
  */
@@ -641,6 +722,7 @@ menu_task(void *arg __attribute((unused))) {
 			usb_printf(
 				"\nMenu:\n"
 				"  a) AFIO Registers\n"
+				"  c) ADC Registers\n"
 				"  i) GPIO Inputs (GPIO_IDR)\n"
 				"  o) GPIO Outputs (GPIO_ODR)\n"
 				"  l) GPIO Lock (GPIOx_LCKR)\n"
@@ -663,35 +745,30 @@ menu_task(void *arg __attribute((unused))) {
 		case '\n':
 			menuf = true;
 			break;		
-
 		case 'A':
 			dump_afio();
 			break;
-
+		case 'C':
+			dump_adc();
+			break;
 		case 'G' :
 			dump_gpio();
 			break;
-
 		case 'I':
 			dump_gpio_inputs();
 			break;
-
 		case 'L':
 			dump_gpio_locks();
 			break;
-
 		case 'O':
 			dump_gpio_outputs();
 			break;
-
 		case 'R':
 			dump_rcc();
 			break;
-
 		case 'V':
 			dump_intr();
 			break;
-
 		default:
 			usb_printf(" ???\n");
 			menuf = true;
