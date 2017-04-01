@@ -14,6 +14,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/scb.h>
+#include <libopencm3/stm32/exti.h>
 
 #include "usbcdc.h"
 #include "miniprintf.h"
@@ -524,6 +525,109 @@ dump_afio(void) {
 	usb_printf("  EXTIx: 0000=A, 0001=B, 0010=C, 0011=D\n");
 }
 
+static void
+dump_intr(void) {
+	static const struct bdesc exti_imr[] = {
+		{ 31, 12, Binary, 12, "res" },
+		{ 19,  1, Binary,  3, "res" },
+		{ 18,  1, Binary,  4, "MR18" },
+		{ 17,  1, Binary,  4, "MR17" },
+		{ 16,  1, Binary,  4, "MR16" },
+		{ 15,  1, Binary,  4, "MR15" },
+		{ 14,  1, Binary,  4, "MR14" },
+		{ 13,  1, Binary,  4, "MR13" },
+		{ 12,  1, Binary,  4, "MR12" },
+		{ 11,  1, Binary,  4, "MR11" },
+		{ 10,  1, Binary,  4, "MR10" },
+		{  9,  1, Binary,  3, "MR9" },
+		{  8,  1, Binary,  3, "MR8" },
+		{  7,  1, Binary,  3, "MR7" },
+		{  6,  1, Binary,  3, "MR6" },
+		{  5,  1, Binary,  3, "MR5" },
+		{  4,  1, Binary,  3, "MR4" },
+		{  3,  1, Binary,  3, "MR3" },
+		{  2,  1, Binary,  3, "MR2" },
+		{  1,  1, Binary,  3, "MR1" },
+		{  0,  1, Binary,  3, "MR0" },
+	};
+	static const struct bdesc exti_rtsr[] = {
+		{ 31, 12, Binary, 12, "res" },
+		{ 19,  1, Binary,  3, "res" },
+		{ 18,  1, Binary,  4, "TR18" },
+		{ 17,  1, Binary,  4, "TR17" },
+		{ 16,  1, Binary,  4, "TR16" },
+		{ 15,  1, Binary,  4, "TR15" },
+		{ 14,  1, Binary,  4, "TR14" },
+		{ 13,  1, Binary,  4, "TR13" },
+		{ 12,  1, Binary,  4, "TR12" },
+		{ 11,  1, Binary,  4, "TR11" },
+		{ 10,  1, Binary,  4, "TR10" },
+		{  9,  1, Binary,  3, "TR9" },
+		{  8,  1, Binary,  3, "TR8" },
+		{  7,  1, Binary,  3, "TR7" },
+		{  6,  1, Binary,  3, "TR6" },
+		{  5,  1, Binary,  3, "TR5" },
+		{  4,  1, Binary,  3, "TR4" },
+		{  3,  1, Binary,  3, "TR3" },
+		{  2,  1, Binary,  3, "TR2" },
+		{  1,  1, Binary,  3, "TR1" },
+		{  0,  1, Binary,  3, "TR0" },
+	};
+	static const struct bdesc exti_swier[] = {
+		{ 31, 12, Binary, 12, "res" },
+		{ 19,  1, Binary,  3, "res" },
+		{ 18,  1, Binary,  7, "SWIER18" },
+		{ 17,  1, Binary,  7, "SWIER17" },
+		{ 16,  1, Binary,  7, "SWIER16" },
+		{ 15,  1, Binary,  7, "SWIER15" },
+		{ 14,  1, Binary,  7, "SWIER14" },
+		{ 13,  1, Binary,  7, "SWIER13" },
+		{ 12,  1, Binary,  7, "SWIER12" },
+		{ 11,  1, Binary,  7, "SWIER11" },
+		{ 10,  1, Binary, -7, "SWIER10" },
+		{  9,  1, Binary,  7, "SWIER9" },
+		{  8,  1, Binary,  7, "SWIER8" },
+		{  7,  1, Binary,  7, "SWIER7" },
+		{  6,  1, Binary,  7, "SWIER6" },
+		{  5,  1, Binary,  7, "SWIER5" },
+		{  4,  1, Binary,  7, "SWIER4" },
+		{  3,  1, Binary,  7, "SWIER3" },
+		{  2,  1, Binary,  7, "SWIER2" },
+		{  1,  1, Binary,  7, "SWIER1" },
+		{  0,  1, Binary,  7, "SWIER0" },
+	};
+	static const struct bdesc exti_pr[] = {
+		{ 31, 12, Binary, 12, "res" },
+		{ 19,  1, Binary,  3, "res" },
+		{ 18,  1, Binary,  4, "PR18" },
+		{ 17,  1, Binary,  4, "PR17" },
+		{ 16,  1, Binary,  4, "PR16" },
+		{ 15,  1, Binary,  4, "PR15" },
+		{ 14,  1, Binary,  4, "PR14" },
+		{ 13,  1, Binary,  4, "PR13" },
+		{ 12,  1, Binary,  4, "PR12" },
+		{ 11,  1, Binary,  4, "PR11" },
+		{ 10,  1, Binary,  4, "PR10" },
+		{  9,  1, Binary,  3, "PR9" },
+		{  8,  1, Binary,  3, "PR8" },
+		{  7,  1, Binary,  3, "PR7" },
+		{  6,  1, Binary,  3, "PR6" },
+		{  5,  1, Binary,  3, "PR5" },
+		{  4,  1, Binary,  3, "PR4" },
+		{  3,  1, Binary,  3, "PR3" },
+		{  2,  1, Binary,  3, "PR2" },
+		{  1,  1, Binary,  3, "PR1" },
+		{  0,  1, Binary,  3, "PR0" },
+	};
+
+	dump_reg(&EXTI_IMR,"EXTI_IMR",exti_imr,21);
+	dump_reg(&EXTI_EMR,"EXTI_EMR",exti_imr,21);
+	dump_reg(&EXTI_RTSR,"EXTI_RTSR",exti_rtsr,21);
+	dump_reg(&EXTI_FTSR,"EXTI_FTSR",exti_rtsr,21);
+	dump_reg(&EXTI_SWIER,"EXTI_SWIER",exti_swier,21);
+	dump_reg(&EXTI_PR,"EXTI_PR",exti_pr,21);
+}
+
 /*
  * Menu driven task:
  */
@@ -542,6 +646,7 @@ menu_task(void *arg __attribute((unused))) {
 				"  l) GPIO Lock (GPIOx_LCKR)\n"
 				"  g) GPIO Config/Mode Registers\n"
 				"  r) RCC Registers\n"
+				"  v) Interrupt Registers\n"
 			);
 		menuf = false;
 
@@ -581,6 +686,10 @@ menu_task(void *arg __attribute((unused))) {
 
 		case 'R':
 			dump_rcc();
+			break;
+
+		case 'V':
+			dump_intr();
 			break;
 
 		default:
