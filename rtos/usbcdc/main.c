@@ -1,6 +1,9 @@
 /* USB CDC Demo, using the usbcdc library
  * Warren W. Gay VE3WWG
  * Wed Mar 15 21:56:50 2017
+ *
+ * This demo consists of a text menu driven app, to display
+ * STM32F103 registers (STM32F103C8T6 register set assumed).
  */
 #include <stdlib.h>
 #include <string.h>
