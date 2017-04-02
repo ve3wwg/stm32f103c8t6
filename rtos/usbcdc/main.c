@@ -700,13 +700,62 @@ dump_adc(void) {
 		{  5, 3, Binary,  4, "SMP1" },
 		{  2, 3, Binary,  4, "SMP0" },
 	};
+	static const struct bdesc adc_jofrx[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  4, "res" },
+		{ 11, 12, Decimal,12, "JOFFSETx" }
+	};
+	static const struct bdesc adc_htr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  4, "res" },
+		{ 11, 12, Decimal,12, "HT" }
+	};
+	static const struct bdesc adc_ltr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  4, "res" },
+		{ 11, 12, Decimal,12, "HT" }
+	};
+	static const struct bdesc adc_sqr1[] = {
+		{ 31,  8, Binary,  8, "res" },
+		{ 23,  4, Decimal, 2, "L" },
+		{ 19,  5, Decimal, 5, "SQ16" },
+		{ 14,  5, Decimal, 5, "SQ15" },
+		{  9,  5, Decimal, 5, "SQ14" },
+		{  4,  5, Decimal, 5, "SQ13" },
+	};
+	static const struct bdesc adc_sqr2[] = {
+		{ 31,  2, Binary,  3, "res" },
+		{ 29,  5, Decimal, 5, "SQ12" },
+		{ 24,  5, Decimal, 5, "SQ11" },
+		{ 19,  5, Decimal, 5, "SQ10" },
+		{ 14,  5, Decimal, 5, "SQ9" },
+		{  9,  5, Decimal, 5, "SQ8" },
+		{  4,  5, Decimal, 5, "SQ7" },
+	};
+	static const struct bdesc adc_sqr3[] = {
+		{ 31,  2, Binary,  3, "res" },
+		{ 29,  5, Decimal, 5, "SQ6" },
+		{ 24,  5, Decimal, 5, "SQ5" },
+		{ 19,  5, Decimal, 5, "SQ4" },
+		{ 14,  5, Decimal, 5, "SQ3" },
+		{  9,  5, Decimal, 5, "SQ2" },
+		{  4,  5, Decimal, 5, "SQ1" },
+	};
 
 	dump_reg(&ADC1_SR,"ADC1_SR",adc_sr,7);
 	dump_reg(&ADC1_CR1,"ADC1_CR1",adc_cr1,15);
 	dump_reg(&ADC1_CR2,"ADC1_CR2",adc_cr2,17);
 	dump_reg(&ADC1_SMPR1,"ADC1_SMPR1",adc_smpr1,9);
 	dump_reg(&ADC1_SMPR2,"ADC1_SMPR2",adc_smpr2,11);
-	// ADC_JOFRx
+	dump_reg(&ADC1_JOFR1,"ADC1_JOFR1",adc_jofrx,3);
+	dump_reg(&ADC1_JOFR2,"ADC1_JOFR2",adc_jofrx,3);
+	dump_reg(&ADC1_JOFR3,"ADC1_JOFR3",adc_jofrx,3);
+	dump_reg(&ADC1_JOFR4,"ADC1_JOFR4",adc_jofrx,3);
+	dump_reg(&ADC1_HTR,"ADC1_HTR",adc_htr,3);
+	dump_reg(&ADC1_LTR,"ADC1_LTR",adc_ltr,3);
+	dump_reg(&ADC1_SQR1,"ADC1_SQR1",adc_sqr1,6);
+	dump_reg(&ADC1_SQR2,"ADC1_SQR2",adc_sqr2,7);
+	dump_reg(&ADC1_SQR3,"ADC1_SQR3",adc_sqr3,7);
 }
 
 /*
