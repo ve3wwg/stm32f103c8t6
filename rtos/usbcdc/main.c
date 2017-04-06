@@ -16,6 +16,7 @@
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/adc.h>
+#include <libopencm3/stm32/timer.h>
 
 #include "usbcdc.h"
 #include "miniprintf.h"
@@ -758,6 +759,241 @@ dump_adc(void) {
 	dump_reg(&ADC1_SQR3,"ADC1_SQR3",adc_sqr3,7);
 }
 
+static void
+dump_timers(bool tim8) {
+	static const struct bdesc timx_cr1[] = {
+		{ 31, 22, Binary, 22, "res" },
+		{  9,  2, Binary,  3, "CKD" },
+		{  7,  1, Binary,  4, "ARPE" },
+		{  6,  2, Binary,  3, "CMS" },
+		{  4,  1, Binary,  3, "DIR" },
+		{  3,  1, Binary,  3, "OPM" },
+		{  2,  1, Binary,  3, "URS" },
+		{  1,  1, Binary,  3, "CEN" },
+	};
+	static const struct bdesc timx_cr2[] = {
+		{ 31, 17, Binary, 17, "res" },
+		{ 14,  1, Binary,  4, "OIS4" },
+		{ 13,  1, Binary,  5, "OIS3N" },
+		{ 12,  1, Binary,  4, "OIS3" },
+		{ 11,  1, Binary,  5, "OIS2N" },
+		{ 10,  1, Binary,  4, "OIS2" },
+		{  9,  1, Binary,  5, "OIS1N" },
+		{  8,  1, Binary,  4, "OIS1" },
+		{  7,  1, Binary,  4, "TIS1" },
+		{  6,  3, Binary,  3, "MMS" },
+		{  3,  1, Binary,  4, "CCDS" },
+		{  2,  1, Binary,  4, "CCUS" },
+		{  1,  1, Binary,  3, "res" },
+		{  0,  1, Binary,  4, "CCPC" },
+	};
+	static const struct bdesc timx_smcr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  1, Binary,  3, "ETP" },
+		{ 14,  1, Binary,  3, "ECE" },
+		{ 13,  2, Binary,  4, "ETPS" },
+		{ 11,  4, Binary,  4, "ETF" },
+		{  7,  1, Binary,  3, "MSM" },
+		{  6,  3, Binary,  3, "TS" },
+		{  3,  1, Binary,  3, "res" },
+		{  3,  1, Binary,  3, "SMS" },
+	};
+	static const struct bdesc timx_dier[] = {
+		{ 31, 17, Binary, 17, "res" },
+		{ 14,  1, Binary,  3, "TDE" },
+		{ 13,  1, Binary,  5, "COMDE" },
+		{ 12,  1, Binary,  5, "CC4DE" },
+		{ 11,  1, Binary,  5, "CC3DE" },
+		{ 10,  1, Binary,  5, "CC2DE" },
+		{  9,  1, Binary,  5, "CC1DE" },
+		{  8,  1, Binary,  3, "UDE" },
+		{  7,  1, Binary,  3, "BIE" },
+		{  6,  1, Binary,  3, "TIE" },
+		{  5,  1, Binary,  5, "COMIE" },
+		{  4,  1, Binary,  5, "CC4IE" },
+		{  3,  1, Binary,  5, "CC3IE" },
+		{  2,  1, Binary,  5, "CC2IE" },
+		{  1,  1, Binary,  5, "CC1IE" },
+		{  0,  1, Binary,  3, "UIE" },
+	};
+	static const struct bdesc timx_sr[] = {
+		{ 31, 19, Binary, 19, "res" },
+		{ 12,  1, Binary,  5, "CC4OF" },
+		{ 11,  1, Binary,  5, "CC3OF" },
+		{ 10,  1, Binary,  5, "CC2OF" },
+		{  9,  1, Binary,  5, "CC1OF" },
+		{  8,  1, Binary,  3, "res" },
+		{  7,  1, Binary,  3, "BIF" },
+		{  6,  1, Binary,  3, "TIF" },
+		{  5,  1, Binary,  5, "COMIF" },
+		{  4,  1, Binary,  5, "CC4IF" },
+		{  3,  1, Binary,  5, "CC3IF" },
+		{  2,  1, Binary,  5, "CC2IF" },
+		{  1,  1, Binary,  5, "CC1IF" },
+		{  0,  1, Binary,  3, "UIP" },
+	};
+	static const struct bdesc timx_ccmr1a[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  1, Binary,  5, "OC2CE" },
+		{ 14,  3, Binary,  4, "OC2M" },
+		{ 11,  1, Binary,  5, "OC2PE" },
+		{ 10,  1, Binary,  5, "OC2FE" },
+		{  9,  2, Binary,  4, "CC2S" },
+		{  7,  1, Binary,  5, "OC1CE" },
+		{  6,  3, Binary,  4, "OC1M" },
+		{  3,  1, Binary,  5, "OC1PE" },
+		{  2,  1, Binary,  5, "OC1FE" },
+		{  1,  2, Binary,  5, "CC1S" },
+	};
+	static const struct bdesc timx_ccmr1b[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  4, "IC2F" },
+		{ 11,  2, Binary,  6, "IC2PSC" },
+		{  9,  2, Binary,  4, "CC2S" },
+		{  7,  4, Binary,  4, "IC1F" },
+		{  3,  2, Binary,  6, "IC1PSC" },
+		{  1,  2, Binary,  4, "CC1S" },
+	};
+	static const struct bdesc timx_ccmr2a[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  1, Binary,  5, "OC4E" },
+		{ 14,  3, Binary,  4, "OC4M" },
+		{ 11,  1, Binary,  5, "OC4PE" },
+		{ 10,  1, Binary,  5, "OC4FE" },
+		{  9,  2, Binary,  4, "CC4S" },
+		{  7,  1, Binary,  5, "OC3CE" },
+		{  6,  3, Binary,  4, "OC3M" },
+		{  3,  1, Binary,  5, "OC3PE" },
+		{  2,  1, Binary,  5, "OC3FE" },
+		{  1,  2, Binary,  5, "CC3S" },
+	};
+	static const struct bdesc timx_ccmr2b[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  4, Binary,  4, "IC4F" },
+		{ 11,  2, Binary,  6, "IC4PSC" },
+		{  9,  2, Binary,  4, "CC4S" },
+		{  7,  4, Binary,  4, "IC3F" },
+		{  3,  2, Binary,  6, "IC3PSC" },
+		{  1,  2, Binary,  4, "CC3S" },
+	};
+	static const struct bdesc timx_ccer[] = {
+		{ 31, 18, Binary, 18, "res" },
+		{ 13,  1, Binary,  4, "CC4P" },
+		{ 12,  1, Binary,  4, "CC4E" },
+		{ 11,  1, Binary,  5, "CC4NP" },
+		{ 10,  1, Binary,  5, "CC4NE" },
+		{  9,  1, Binary,  4, "CC3P" },
+		{  8,  1, Binary,  4, "CC3E" },
+		{  7,  1, Binary,  5, "CC3NP" },
+		{  6,  1, Binary,  5, "CC3NE" },
+		{  5,  1, Binary,  4, "CC2P" },
+		{  4,  1, Binary,  4, "CC2E" },
+		{  3,  1, Binary,  5, "CC2NP" },
+		{  2,  1, Binary,  5, "CC2NE" },
+		{  1,  1, Binary,  4, "CC1P" },
+		{  0,  1, Binary,  4, "CC1E" },
+	};
+	static const struct bdesc timx_cnt[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     9, "CNT" }
+	};
+	static const struct bdesc timx_psc[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     9, "PSC" }
+	};
+	static const struct bdesc timx_arr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     9, "ARR" }
+	};
+	static const struct bdesc timx_rcr[] = {
+		{ 31, 24, Binary, 24, "res" },
+		{  7,  8, Hex,     3, "REP" }
+	};
+	static const struct bdesc timx_ccr1[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     5, "CCR1" }
+	};
+	static const struct bdesc timx_ccr2[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     5, "CCR2" }
+	};
+	static const struct bdesc timx_ccr3[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     5, "CCR3" }
+	};
+	static const struct bdesc timx_ccr4[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     5, "CCR4" }
+	};
+	static const struct bdesc timx_bdtr[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15,  1, Binary,  3, "MOE" },
+		{ 14,  1, Binary,  3, "AOE" },
+		{ 13,  1, Binary,  3, "BKP" },
+		{ 12,  1, Binary,  3, "BKE" },
+		{ 11,  1, Binary,  4, "OSSR" },
+		{ 10,  1, Binary,  4, "OSSI" },
+		{  9,  2, Binary,  4, "LOCK" },
+		{  7,  8, Binary,  8, "DTG" },
+	};
+	static const struct bdesc timx_dcr[] = {
+		{ 31, 19, Binary, 19, "res" },
+		{ 12,  5, Decimal, 3, "DBL" },
+		{  7,  3, Binary,  3, "res" },
+		{  5,  5, Binary,  5, "DBA" },
+	};
+	static const struct bdesc timx_dmar[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     9, "DMAR" }
+	};
+
+	if ( !tim8 ) {
+		dump_reg(&TIM1_CR1,"TIM1_CR1",timx_cr1,8);
+		dump_reg(&TIM1_CR2,"TIM1_CR2",timx_cr2,14);
+		dump_reg(&TIM1_SMCR,"TIM1_SMCR",timx_smcr,14);
+		dump_reg(&TIM1_DIER,"TIM1_DIER",timx_dier,16);
+		dump_reg(&TIM1_SR,"TIM1_SR",timx_sr,14);
+		dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (out)",timx_ccmr1a,11);
+		dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (inp)",timx_ccmr1b,7);
+		dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
+		dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
+		dump_reg(&TIM1_CCER,"TIM1_CCER",timx_ccer,15);
+		dump_reg(&TIM1_CNT,"TIM1_CNT",timx_cnt,2);
+		dump_reg(&TIM1_PSC,"TIM1_PSC",timx_psc,2);
+		dump_reg(&TIM1_ARR,"TIM1_ARR",timx_arr,2);
+		dump_reg(&TIM1_RCR,"TIM1_RCR",timx_rcr,2);
+		dump_reg(&TIM1_CCR1,"TIM1_CCR1",timx_ccr1,2);
+		dump_reg(&TIM1_CCR2,"TIM1_CCR2",timx_ccr2,2);
+		dump_reg(&TIM1_CCR3,"TIM1_CCR3",timx_ccr3,2);
+		dump_reg(&TIM1_CCR4,"TIM1_CCR4",timx_ccr4,2);
+		dump_reg(&TIM1_BDTR,"TIM1_BDTR",timx_bdtr,9);
+		dump_reg(&TIM1_DCR,"TIM1_DCR",timx_dcr,9);
+		dump_reg(&TIM1_DMAR,"TIM1_DMAR",timx_dmar,2);
+	} else	{
+		dump_reg(&TIM8_CR1,"TIM8_CR1",timx_cr1,8);
+		dump_reg(&TIM8_CR2,"TIM8_CR2",timx_cr2,14);
+		dump_reg(&TIM8_SMCR,"TIM8_SMCR",timx_smcr,14);
+		dump_reg(&TIM8_DIER,"TIM8_DIER",timx_dier,16);
+		dump_reg(&TIM8_SR,"TIM8_SR",timx_sr,14);
+		dump_reg(&TIM8_CCMR1,"TIM8_CCMR1 (out)",timx_ccmr1a,11);
+		dump_reg(&TIM8_CCMR1,"TIM8_CCMR1 (inp)",timx_ccmr1b,7);
+		dump_reg(&TIM8_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
+		dump_reg(&TIM8_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
+		dump_reg(&TIM8_CCER,"TIM8_CCER",timx_ccer,15);
+		dump_reg(&TIM8_CNT,"TIM8_CNT",timx_cnt,2);
+		dump_reg(&TIM8_PSC,"TIM8_PSC",timx_psc,2);
+		dump_reg(&TIM8_ARR,"TIM8_ARR",timx_arr,2);
+		dump_reg(&TIM8_RCR,"TIM8_RCR",timx_rcr,2);
+		dump_reg(&TIM8_CCR1,"TIM8_CCR1",timx_ccr1,2);
+		dump_reg(&TIM8_CCR2,"TIM8_CCR2",timx_ccr2,2);
+		dump_reg(&TIM8_CCR3,"TIM8_CCR3",timx_ccr3,2);
+		dump_reg(&TIM8_CCR4,"TIM8_CCR4",timx_ccr4,2);
+		dump_reg(&TIM8_BDTR,"TIM8_BDTR",timx_bdtr,9);
+		dump_reg(&TIM8_DCR,"TIM8_DCR",timx_dcr,9);
+		dump_reg(&TIM8_DMAR,"TIM8_DMAR",timx_dmar,2);
+	}
+}
+
 /*
  * Menu driven task:
  */
@@ -777,6 +1013,8 @@ menu_task(void *arg __attribute((unused))) {
 				"  l) GPIO Lock (GPIOx_LCKR)\n"
 				"  g) GPIO Config/Mode Registers\n"
 				"  r) RCC Registers\n"
+				"  1) Timer1 Registers\n"
+				"  8) Timer8 Registers\n"
 				"  v) Interrupt Registers\n"
 			);
 		menuf = false;
@@ -814,6 +1052,12 @@ menu_task(void *arg __attribute((unused))) {
 			break;
 		case 'R':
 			dump_rcc();
+			break;
+		case '1':
+			dump_timers(false);
+			break;
+		case '8':
+			dump_timers(true);
 			break;
 		case 'V':
 			dump_intr();
