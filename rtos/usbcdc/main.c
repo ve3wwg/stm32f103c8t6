@@ -782,7 +782,7 @@ dump_adc(void) {
 }
 
 static void
-dump_timers1_8(bool tim8) {
+dump_timer1(void) {
 	static const struct bdesc timx_cr1[] = {
 		{ 31, 22, Binary, 22, "res" },
 		{  9,  2, Binary,  3, "CKD" },
@@ -969,55 +969,31 @@ dump_timers1_8(bool tim8) {
 		{ 15, 16, Hex,     9, "DMAR" }
 	};
 
-	if ( !tim8 ) {
-		dump_reg(&TIM1_CR1,"TIM1_CR1",timx_cr1,8);
-		dump_reg(&TIM1_CR2,"TIM1_CR2",timx_cr2,14);
-		dump_reg(&TIM1_SMCR,"TIM1_SMCR",timx_smcr,14);
-		dump_reg(&TIM1_DIER,"TIM1_DIER",timx_dier,16);
-		dump_reg(&TIM1_SR,"TIM1_SR",timx_sr,14);
-		dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (out)",timx_ccmr1a,11);
-		dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (inp)",timx_ccmr1b,7);
-		dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
-		dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
-		dump_reg(&TIM1_CCER,"TIM1_CCER",timx_ccer,15);
-		dump_reg(&TIM1_CNT,"TIM1_CNT",timx_cnt,2);
-		dump_reg(&TIM1_PSC,"TIM1_PSC",timx_psc,2);
-		dump_reg(&TIM1_ARR,"TIM1_ARR",timx_arr,2);
-		dump_reg(&TIM1_RCR,"TIM1_RCR",timx_rcr,2);
-		dump_reg(&TIM1_CCR1,"TIM1_CCR1",timx_ccr1,2);
-		dump_reg(&TIM1_CCR2,"TIM1_CCR2",timx_ccr2,2);
-		dump_reg(&TIM1_CCR3,"TIM1_CCR3",timx_ccr3,2);
-		dump_reg(&TIM1_CCR4,"TIM1_CCR4",timx_ccr4,2);
-		dump_reg(&TIM1_BDTR,"TIM1_BDTR",timx_bdtr,9);
-		dump_reg(&TIM1_DCR,"TIM1_DCR",timx_dcr,9);
-		dump_reg(&TIM1_DMAR,"TIM1_DMAR",timx_dmar,2);
-	} else	{
-		dump_reg(&TIM8_CR1,"TIM8_CR1",timx_cr1,8);
-		dump_reg(&TIM8_CR2,"TIM8_CR2",timx_cr2,14);
-		dump_reg(&TIM8_SMCR,"TIM8_SMCR",timx_smcr,14);
-		dump_reg(&TIM8_DIER,"TIM8_DIER",timx_dier,16);
-		dump_reg(&TIM8_SR,"TIM8_SR",timx_sr,14);
-		dump_reg(&TIM8_CCMR1,"TIM8_CCMR1 (out)",timx_ccmr1a,11);
-		dump_reg(&TIM8_CCMR1,"TIM8_CCMR1 (inp)",timx_ccmr1b,7);
-		dump_reg(&TIM8_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
-		dump_reg(&TIM8_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
-		dump_reg(&TIM8_CCER,"TIM8_CCER",timx_ccer,15);
-		dump_reg(&TIM8_CNT,"TIM8_CNT",timx_cnt,2);
-		dump_reg(&TIM8_PSC,"TIM8_PSC",timx_psc,2);
-		dump_reg(&TIM8_ARR,"TIM8_ARR",timx_arr,2);
-		dump_reg(&TIM8_RCR,"TIM8_RCR",timx_rcr,2);
-		dump_reg(&TIM8_CCR1,"TIM8_CCR1",timx_ccr1,2);
-		dump_reg(&TIM8_CCR2,"TIM8_CCR2",timx_ccr2,2);
-		dump_reg(&TIM8_CCR3,"TIM8_CCR3",timx_ccr3,2);
-		dump_reg(&TIM8_CCR4,"TIM8_CCR4",timx_ccr4,2);
-		dump_reg(&TIM8_BDTR,"TIM8_BDTR",timx_bdtr,9);
-		dump_reg(&TIM8_DCR,"TIM8_DCR",timx_dcr,9);
-		dump_reg(&TIM8_DMAR,"TIM8_DMAR",timx_dmar,2);
-	}
+	dump_reg(&TIM1_CR1,"TIM1_CR1",timx_cr1,8);
+	dump_reg(&TIM1_CR2,"TIM1_CR2",timx_cr2,14);
+	dump_reg(&TIM1_SMCR,"TIM1_SMCR",timx_smcr,14);
+	dump_reg(&TIM1_DIER,"TIM1_DIER",timx_dier,16);
+	dump_reg(&TIM1_SR,"TIM1_SR",timx_sr,14);
+	dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (out)",timx_ccmr1a,11);
+	dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (inp)",timx_ccmr1b,7);
+	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
+	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
+	dump_reg(&TIM1_CCER,"TIM1_CCER",timx_ccer,15);
+	dump_reg(&TIM1_CNT,"TIM1_CNT",timx_cnt,2);
+	dump_reg(&TIM1_PSC,"TIM1_PSC",timx_psc,2);
+	dump_reg(&TIM1_ARR,"TIM1_ARR",timx_arr,2);
+	dump_reg(&TIM1_RCR,"TIM1_RCR",timx_rcr,2);
+	dump_reg(&TIM1_CCR1,"TIM1_CCR1",timx_ccr1,2);
+	dump_reg(&TIM1_CCR2,"TIM1_CCR2",timx_ccr2,2);
+	dump_reg(&TIM1_CCR3,"TIM1_CCR3",timx_ccr3,2);
+	dump_reg(&TIM1_CCR4,"TIM1_CCR4",timx_ccr4,2);
+	dump_reg(&TIM1_BDTR,"TIM1_BDTR",timx_bdtr,9);
+	dump_reg(&TIM1_DCR,"TIM1_DCR",timx_dcr,9);
+	dump_reg(&TIM1_DMAR,"TIM1_DMAR",timx_dmar,2);
 }
 
 static void
-dump_timers25(unsigned timerno) {
+dump_timers24(unsigned timerno) {
 	static const struct bdesc timx_cr1[] = {
 		{ 31, 22, Binary, 22, "res" },
 		{  9,  2, Binary,  3, "CKD" },
@@ -1187,15 +1163,15 @@ dump_timers25(unsigned timerno) {
 		{ 15, 16, Hex,     9, "DMAR" }
 	};
 	static const volatile uint32_t *addrs[] = {
-		0,
-		0,
 		(volatile uint32_t *)TIM2,
 		(volatile uint32_t *)TIM3,
-		(volatile uint32_t *)TIM4,
-		(volatile uint32_t *)TIM5
+		(volatile uint32_t *)TIM4
 	};
-	const volatile uint32_t *a = addrs[timerno];
+	const volatile uint32_t *a = addrs[timerno-2];
 	char name[16];
+
+	if ( timerno < 2 || timerno >= 5 )
+		return;
 
 	mini_snprintf(name,sizeof name,"TIM%c_CR1",timerno+'0');
 	dump_reg(&TIM_CR1(a),name,timx_cr1,9);
@@ -1219,7 +1195,6 @@ dump_timers25(unsigned timerno) {
 	dump_reg(&TIM_CCER(a),"TIM1_CCER",timx_ccer,13);
 	mini_snprintf(name,sizeof name,"TIM%c_CNT",timerno+'0');
 	dump_reg(&TIM_CNT(a),name,timx_cnt,2);
-
 	mini_snprintf(name,sizeof name,"TIM%c_PSC",timerno+'0');
 	dump_reg(&TIM_PSC(a),name,timx_psc,2);
 	mini_snprintf(name,sizeof name,"TIM%c_ARR",timerno+'0');
@@ -1249,7 +1224,7 @@ menu_task(void *arg __attribute((unused))) {
 	for (;;) {
 		if ( menuf )
 			usb_printf(
-				"\nMenu:\n"
+				"\nSTM32F103C8T6 Menu:\n"
 				"  A ....AFIO Registers\n"
 				"  c ....ADC Registers\n"
 				"  i ....GPIO Inputs (GPIO_IDR)\n"
@@ -1257,8 +1232,8 @@ menu_task(void *arg __attribute((unused))) {
 				"  l ....GPIO Lock (GPIOx_LCKR)\n"
 				"  g ....GPIO Config/Mode Registers\n"
 				"  r ....RCC Registers\n"
-				"  1/8 ..Timer1 or 8 Registers\n"
-				"  2-5 ..Timer Registers 2 thru 5\n"
+				"  1 ....Timer1 Registers (Advanced)\n"
+				"  2-4 ..Timer2-4 Registers (General Purpose)\n"
 				"  v ....Interrupt Registers\n"
 			);
 		menuf = false;
@@ -1298,16 +1273,12 @@ menu_task(void *arg __attribute((unused))) {
 			dump_rcc();
 			break;
 		case '1':
-			dump_timers1_8(false);
+			dump_timer1();
 			break;
 		case '2':
 		case '3':
 		case '4':
-		case '5':
-			dump_timers25(ch&0x0F);
-			break;
-		case '8':
-			dump_timers1_8(true);
+			dump_timers24(ch&0x0F);
 			break;
 		case 'V':
 			dump_intr();
@@ -1332,7 +1303,7 @@ main(void) {
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	xTaskCreate(menu_task,"RXTX",200,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(menu_task,"RXTX",300,NULL,configMAX_PRIORITIES-1,NULL);
 
 	usb_start(1);
 	gpio_clear(GPIOC,GPIO13);
