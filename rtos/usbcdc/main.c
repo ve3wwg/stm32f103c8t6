@@ -742,6 +742,22 @@ dump_adc(void) {
 		{  9,  5, Decimal, 5, "SQ2" },
 		{  4,  5, Decimal, 5, "SQ1" },
 	};
+	static const struct bdesc adc_jsqr[] = {
+		{ 31, 10, Binary, 10, "res" },
+		{ 21,  2, Binary,  2, "JL" },
+		{ 19,  5, Binary,  5, "JSQ4" },
+		{ 14,  5, Binary,  5, "JSQ3" },
+		{  9,  5, Binary,  5, "JSQ2" },
+		{  4,  5, Binary,  5, "JSQ1" },
+	};
+	static const struct bdesc adc_jdrx[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,     5, "JDATA" },
+	};
+	static const struct bdesc adc_dr[] = {
+		{ 31, 16, Hex, 8, "ADC2DATA" },
+		{ 15, 16, Hex, 5, "DATA" },
+	};
 
 	dump_reg(&ADC1_SR,"ADC1_SR",adc_sr,7);
 	dump_reg(&ADC1_CR1,"ADC1_CR1",adc_cr1,15);
@@ -757,6 +773,12 @@ dump_adc(void) {
 	dump_reg(&ADC1_SQR1,"ADC1_SQR1",adc_sqr1,6);
 	dump_reg(&ADC1_SQR2,"ADC1_SQR2",adc_sqr2,7);
 	dump_reg(&ADC1_SQR3,"ADC1_SQR3",adc_sqr3,7);
+	dump_reg(&ADC1_JSQR,"ADC1_JSQR",adc_jsqr,6);
+	dump_reg(&ADC1_JDR1,"ADC1_JDR1",adc_jdrx,2);
+	dump_reg(&ADC1_JDR2,"ADC1_JDR2",adc_jdrx,2);
+	dump_reg(&ADC1_JDR3,"ADC1_JDR3",adc_jdrx,2);
+	dump_reg(&ADC1_JDR4,"ADC1_JDR4",adc_jdrx,2);
+	dump_reg(&ADC1_DR,"ADC1_DR",adc_dr,2);
 }
 
 static void
