@@ -10,6 +10,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/i2c.h>
+#include <libopencm3/stm32/timer.h>
 // #include <libopencm3/cm3/nvic.h>
 
 #include "usbcdc.h"
@@ -37,6 +38,17 @@ diff_ticks(ticktype_t early,ticktype_t later) {
 	if ( later >= early )
 		return later - early;
 	return ~(ticktype_t)0 - early + 1 + later;
+}
+
+static void
+program_pulse(void) {
+
+	usb_printf("Pulse..\n");
+	gpio_set(GPIOC,GPIO13);
+	timer_enable_counter(TIM2);
+	vTaskDelay(pdMS_TO_TICKS(200));
+	gpio_clear(GPIOC,GPIO13);
+	usb_printf("Done pulse..\n");
 }
 
 #if 0
@@ -149,61 +161,89 @@ i2c_read_nwait(uint32_t i2c,uint8_t *byte) {
 }
 
 static void
+fail(const char *msg) {
+	usb_printf("FAIL!! %s.\n",msg);
+	for(;;);
+}
+
+static void
 task1(void *args) {
 	uint8_t addr = PCF8574_ADDR(0);
-	uint8_t pat = 0, byte = 0;
 	bool ack;
-	char first;
+//	char first;
+	uint16_t eaddr = 0u;
+	uint8_t byte;
 
 	vTaskDelay(pdMS_TO_TICKS(5000));
 	usb_printf("Task1 begun:\nPress CR to begin:");
-	first = usb_getch();
+//	first = usb_getch();
+	usb_getch();
 	usb_putch('\n');
 	usb_putch('\n');
 
 	(void)args;
 	vTaskDelay(pdMS_TO_TICKS(1000));
 
+	ack = i2c_start_naddrrw(I2C1,addr+2,Write);
+	if ( !ack ) fail("1st start");
+	ack = i2c_write_nwait(I2C1,0xFF);
+	if ( !ack ) fail("1st write 0xFF");
+	i2c_send_stop(I2C1);
+
 	for (;;) {
+		program_pulse();
+
 		i2c_wait_nbusy(I2C1);
 
 		do	{
 			ack = i2c_start_naddrrw(I2C1,addr,Write);
-			if ( !ack ) {
-				usb_printf("*** FAILED TO START ***\n");
-					i2c_send_stop(I2C1);
-				continue;
-			}
+			if ( !ack ) fail("Start");
+			ack = i2c_write_nwait(I2C1,byte=eaddr&0x0FF);
+			if ( !ack ) fail("Lo Addr");
 
-			ack = i2c_write_nwait(I2C1,pat);
-			if ( !ack ) {
-				usb_printf("*** Write NAK ***\n");
-				i2c_send_stop(I2C1);
-				continue;
-			}
+			ack = i2c_start_naddrrw(I2C1,addr+1,Write);
+			if ( !ack ) fail("St Lo Addr");
+			ack = i2c_write_nwait(I2C1,(eaddr>>8)&0x1F);
 
-			usb_printf("Wrote 0x%02X\n",pat);
+			vTaskDelay(2);
 
-			ack = i2c_start_naddrrw(I2C1,addr,Read);
-			if ( !ack ) {
-				usb_printf("*** Restart+addr+R failed ***\n");
-				i2c_send_stop(I2C1);
-				continue;
-			}
-
+			ack = i2c_start_naddrrw(I2C1,addr+2,Read);
+			if ( !ack ) fail("St Read");
 			ack = i2c_read_nwait(I2C1,&byte);
-			if ( !ack )
-				usb_printf("*** Read Fail ***\n");
-			else	usb_printf("Read %02X vs %02X last sent, delta %02X\n",byte,pat,byte ^ pat);
+			if ( !ack ) fail("Da Read");
+
 		} while ( !ack );
 
-		++pat;
 		i2c_send_stop(I2C1);
+		++eaddr;
 
-		if ( first != 'F' )
-			vTaskDelay(pdMS_TO_TICKS(200));
-		gpio_toggle(GPIOC,GPIO13);
+		usb_printf("%04X  %02X '%c'\n",
+			eaddr,byte,
+			byte >= ' ' && byte < 0x7F ? byte : '.');
+
+		if ( eaddr >= 0xFFFF )
+			fail("End");
+
+//		if ( first != 'F' )
+//			vTaskDelay(pdMS_TO_TICKS(200));
+//		gpio_toggle(GPIOC,GPIO13);
 	}
+}
+
+static void
+timer_setup(void) {
+
+	rcc_periph_clock_enable(RCC_TIM2);
+	rcc_periph_reset_pulse(RST_TIM2);
+	timer_set_mode(TIM2,TIM_CR1_CKD_CK_INT,TIM_CR1_CMS_EDGE,TIM_CR1_DIR_UP);
+	timer_set_prescaler(TIM2,rcc_apb1_frequency /* * 2*/ / 72000u);	// 1000 Hz
+	timer_disable_preload(TIM2);
+	// timer_continuous_mode(TIM2);
+	timer_set_period(TIM2,100);		// 100 ms
+	timer_set_oc_mode(TIM2,TIM_OCM_ACTIVE,TIM_OC1);
+	timer_enable_oc_output(TIM2,TIM_OC1);
+	timer_set_oc_value(TIM2,TIM_OC1,3);
+//	timer_enable_counter(TIM2);
 }
 
 int
@@ -211,16 +251,24 @@ main(void) {
 
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
 
+	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOB);		// I2C
 	rcc_periph_clock_enable(RCC_GPIOC);		// LED
 	rcc_periph_clock_enable(RCC_AFIO);
 	rcc_periph_clock_enable(RCC_I2C1);
 
 	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,GPIO6|GPIO7);	// I2C
+	gpio_set(GPIOB,GPIO6|GPIO7);
+
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO0);			// Programming pulse
+	gpio_clear(GPIOA,GPIO0);
+
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);			// LED
 			     
 	gpio_primary_remap(0,0);		// AFIO_MAPR_I2C1_REMAP=0, PB6+PB7
 	i2c_reset_nconfig(I2C1);
+
+	timer_setup();
 
 	xTaskCreate(task1,"I2C",800,NULL,configMAX_PRIORITIES-1,NULL);
 	usb_start(1);
