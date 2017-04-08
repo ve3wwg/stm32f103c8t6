@@ -1111,7 +1111,6 @@ dump_timers25(unsigned timerno) {
 		{  3,  2, Binary,  6, "IC1PSC" },
 		{  1,  2, Binary,  4, "CC1S" },
 	};
-#if 0
 	static const struct bdesc timx_ccmr2a[] = {
 		{ 31, 16, Binary, 16, "res" },
 		{ 15,  1, Binary,  5, "OC4E" },
@@ -1138,16 +1137,14 @@ dump_timers25(unsigned timerno) {
 		{ 31, 18, Binary, 18, "res" },
 		{ 13,  1, Binary,  4, "CC4P" },
 		{ 12,  1, Binary,  4, "CC4E" },
-		{ 11,  1, Binary,  5, "CC4NP" },
-		{ 10,  1, Binary,  5, "CC4NE" },
+		{ 11,  2, Binary,  3, "res" },
 		{  9,  1, Binary,  4, "CC3P" },
 		{  8,  1, Binary,  4, "CC3E" },
 		{  7,  1, Binary,  5, "CC3NP" },
 		{  6,  1, Binary,  5, "CC3NE" },
 		{  5,  1, Binary,  4, "CC2P" },
 		{  4,  1, Binary,  4, "CC2E" },
-		{  3,  1, Binary,  5, "CC2NP" },
-		{  2,  1, Binary,  5, "CC2NE" },
+		{  3,  2, Binary,  3, "res" },
 		{  1,  1, Binary,  4, "CC1P" },
 		{  0,  1, Binary,  4, "CC1E" },
 	};
@@ -1162,10 +1159,6 @@ dump_timers25(unsigned timerno) {
 	static const struct bdesc timx_arr[] = {
 		{ 31, 16, Binary, 16, "res" },
 		{ 15, 16, Hex,     9, "ARR" }
-	};
-	static const struct bdesc timx_rcr[] = {
-		{ 31, 24, Binary, 24, "res" },
-		{  7,  8, Hex,     3, "REP" }
 	};
 	static const struct bdesc timx_ccr1[] = {
 		{ 31, 16, Binary, 16, "res" },
@@ -1183,17 +1176,6 @@ dump_timers25(unsigned timerno) {
 		{ 31, 16, Binary, 16, "res" },
 		{ 15, 16, Hex,     5, "CCR4" }
 	};
-	static const struct bdesc timx_bdtr[] = {
-		{ 31, 16, Binary, 16, "res" },
-		{ 15,  1, Binary,  3, "MOE" },
-		{ 14,  1, Binary,  3, "AOE" },
-		{ 13,  1, Binary,  3, "BKP" },
-		{ 12,  1, Binary,  3, "BKE" },
-		{ 11,  1, Binary,  4, "OSSR" },
-		{ 10,  1, Binary,  4, "OSSI" },
-		{  9,  2, Binary,  4, "LOCK" },
-		{  7,  8, Binary,  8, "DTG" },
-	};
 	static const struct bdesc timx_dcr[] = {
 		{ 31, 19, Binary, 19, "res" },
 		{ 12,  5, Decimal, 3, "DBL" },
@@ -1204,7 +1186,6 @@ dump_timers25(unsigned timerno) {
 		{ 31, 16, Binary, 16, "res" },
 		{ 15, 16, Hex,     9, "DMAR" }
 	};
-#endif
 	static const volatile uint32_t *addrs[] = {
 		0,
 		0,
@@ -1230,23 +1211,31 @@ dump_timers25(unsigned timerno) {
 	dump_reg(&TIM_CCMR1(a),name,timx_ccmr1a,11);
 	mini_snprintf(name,sizeof name,"TIM%c_CCMR1 (inp)",timerno+'0');
 	dump_reg(&TIM_CCMR1(a),name,timx_ccmr1b,7);
+	mini_snprintf(name,sizeof name,"TIM%c_CCMR2 (out)",timerno+'0');
+	dump_reg(&TIM_CCMR2(a),name,timx_ccmr2a,11);
+	mini_snprintf(name,sizeof name,"TIM%c_CCMR2 (inp)",timerno+'0');
+	dump_reg(&TIM_CCMR2(a),name,timx_ccmr2b,7);
+	mini_snprintf(name,sizeof name,"TIM%c_CCER",timerno+'0');
+	dump_reg(&TIM_CCER(a),"TIM1_CCER",timx_ccer,13);
+	mini_snprintf(name,sizeof name,"TIM%c_CNT",timerno+'0');
+	dump_reg(&TIM_CNT(a),name,timx_cnt,2);
 
-#if 0
-	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
-	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
-	dump_reg(&TIM1_CCER,"TIM1_CCER",timx_ccer,15);
-	dump_reg(&TIM1_CNT,"TIM1_CNT",timx_cnt,2);
-	dump_reg(&TIM1_PSC,"TIM1_PSC",timx_psc,2);
-	dump_reg(&TIM1_ARR,"TIM1_ARR",timx_arr,2);
-	dump_reg(&TIM1_RCR,"TIM1_RCR",timx_rcr,2);
-	dump_reg(&TIM1_CCR1,"TIM1_CCR1",timx_ccr1,2);
-	dump_reg(&TIM1_CCR2,"TIM1_CCR2",timx_ccr2,2);
-	dump_reg(&TIM1_CCR3,"TIM1_CCR3",timx_ccr3,2);
-	dump_reg(&TIM1_CCR4,"TIM1_CCR4",timx_ccr4,2);
-	dump_reg(&TIM1_BDTR,"TIM1_BDTR",timx_bdtr,9);
-	dump_reg(&TIM1_DCR,"TIM1_DCR",timx_dcr,9);
-	dump_reg(&TIM1_DMAR,"TIM1_DMAR",timx_dmar,2);
-#endif
+	mini_snprintf(name,sizeof name,"TIM%c_PSC",timerno+'0');
+	dump_reg(&TIM_PSC(a),name,timx_psc,2);
+	mini_snprintf(name,sizeof name,"TIM%c_ARR",timerno+'0');
+	dump_reg(&TIM_ARR(a),name,timx_arr,2);
+	mini_snprintf(name,sizeof name,"TIM%c_CCR1",timerno+'0');
+	dump_reg(&TIM_CCR1(a),name,timx_ccr1,2);
+	mini_snprintf(name,sizeof name,"TIM%c_CCR2",timerno+'0');
+	dump_reg(&TIM_CCR2(a),name,timx_ccr2,2);
+	mini_snprintf(name,sizeof name,"TIM%c_CCR3",timerno+'0');
+	dump_reg(&TIM_CCR3(a),name,timx_ccr3,2);
+	mini_snprintf(name,sizeof name,"TIM%c_CCR4",timerno+'0');
+	dump_reg(&TIM_CCR4(a),name,timx_ccr4,2);
+	mini_snprintf(name,sizeof name,"TIM%c_DCR",timerno+'0');
+	dump_reg(&TIM_DCR(a),name,timx_dcr,9);
+	mini_snprintf(name,sizeof name,"TIM%c_DMAR",timerno+'0');
+	dump_reg(&TIM_DMAR(a),name,timx_dmar,2);
 }
 
 /*
