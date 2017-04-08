@@ -852,7 +852,7 @@ dump_timers1_8(bool tim8) {
 		{  3,  1, Binary,  5, "CC3IF" },
 		{  2,  1, Binary,  5, "CC2IF" },
 		{  1,  1, Binary,  5, "CC1IF" },
-		{  0,  1, Binary,  3, "UIP" },
+		{  0,  1, Binary,  3, "UIF" },
 	};
 	static const struct bdesc timx_ccmr1a[] = {
 		{ 31, 16, Binary, 16, "res" },
@@ -1074,22 +1074,20 @@ dump_timers25(unsigned timerno) {
 		{  1,  1, Binary,  5, "CC1IE" },
 		{  0,  1, Binary,  3, "UIE" },
 	};
-#if 0
 	static const struct bdesc timx_sr[] = {
 		{ 31, 19, Binary, 19, "res" },
 		{ 12,  1, Binary,  5, "CC4OF" },
 		{ 11,  1, Binary,  5, "CC3OF" },
 		{ 10,  1, Binary,  5, "CC2OF" },
 		{  9,  1, Binary,  5, "CC1OF" },
-		{  8,  1, Binary,  3, "res" },
-		{  7,  1, Binary,  3, "BIF" },
+		{  8,  2, Binary,  3, "res" },
 		{  6,  1, Binary,  3, "TIF" },
-		{  5,  1, Binary,  5, "COMIF" },
+		{  5,  1, Binary,  3, "res" },
 		{  4,  1, Binary,  5, "CC4IF" },
 		{  3,  1, Binary,  5, "CC3IF" },
 		{  2,  1, Binary,  5, "CC2IF" },
 		{  1,  1, Binary,  5, "CC1IF" },
-		{  0,  1, Binary,  3, "UIP" },
+		{  0,  1, Binary,  3, "UIF" },
 	};
 	static const struct bdesc timx_ccmr1a[] = {
 		{ 31, 16, Binary, 16, "res" },
@@ -1113,6 +1111,7 @@ dump_timers25(unsigned timerno) {
 		{  3,  2, Binary,  6, "IC1PSC" },
 		{  1,  2, Binary,  4, "CC1S" },
 	};
+#if 0
 	static const struct bdesc timx_ccmr2a[] = {
 		{ 31, 16, Binary, 16, "res" },
 		{ 15,  1, Binary,  5, "OC4E" },
@@ -1215,7 +1214,7 @@ dump_timers25(unsigned timerno) {
 		(volatile uint32_t *)TIM5
 	};
 	const volatile uint32_t *a = addrs[timerno];
-	char name[12];
+	char name[16];
 
 	mini_snprintf(name,sizeof name,"TIM%c_CR1",timerno+'0');
 	dump_reg(&TIM_CR1(a),name,timx_cr1,9);
@@ -1225,10 +1224,14 @@ dump_timers25(unsigned timerno) {
 	dump_reg(&TIM_SMCR(a),name,timx_smcr,9);
 	mini_snprintf(name,sizeof name,"TIM%c_DIER",timerno+'0');
 	dump_reg(&TIM_DIER(a),name,timx_dier,16);
+	mini_snprintf(name,sizeof name,"TIM%c_SR",timerno+'0');
+	dump_reg(&TIM_SR(a),name,timx_sr,13);
+	mini_snprintf(name,sizeof name,"TIM%c_CCMR1 (out)",timerno+'0');
+	dump_reg(&TIM_CCMR1(a),name,timx_ccmr1a,11);
+	mini_snprintf(name,sizeof name,"TIM%c_CCMR1 (inp)",timerno+'0');
+	dump_reg(&TIM_CCMR1(a),name,timx_ccmr1b,7);
+
 #if 0
-	dump_reg(&TIM1_SR,"TIM1_SR",timx_sr,14);
-	dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (out)",timx_ccmr1a,11);
-	dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (inp)",timx_ccmr1b,7);
 	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
 	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
 	dump_reg(&TIM1_CCER,"TIM1_CCER",timx_ccer,15);
