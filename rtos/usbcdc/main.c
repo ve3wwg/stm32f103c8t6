@@ -127,11 +127,15 @@ dump_vals(int x,uint32_t reg,const struct bdesc *desc,int n) {
 }
 
 static void
-dump_reg(volatile uint32_t *raddr,const char *descrip,const struct bdesc *desc,int n) {
+dump_reg(volatile uint32_t *raddr,const char *dev,int no,const char *descrip,const struct bdesc *desc,int n) {
 	uint32_t reg = *raddr;
+	char name[32];
 	int x, x2;
 
-	usb_printf("\n%-12s: $%08X @ $%08X\n",descrip,reg,(uint32_t)raddr);
+	if ( no > 0 )
+		mini_snprintf(name,sizeof name,"%s%d_%s",dev,no,descrip);
+	else	mini_snprintf(name,sizeof name,"%s_%s",dev,descrip);
+	usb_printf("\n%-12s: $%08X @ $%08X\n",name,reg,(uint32_t)raddr);
 
 	x = dump_hdrs(0,desc,n);
 	dump_vals(0,reg,desc,n);
@@ -313,15 +317,15 @@ dump_rcc(void) {
 		{  0,  1, Binary,  5, "LSION" },
 	};
 
-	dump_reg(&RCC_CR,"RCC_CR",rcc_cr,13);
-	dump_reg(&RCC_CFGR,"RCC_CFGR",rcc_cfgr,13);
-	dump_reg(&RCC_CIR,"RCC_CIR",rcc_cir,21);
-	dump_reg(&RCC_APB2RSTR,"RCC_APB2RSTR",rcc_apb2rstr,21);
-	dump_reg(&RCC_AHBENR,"RCC_AHBENR",rcc_ahbenr,12);
-	dump_reg(&RCC_APB2ENR,"RCC_APB2ENR",rcc_apb2enr,21);
-	dump_reg(&RCC_APB1ENR,"RCC_APB1ENR",rcc_apb1enr,29);
-	dump_reg(&RCC_BDCR,"RCC_BDCR",rcc_bdcr,8);
-	dump_reg(&RCC_CSR,"RCC_CSR",rcc_csr,12);
+	dump_reg(&RCC_CR,"RCC",0,"CR",rcc_cr,13);
+	dump_reg(&RCC_CFGR,"RCC",0,"CFGR",rcc_cfgr,13);
+	dump_reg(&RCC_CIR,"RCC",0,"CIR",rcc_cir,21);
+	dump_reg(&RCC_APB2RSTR,"RCC",0,"APB2RSTR",rcc_apb2rstr,21);
+	dump_reg(&RCC_AHBENR,"RCC",0,"AHBENR",rcc_ahbenr,12);
+	dump_reg(&RCC_APB2ENR,"RCC",0,"APB2ENR",rcc_apb2enr,21);
+	dump_reg(&RCC_APB1ENR,"RCC",0,"APB1ENR",rcc_apb1enr,29);
+	dump_reg(&RCC_BDCR,"RCC",0,"BDCR",rcc_bdcr,8);
+	dump_reg(&RCC_CSR,"RCC",0,"CSR",rcc_csr,12);
 }
 
 static void
@@ -345,15 +349,15 @@ dump_gpio(void) {
 		{  1, 2, Binary, 5, "MODE0" },
 	};
 
-	dump_reg(&GPIOA_CRL,"GPIOA_CRL",gpiox_crlh,16);
-	dump_reg(&GPIOB_CRL,"GPIOB_CRL",gpiox_crlh,16);
-	dump_reg(&GPIOC_CRL,"GPIOC_CRL",gpiox_crlh,16);
-	dump_reg(&GPIOD_CRL,"GPIOD_CRL",gpiox_crlh,16);
+	dump_reg(&GPIOA_CRL,"GPIOA",0,"CRL",gpiox_crlh,16);
+	dump_reg(&GPIOB_CRL,"GPIOB",0,"CRL",gpiox_crlh,16);
+	dump_reg(&GPIOC_CRL,"GPIOC",0,"CRL",gpiox_crlh,16);
+	dump_reg(&GPIOD_CRL,"GPIOD",0,"CRL",gpiox_crlh,16);
 
-	dump_reg(&GPIOA_CRH,"GPIOA_CRH",gpiox_crlh,16);
-	dump_reg(&GPIOB_CRH,"GPIOB_CRH",gpiox_crlh,16);
-	dump_reg(&GPIOC_CRH,"GPIOC_CRH",gpiox_crlh,16);
-	dump_reg(&GPIOD_CRH,"GPIOD_CRH",gpiox_crlh,16);
+	dump_reg(&GPIOA_CRH,"GPIOA",0,"CRH",gpiox_crlh,16);
+	dump_reg(&GPIOB_CRH,"GPIOB",0,"CRH",gpiox_crlh,16);
+	dump_reg(&GPIOC_CRH,"GPIOC",0,"CRH",gpiox_crlh,16);
+	dump_reg(&GPIOD_CRH,"GPIOD",0,"CRH",gpiox_crlh,16);
 
 	usb_printf("\n  CNFx In 00=Analog,    01=Floating input, 10=Input Pull-up/down, 11= Reserved\n");
 	usb_printf(  "      Out 00=Push/Pull, 01=Open-Drain,     10=AF Push/Pull,       11=AF Open Drain\n");
@@ -382,10 +386,10 @@ dump_gpio_inputs(void) {
 		{  0,  1, Binary,  4, "IDR0" },
 	};
 
-	dump_reg(&GPIOA_IDR,"GPIOA_IDR",gpiox_idr,17);
-	dump_reg(&GPIOB_IDR,"GPIOB_IDR",gpiox_idr,17);
-	dump_reg(&GPIOC_IDR,"GPIOC_IDR",gpiox_idr,17);
-	dump_reg(&GPIOD_IDR,"GPIOD_IDR",gpiox_idr,17);
+	dump_reg(&GPIOA_IDR,"GPIOA",0,"IDR",gpiox_idr,17);
+	dump_reg(&GPIOB_IDR,"GPIOB",0,"IDR",gpiox_idr,17);
+	dump_reg(&GPIOC_IDR,"GPIOC",0,"IDR",gpiox_idr,17);
+	dump_reg(&GPIOD_IDR,"GPIOD",0,"IDR",gpiox_idr,17);
 }
 
 static void
@@ -410,10 +414,10 @@ dump_gpio_outputs(void) {
 		{  0,  1, Binary,  4, "ODR0" },
 	};
 
-	dump_reg(&GPIOA_ODR,"GPIOA_ODR",gpiox_odr,17);
-	dump_reg(&GPIOB_ODR,"GPIOB_ODR",gpiox_odr,17);
-	dump_reg(&GPIOC_ODR,"GPIOC_ODR",gpiox_odr,17);
-	dump_reg(&GPIOD_ODR,"GPIOD_ODR",gpiox_odr,17);
+	dump_reg(&GPIOA_ODR,"GPIOA",0,"ODR",gpiox_odr,17);
+	dump_reg(&GPIOB_ODR,"GPIOB",0,"ODR",gpiox_odr,17);
+	dump_reg(&GPIOC_ODR,"GPIOC",0,"ODR",gpiox_odr,17);
+	dump_reg(&GPIOD_ODR,"GPIOD",0,"ODR",gpiox_odr,17);
 }
 
 static void
@@ -439,10 +443,10 @@ dump_gpio_locks(void) {
 		{  0,  1, Binary,  4, "LCK0" },
 	};
 
-	dump_reg(&GPIOA_LCKR,"GPIOA_LCKR",gpiox_lckr,18);
-	dump_reg(&GPIOB_LCKR,"GPIOB_LCKR",gpiox_lckr,18);
-	dump_reg(&GPIOC_LCKR,"GPIOC_LCKR",gpiox_lckr,18);
-	dump_reg(&GPIOD_LCKR,"GPIOD_LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOA_LCKR,"GPIOA",0,"LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOB_LCKR,"GPIOB",0,"LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOC_LCKR,"GPIOC",0,"LCKR",gpiox_lckr,18);
+	dump_reg(&GPIOD_LCKR,"GPIOD",0,"LCKR",gpiox_lckr,18);
 }
 
 static void
@@ -515,15 +519,15 @@ dump_afio(void) {
 		{  3,  4, Binary,  6, "EXTI12" },
 	};
 
-	dump_reg(&AFIO_EVCR,"AFIO_EVCR",afio_evcr,5);
+	dump_reg(&AFIO_EVCR,"AFIO",0,"EVCR",afio_evcr,5);
 	usb_printf("  PORT: 000=A, 001=B, 010=C, 011=D. 100=E\n");
-	dump_reg(&AFIO_MAPR,"AFIO_MAPR",afio_mapr,19);
-	dump_reg(&AFIO_MAPR2,"AFIO_MAPR2",afio_mapr2,9);
+	dump_reg(&AFIO_MAPR,"AFIO",0,"MAPR",afio_mapr,19);
+	dump_reg(&AFIO_MAPR2,"AFIO",0,"MAPR2",afio_mapr2,9);
 
-	dump_reg(&AFIO_EXTICR1,"AFIO_EXTICR1",afio_exticr1,5);
-	dump_reg(&AFIO_EXTICR2,"AFIO_EXTICR2",afio_exticr2,5);
-	dump_reg(&AFIO_EXTICR3,"AFIO_EXTICR3",afio_exticr3,5);
-	dump_reg(&AFIO_EXTICR4,"AFIO_EXTICR4",afio_exticr4,5);
+	dump_reg(&AFIO_EXTICR1,"AFIO",0,"EXTICR1",afio_exticr1,5);
+	dump_reg(&AFIO_EXTICR2,"AFIO",0,"EXTICR2",afio_exticr2,5);
+	dump_reg(&AFIO_EXTICR3,"AFIO",0,"EXTICR3",afio_exticr3,5);
+	dump_reg(&AFIO_EXTICR4,"AFIO",0,"EXTICR4",afio_exticr4,5);
 	usb_printf("  EXTIx: 0000=A, 0001=B, 0010=C, 0011=D\n");
 }
 
@@ -622,12 +626,29 @@ dump_intr(void) {
 		{  0,  1, Binary,  3, "PR0" },
 	};
 
-	dump_reg(&EXTI_IMR,"EXTI_IMR",exti_imr,21);
-	dump_reg(&EXTI_EMR,"EXTI_EMR",exti_imr,21);
-	dump_reg(&EXTI_RTSR,"EXTI_RTSR",exti_rtsr,21);
-	dump_reg(&EXTI_FTSR,"EXTI_FTSR",exti_rtsr,21);
-	dump_reg(&EXTI_SWIER,"EXTI_SWIER",exti_swier,21);
-	dump_reg(&EXTI_PR,"EXTI_PR",exti_pr,21);
+	dump_reg(&EXTI_IMR,"EXTI",0,"IMR",exti_imr,21);
+	dump_reg(&EXTI_EMR,"EXTI",0,"EMR",exti_imr,21);
+	dump_reg(&EXTI_RTSR,"EXTI",0,"RTSR",exti_rtsr,21);
+	dump_reg(&EXTI_FTSR,"EXTI",0,"FTSR",exti_rtsr,21);
+	dump_reg(&EXTI_SWIER,"EXTI",0,"SWIER",exti_swier,21);
+	dump_reg(&EXTI_PR,"EXTI",0,"PR",exti_pr,21);
+}
+
+static int
+which_device(int low,int high) {
+	char ch;
+	int dev;
+
+	usb_printf("Which device (%d-%d)? ",low,high);
+	ch = usb_getch();
+	usb_printf("%c\n",ch);
+
+	if ( ch < '0' || ch > '9' )
+		return -1;
+	dev = ch & 0x0F;
+	if ( dev < low || dev > high )
+		return -1;
+	return dev;
 }
 
 static void
@@ -758,27 +779,36 @@ dump_adc(void) {
 		{ 31, 16, Hex, 8, "ADC2DATA" },
 		{ 15, 16, Hex, 5, "DATA" },
 	};
+	static const volatile uint32_t *addrs[] = {
+		(volatile uint32_t *)ADC1,
+		(volatile uint32_t *)ADC2,
+	};
+	int dev = which_device(1,2);
+	const volatile uint32_t *a = addrs[dev-1];
 
-	dump_reg(&ADC1_SR,"ADC1_SR",adc_sr,7);
-	dump_reg(&ADC1_CR1,"ADC1_CR1",adc_cr1,15);
-	dump_reg(&ADC1_CR2,"ADC1_CR2",adc_cr2,17);
-	dump_reg(&ADC1_SMPR1,"ADC1_SMPR1",adc_smpr1,9);
-	dump_reg(&ADC1_SMPR2,"ADC1_SMPR2",adc_smpr2,11);
-	dump_reg(&ADC1_JOFR1,"ADC1_JOFR1",adc_jofrx,3);
-	dump_reg(&ADC1_JOFR2,"ADC1_JOFR2",adc_jofrx,3);
-	dump_reg(&ADC1_JOFR3,"ADC1_JOFR3",adc_jofrx,3);
-	dump_reg(&ADC1_JOFR4,"ADC1_JOFR4",adc_jofrx,3);
-	dump_reg(&ADC1_HTR,"ADC1_HTR",adc_htr,3);
-	dump_reg(&ADC1_LTR,"ADC1_LTR",adc_ltr,3);
-	dump_reg(&ADC1_SQR1,"ADC1_SQR1",adc_sqr1,6);
-	dump_reg(&ADC1_SQR2,"ADC1_SQR2",adc_sqr2,7);
-	dump_reg(&ADC1_SQR3,"ADC1_SQR3",adc_sqr3,7);
-	dump_reg(&ADC1_JSQR,"ADC1_JSQR",adc_jsqr,6);
-	dump_reg(&ADC1_JDR1,"ADC1_JDR1",adc_jdrx,2);
-	dump_reg(&ADC1_JDR2,"ADC1_JDR2",adc_jdrx,2);
-	dump_reg(&ADC1_JDR3,"ADC1_JDR3",adc_jdrx,2);
-	dump_reg(&ADC1_JDR4,"ADC1_JDR4",adc_jdrx,2);
-	dump_reg(&ADC1_DR,"ADC1_DR",adc_dr,2);
+	if ( dev < 0 )
+		return;
+
+	dump_reg(&ADC_SR(a),"ADC",dev,"SR",adc_sr,7);
+	dump_reg(&ADC_CR1(a),"ADC",dev,"CR1",adc_cr1,15);
+	dump_reg(&ADC_CR2(a),"ADC",dev,"CR2",adc_cr2,17);
+	dump_reg(&ADC_SMPR1(a),"ADC",dev,"SMPR1",adc_smpr1,9);
+	dump_reg(&ADC_SMPR2(a),"ADC",dev,"SMPR2",adc_smpr2,11);
+	dump_reg(&ADC_JOFR1(a),"ADC",dev,"JOFR1",adc_jofrx,3);
+	dump_reg(&ADC_JOFR2(a),"ADC",dev,"JOFR2",adc_jofrx,3);
+	dump_reg(&ADC_JOFR3(a),"ADC",dev,"JOFR3",adc_jofrx,3);
+	dump_reg(&ADC_JOFR4(a),"ADC",dev,"JOFR4",adc_jofrx,3);
+	dump_reg(&ADC_HTR(a),"ADC",dev,"HTR",adc_htr,3);
+	dump_reg(&ADC_LTR(a),"ADC",dev,"LTR",adc_ltr,3);
+	dump_reg(&ADC_SQR1(a),"ADC",dev,"SQR1",adc_sqr1,6);
+	dump_reg(&ADC_SQR2(a),"ADC",dev,"SQR2",adc_sqr2,7);
+	dump_reg(&ADC_SQR3(a),"ADC",dev,"SQR3",adc_sqr3,7);
+	dump_reg(&ADC_JSQR(a),"ADC",dev,"JSQR",adc_jsqr,6);
+	dump_reg(&ADC_JDR1(a),"ADC",dev,"JDR1",adc_jdrx,2);
+	dump_reg(&ADC_JDR2(a),"ADC",dev,"JDR2",adc_jdrx,2);
+	dump_reg(&ADC_JDR3(a),"ADC",dev,"JDR3",adc_jdrx,2);
+	dump_reg(&ADC_JDR4(a),"ADC",dev,"JDR4",adc_jdrx,2);
+	dump_reg(&ADC_DR(a),"ADC",dev,"DR",adc_dr,2);
 }
 
 static void
@@ -969,31 +999,31 @@ dump_timer1(void) {
 		{ 15, 16, Hex,     9, "DMAR" }
 	};
 
-	dump_reg(&TIM1_CR1,"TIM1_CR1",timx_cr1,8);
-	dump_reg(&TIM1_CR2,"TIM1_CR2",timx_cr2,14);
-	dump_reg(&TIM1_SMCR,"TIM1_SMCR",timx_smcr,14);
-	dump_reg(&TIM1_DIER,"TIM1_DIER",timx_dier,16);
-	dump_reg(&TIM1_SR,"TIM1_SR",timx_sr,14);
-	dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (out)",timx_ccmr1a,11);
-	dump_reg(&TIM1_CCMR1,"TIM1_CCMR1 (inp)",timx_ccmr1b,7);
-	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (out)",timx_ccmr2a,11);
-	dump_reg(&TIM1_CCMR2,"TIM1_CCMR2 (inp)",timx_ccmr2b,7);
-	dump_reg(&TIM1_CCER,"TIM1_CCER",timx_ccer,15);
-	dump_reg(&TIM1_CNT,"TIM1_CNT",timx_cnt,2);
-	dump_reg(&TIM1_PSC,"TIM1_PSC",timx_psc,2);
-	dump_reg(&TIM1_ARR,"TIM1_ARR",timx_arr,2);
-	dump_reg(&TIM1_RCR,"TIM1_RCR",timx_rcr,2);
-	dump_reg(&TIM1_CCR1,"TIM1_CCR1",timx_ccr1,2);
-	dump_reg(&TIM1_CCR2,"TIM1_CCR2",timx_ccr2,2);
-	dump_reg(&TIM1_CCR3,"TIM1_CCR3",timx_ccr3,2);
-	dump_reg(&TIM1_CCR4,"TIM1_CCR4",timx_ccr4,2);
-	dump_reg(&TIM1_BDTR,"TIM1_BDTR",timx_bdtr,9);
-	dump_reg(&TIM1_DCR,"TIM1_DCR",timx_dcr,9);
-	dump_reg(&TIM1_DMAR,"TIM1_DMAR",timx_dmar,2);
+	dump_reg(&TIM1_CR1,"TIM",1,"CR1",timx_cr1,8);
+	dump_reg(&TIM1_CR2,"TIM",1,"CR2",timx_cr2,14);
+	dump_reg(&TIM1_SMCR,"TIM",1,"SMCR",timx_smcr,14);
+	dump_reg(&TIM1_DIER,"TIM",1,"DIER",timx_dier,16);
+	dump_reg(&TIM1_SR,"TIM",1,"SR",timx_sr,14);
+	dump_reg(&TIM1_CCMR1,"TIM",1,"CCMR1 (out)",timx_ccmr1a,11);
+	dump_reg(&TIM1_CCMR1,"TIM",1,"CCMR1 (inp)",timx_ccmr1b,7);
+	dump_reg(&TIM1_CCMR2,"TIM",1,"CCMR2 (out)",timx_ccmr2a,11);
+	dump_reg(&TIM1_CCMR2,"TIM",1,"CCMR2 (inp)",timx_ccmr2b,7);
+	dump_reg(&TIM1_CCER,"TIM",1,"CCER",timx_ccer,15);
+	dump_reg(&TIM1_CNT,"TIM",1,"CNT",timx_cnt,2);
+	dump_reg(&TIM1_PSC,"TIM",1,"PSC",timx_psc,2);
+	dump_reg(&TIM1_ARR,"TIM",1,"ARR",timx_arr,2);
+	dump_reg(&TIM1_RCR,"TIM",1,"RCR",timx_rcr,2);
+	dump_reg(&TIM1_CCR1,"TIM",1,"CCR1",timx_ccr1,2);
+	dump_reg(&TIM1_CCR2,"TIM",1,"CCR2",timx_ccr2,2);
+	dump_reg(&TIM1_CCR3,"TIM",1,"CCR3",timx_ccr3,2);
+	dump_reg(&TIM1_CCR4,"TIM",1,"CCR4",timx_ccr4,2);
+	dump_reg(&TIM1_BDTR,"TIM",1,"BDTR",timx_bdtr,9);
+	dump_reg(&TIM1_DCR,"TIM",1,"DCR",timx_dcr,9);
+	dump_reg(&TIM1_DMAR,"TIM",1,"DMAR",timx_dmar,2);
 }
 
 static void
-dump_timers24(unsigned timerno) {
+dump_timers24(int dev) {
 	static const struct bdesc timx_cr1[] = {
 		{ 31, 22, Binary, 22, "res" },
 		{  9,  2, Binary,  3, "CKD" },
@@ -1167,57 +1197,53 @@ dump_timers24(unsigned timerno) {
 		(volatile uint32_t *)TIM3,
 		(volatile uint32_t *)TIM4
 	};
-	const volatile uint32_t *a = addrs[timerno-2];
-	char name[16];
+	const volatile uint32_t *a = addrs[dev-2];
 
-	if ( timerno < 2 || timerno >= 5 )
+	dump_reg(&TIM_CR1(a),"TIM",dev,"CR1",timx_cr1,9);
+	dump_reg(&TIM_CR2(a),"TIM",dev,"CR2",timx_cr2,5);
+	dump_reg(&TIM_SMCR(a),"TIM",dev,"SMCR",timx_smcr,9);
+	dump_reg(&TIM_DIER(a),"TIM",dev,"DIER",timx_dier,16);
+	dump_reg(&TIM_SR(a),"TIM",dev,"SR",timx_sr,13);
+	dump_reg(&TIM_CCMR1(a),"TIM",dev,"CCMR1 (out)",timx_ccmr1a,11);
+	dump_reg(&TIM_CCMR1(a),"TIM",dev,"CCMR1 (inp)",timx_ccmr1b,7);
+	dump_reg(&TIM_CCMR2(a),"TIM",dev,"CCMR2 (out)",timx_ccmr2a,11);
+	dump_reg(&TIM_CCMR2(a),"TIM",dev,"CCMR2 (inp)",timx_ccmr2b,7);
+	dump_reg(&TIM_CCER(a),"TIM",dev,"CCER",timx_ccer,13);
+	dump_reg(&TIM_CNT(a),"TIM",dev,"CNT",timx_cnt,2);
+	dump_reg(&TIM_PSC(a),"TIM",dev,"PSC",timx_psc,2);
+	dump_reg(&TIM_ARR(a),"TIM",dev,"ARR",timx_arr,2);
+	dump_reg(&TIM_CCR1(a),"TIM",dev,"CCR1",timx_ccr1,2);
+	dump_reg(&TIM_CCR2(a),"TIM",dev,"CCR2",timx_ccr2,2);
+	dump_reg(&TIM_CCR3(a),"TIM",dev,"CCR3",timx_ccr3,2);
+	dump_reg(&TIM_CCR4(a),"TIM",dev,"CCR4",timx_ccr4,2);
+	dump_reg(&TIM_DCR(a),"TIM",dev,"DCR",timx_dcr,9);
+	dump_reg(&TIM_DMAR(a),"TIM",dev,"DMAR",timx_dmar,2);
+}
+
+static void
+dump_timers(void) {
+	int dev = which_device(1,4);
+
+	if ( dev < 0 )
 		return;
 
-	mini_snprintf(name,sizeof name,"TIM%c_CR1",timerno+'0');
-	dump_reg(&TIM_CR1(a),name,timx_cr1,9);
-	mini_snprintf(name,sizeof name,"TIM%c_CR2",timerno+'0');
-	dump_reg(&TIM_CR2(a),name,timx_cr2,5);
-	mini_snprintf(name,sizeof name,"TIM%c_SMCR",timerno+'0');
-	dump_reg(&TIM_SMCR(a),name,timx_smcr,9);
-	mini_snprintf(name,sizeof name,"TIM%c_DIER",timerno+'0');
-	dump_reg(&TIM_DIER(a),name,timx_dier,16);
-	mini_snprintf(name,sizeof name,"TIM%c_SR",timerno+'0');
-	dump_reg(&TIM_SR(a),name,timx_sr,13);
-	mini_snprintf(name,sizeof name,"TIM%c_CCMR1 (out)",timerno+'0');
-	dump_reg(&TIM_CCMR1(a),name,timx_ccmr1a,11);
-	mini_snprintf(name,sizeof name,"TIM%c_CCMR1 (inp)",timerno+'0');
-	dump_reg(&TIM_CCMR1(a),name,timx_ccmr1b,7);
-	mini_snprintf(name,sizeof name,"TIM%c_CCMR2 (out)",timerno+'0');
-	dump_reg(&TIM_CCMR2(a),name,timx_ccmr2a,11);
-	mini_snprintf(name,sizeof name,"TIM%c_CCMR2 (inp)",timerno+'0');
-	dump_reg(&TIM_CCMR2(a),name,timx_ccmr2b,7);
-	mini_snprintf(name,sizeof name,"TIM%c_CCER",timerno+'0');
-	dump_reg(&TIM_CCER(a),"TIM1_CCER",timx_ccer,13);
-	mini_snprintf(name,sizeof name,"TIM%c_CNT",timerno+'0');
-	dump_reg(&TIM_CNT(a),name,timx_cnt,2);
-	mini_snprintf(name,sizeof name,"TIM%c_PSC",timerno+'0');
-	dump_reg(&TIM_PSC(a),name,timx_psc,2);
-	mini_snprintf(name,sizeof name,"TIM%c_ARR",timerno+'0');
-	dump_reg(&TIM_ARR(a),name,timx_arr,2);
-	mini_snprintf(name,sizeof name,"TIM%c_CCR1",timerno+'0');
-	dump_reg(&TIM_CCR1(a),name,timx_ccr1,2);
-	mini_snprintf(name,sizeof name,"TIM%c_CCR2",timerno+'0');
-	dump_reg(&TIM_CCR2(a),name,timx_ccr2,2);
-	mini_snprintf(name,sizeof name,"TIM%c_CCR3",timerno+'0');
-	dump_reg(&TIM_CCR3(a),name,timx_ccr3,2);
-	mini_snprintf(name,sizeof name,"TIM%c_CCR4",timerno+'0');
-	dump_reg(&TIM_CCR4(a),name,timx_ccr4,2);
-	mini_snprintf(name,sizeof name,"TIM%c_DCR",timerno+'0');
-	dump_reg(&TIM_DCR(a),name,timx_dcr,9);
-	mini_snprintf(name,sizeof name,"TIM%c_DMAR",timerno+'0');
-	dump_reg(&TIM_DMAR(a),name,timx_dmar,2);
+	switch ( dev ) {
+	case 1:
+		dump_timer1();
+		break;
+	case 2:
+	case 3:
+	case 4:
+		dump_timers24(dev);
+		break;
+	}
 }
 
 /*
- * Menu driven task:
+ * Monitor routine
  */
 static void
-menu_task(void *arg __attribute((unused))) {
+monitor(void) {
 	int ch;
 	bool menuf = true;
 	
@@ -1225,16 +1251,18 @@ menu_task(void *arg __attribute((unused))) {
 		if ( menuf )
 			usb_printf(
 				"\nSTM32F103C8T6 Menu:\n"
-				"  A ....AFIO Registers\n"
-				"  c ....ADC Registers\n"
-				"  i ....GPIO Inputs (GPIO_IDR)\n"
-				"  o ....GPIO Outputs (GPIO_ODR)\n"
-				"  l ....GPIO Lock (GPIOx_LCKR)\n"
-				"  g ....GPIO Config/Mode Registers\n"
+				"  a ....ADC Registers\n"
+				"  f ....AFIO Registers\n"
 				"  r ....RCC Registers\n"
-				"  1 ....Timer1 Registers (Advanced)\n"
-				"  2-4 ..Timer2-4 Registers (General Purpose)\n"
+				"  t ... Timer Registers\n"
 				"  v ....Interrupt Registers\n"
+				"\n"
+				"  i ....GPIO Inputs\n"
+				"  o ....GPIO Outputs\n"
+				"  l ....GPIO Lock\n"
+				"  g ....GPIO Config/Mode Registers\n"
+				"\n"
+				"  x ....Exit\n"
 			);
 		menuf = false;
 
@@ -1252,10 +1280,10 @@ menu_task(void *arg __attribute((unused))) {
 			menuf = true;
 			break;		
 		case 'A':
-			dump_afio();
-			break;
-		case 'C':
 			dump_adc();
+			break;
+		case 'F':
+			dump_afio();
 			break;
 		case 'G' :
 			dump_gpio();
@@ -1272,22 +1300,29 @@ menu_task(void *arg __attribute((unused))) {
 		case 'R':
 			dump_rcc();
 			break;
-		case '1':
-			dump_timer1();
-			break;
-		case '2':
-		case '3':
-		case '4':
-			dump_timers24(ch&0x0F);
+		case 'T':
+			dump_timers();
 			break;
 		case 'V':
 			dump_intr();
 			break;
+		case 'X':
+			return;
 		default:
 			usb_printf(" ???\n");
 			menuf = true;
 		}
 	}
+}
+
+/*
+ * Monitor task:
+ */
+static void
+monitor_task(void *arg __attribute((unused))) {
+
+	for (;;)
+		monitor();
 }
 
 /*
@@ -1303,7 +1338,7 @@ main(void) {
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	xTaskCreate(menu_task,"RXTX",300,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(monitor_task,"monitor",300,NULL,configMAX_PRIORITIES-1,NULL);
 
 	usb_start(1);
 	gpio_clear(GPIOC,GPIO13);
