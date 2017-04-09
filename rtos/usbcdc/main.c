@@ -17,6 +17,7 @@
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/timer.h>
+#include <libopencm3/stm32/f1/bkp.h>
 
 #include "usbcdc.h"
 #include "miniprintf.h"
@@ -127,16 +128,42 @@ dump_vals(int x,uint32_t reg,const struct bdesc *desc,int n) {
 }
 
 static void
-dump_reg(volatile uint32_t *raddr,const char *dev,int no,const char *descrip,const struct bdesc *desc,int n) {
+dump_reg_info(volatile uint32_t *raddr,const char *dev,int no,const char *descrip) {
 	uint32_t reg = *raddr;
 	char name[32];
-	int x, x2;
 
 	if ( no > 0 )
 		mini_snprintf(name,sizeof name,"%s%d_%s",dev,no,descrip);
-	else	mini_snprintf(name,sizeof name,"%s_%s",dev,descrip);
+	else	mini_snprintf(name,sizeof name,"%s%s%s",
+			dev,
+			descrip ? "_" : "",
+			descrip ? descrip : "");
 	usb_printf("\n%-12s: $%08X @ $%08X\n",name,reg,(uint32_t)raddr);
+}
 
+static void
+dump_reg_simple16(volatile uint32_t *raddr,const char *dev,int no,const char *descrip,uint16_t value) {
+	uint32_t reg = *raddr;
+	char name[32];
+
+	if ( no > 0 )
+		mini_snprintf(name,sizeof name,"%s%d_%s",dev,no,descrip);
+	else	mini_snprintf(name,sizeof name,"%s%s%s",
+			dev,
+			descrip ? "_" : "",
+			descrip ? descrip : "");
+	usb_printf("%-12s: $%08X @ $%08X, VALUE: $%08X  %5u",name,reg,(uint32_t)raddr,(unsigned)value,(unsigned)value);
+	if ( value & 0x8000 )
+		usb_printf("  (%d)",(int)value);
+	usb_printf("\n");
+}
+
+static void
+dump_reg(volatile uint32_t *raddr,const char *dev,int no,const char *descrip,const struct bdesc *desc,int n) {
+	uint32_t reg = *raddr;
+	int x, x2;
+
+	dump_reg_info(raddr,dev,no,descrip);
 	x = dump_hdrs(0,desc,n);
 	dump_vals(0,reg,desc,n);
 
@@ -1221,6 +1248,50 @@ dump_timers24(int dev) {
 }
 
 static void
+dump_backup(void) {
+	static const struct bdesc bkp_rtccr[] = {
+		{ 31, 22, Binary, 22, "res" },
+		{  9,  1, Binary,  4, "ASOS" },
+		{  8,  1, Binary,  4, "ASOE" },
+		{  7,  1, Binary,  3, "CCO" },
+		{  6,  7, Binary,  7, "CAL" },
+	};
+	static const struct bdesc bkp_cr[] = {
+		{ 31, 30, Binary, 30, "res" },
+		{  1,  1, Binary,  4, "TPAL" },
+		{  0,  1, Binary,  3, "TPE" },
+	};
+	static const struct bdesc bkp_csr[] = {
+		{ 31, 21, Binary, 21, "res" },
+		{  9,  1, Binary,  3, "TIF" },
+		{  8,  1, Binary,  3, "TEF" },
+		{  7,  5, Binary,  5, "res" },
+		{  2,  1, Binary,  4, "TPIE" },
+		{  1,  1, Binary,  3, "CTI" },
+		{  0,  1, Binary,  3, "CTE" },
+	};
+	static volatile uint32_t *addrs[] = {
+		&BKP_DR1, &BKP_DR2, &BKP_DR3, &BKP_DR4, &BKP_DR5, &BKP_DR6, &BKP_DR7, &BKP_DR8, &BKP_DR9, &BKP_DR10,&BKP_DR11,
+		&BKP_DR12,&BKP_DR13,&BKP_DR14,&BKP_DR15,&BKP_DR16,&BKP_DR17,&BKP_DR18,&BKP_DR19,&BKP_DR20,&BKP_DR21,&BKP_DR22,
+		&BKP_DR23,&BKP_DR24,&BKP_DR25,&BKP_DR26,&BKP_DR27,&BKP_DR28,&BKP_DR29,&BKP_DR30,&BKP_DR31,&BKP_DR32,&BKP_DR33,
+		&BKP_DR34,&BKP_DR35,&BKP_DR36,&BKP_DR37,&BKP_DR38,&BKP_DR39,&BKP_DR40,&BKP_DR41,&BKP_DR42
+
+	};
+	char name[24];
+	uint32_t x;
+
+	dump_reg(&BKP_RTCCR,"BKP",0,"RTCCR",bkp_rtccr,5);
+	dump_reg(&BKP_CR,"BKP",0,"CR",bkp_cr,3);
+	dump_reg(&BKP_CSR,"BKP",0,"CSR",bkp_csr,7);
+	usb_putch('\n');
+
+	for ( x=1; x<=42; ++x ) {
+		mini_snprintf(name,sizeof name,"BKP_DR%u",(unsigned)x);
+		dump_reg_simple16(addrs[x-1],name,0,NULL,*addrs[x-1]);
+	}
+}
+
+static void
 dump_timers(void) {
 	int dev = which_device(1,4);
 
@@ -1252,6 +1323,7 @@ monitor(void) {
 			usb_printf(
 				"\nSTM32F103C8T6 Menu:\n"
 				"  a ....ADC Registers\n"
+				"  b ....Backupe Registers\n"
 				"  f ....AFIO Registers\n"
 				"  r ....RCC Registers\n"
 				"  t ... Timer Registers\n"
@@ -1281,6 +1353,9 @@ monitor(void) {
 			break;		
 		case 'A':
 			dump_adc();
+			break;
+		case 'B':
+			dump_backup();
 			break;
 		case 'F':
 			dump_afio();
