@@ -55,6 +55,7 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 	unsigned uint;		/* Unsigned value to print */
 	const char *sptr;	/* String to print */
 	char buf[32], *bptr;	/* Formatting buffer for int/uint */
+	char ccase = 0;
 
 	while ( (ch = *format++) != 0 ) {
 		if ( ch != '%' ) {
@@ -97,6 +98,19 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 			vint = va_arg(arg,int);
 			mini->putc((char)vint,mini->argp);
 			break;
+
+		case 'u':		/* Unsigned decimal */
+			uint = va_arg(arg,unsigned);
+			bptr = buf + sizeof buf;
+			*--bptr = 0;
+			do	{
+				*--bptr = uint % 10 + '0';
+				uint /= 10u;
+			} while ( uint != 0 );
+			mini_pad(mini,pad,width,bptr);
+			mini_write(mini,bptr);
+			break;
+
 		case 'd':		/* Decimal format */
 			vint = va_arg(arg,int);
 			if ( vint < 0 ) {
@@ -114,14 +128,19 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 			mini_write(mini,bptr);
 			break;
 
-		case 'X':
+		case 'p':		/* Pointer: assumes pointer is sizeof(unsigned) */
+			mini_write(mini,"0x");
+			/* Fall Thru */
 		case 'x':		/* Hexadecimal format */
+			ccase = 0x20;	/* Flip case */
+			/* Fall Thru */
+		case 'X':
 			uint = va_arg(arg,unsigned);
 			bptr = buf + sizeof buf;
 			*--bptr = 0;
 			do	{
 				ch = uint & 0x0F;
-				*--bptr = ch + (ch <= 9 ? '0' : 'A'-10);
+				*--bptr = ch + (ch <= 9 ? '0' : ('A'^ccase)-10);
 				uint >>= 4;
 			} while ( uint != 0 );
 			mini_pad(mini,pad,width,bptr);
