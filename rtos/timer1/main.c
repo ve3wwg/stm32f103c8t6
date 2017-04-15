@@ -7,31 +7,38 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-//#include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-//#include <libopencm3/cm3/scb.h>
-//#include <libopencm3/stm32/exti.h>
-//#include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/timer.h>
-//#include <libopencm3/stm32/f1/bkp.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 
 /*********************************************************************
- * Setup TMR2 for pulse generation
+ * The SYSCLK runs at 72 MHz and the AHB prescaler = 1. The input
+ * to the APB1 prescaler is thus also 72 MHz. Because the APB1 bus
+ * must not exceed 36 MHz, this APB1 prescaler divides by 2, giving
+ * 36 MHz. However, since the APB1 prescaler is not equal to 1, the
+ * clock going to TIM2, 3 and 4 is doubled and thus is 72 MHz (Figure
+ * 8 of section 7.2 of RM0008). This sets CK_INT = 72 Mhz in Figure
+ * 100 of section 15.2.
+ *
+ * Setting the prescaler TIM2_PSC = 360, produces a CK_CNT at every 
+ * 5 usec (1/72000000/360). To generate a timer event at 100us, we
+ * thus configure the counter and OC2 count to 20 (20 * 5 usec).
  *********************************************************************/
 
+
 static void
-timer2_once(uint32_t div) {
+timer_setup(void) {
 
 	rcc_periph_clock_enable(RCC_TIM2);
 	timer_reset(TIM2);
 	timer_set_mode(TIM2,TIM_CR1_CKD_CK_INT_MUL_4,TIM_CR1_CMS_EDGE,TIM_CR1_DIR_UP);
+	timer_set_prescaler(TIM2,360);		// Clock counts every 5 usec
 	timer_one_shot_mode(TIM2);
-	timer_set_period(TIM2,div);		// 1/72MHz/7200 ~= 100 usec
+	timer_set_period(TIM2,20);		// 20 * 5 usec => 100 usec
 }
 
 /*********************************************************************
@@ -54,17 +61,16 @@ delay_100us(void) {
 static void
 timer_task(void *arg __attribute__((unused))) {
 	
-	timer2_once(7000u);			// Setup timer 2 for 100us
 	gpio_clear(GPIOC,GPIO13);
+	timer_setup();
 
 	for (;;) {
 		// Generate 100us Pulse on C13
 		gpio_set(GPIOC,GPIO13);
-		delay_100us();			// 100 usec
+		delay_100us();			// 100 usec delay
 		gpio_clear(GPIOC,GPIO13);
 
-		// Pause for another 100us
-		delay_100us();			// 100 usec
+		vTaskDelay(1);			// Delay 1 systick
 	}
 }
 
