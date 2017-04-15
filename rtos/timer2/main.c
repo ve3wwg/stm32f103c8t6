@@ -36,8 +36,11 @@ static void
 timer_setup(void) {
 
 	rcc_periph_clock_enable(RCC_GPIOA);		// Need GPIOA clock
-	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_2_MHZ,
-		GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO1);	// GPIOA11=TIM2.CH2
+	gpio_primary_remap(
+		AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF,	// Optional
+		AFIO_MAPR_TIM2_REMAP_NO_REMAP);		// This is default: TIM2.CH2=GPIOA1
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,	// High speed
+		GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO1);	// GPIOA1=TIM2.CH2
 	rcc_periph_clock_enable(RCC_TIM2);		// Need TIM2 clock
 	rcc_periph_clock_enable(RCC_AFIO);		// Need AFIO clock
 
