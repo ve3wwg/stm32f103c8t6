@@ -41,12 +41,10 @@ timer2_once(uint32_t div) {
 static void
 delay_100us(void) {
 
-	TIM2_SR &= ~TIM_SR_UIF;			// UIF=0
-
+	timer_clear_flag(TIM2,TIM_SR_UIF);	// UIF=0
 	timer_enable_counter(TIM2);		// Start timer
-	while ( !(TIM2_SR & TIM_SR_UIF) ) 	// Until UiF=1
-		;
-	TIM2_SR &= ~TIM_SR_UIF;			// UIF=0
+	while ( !timer_get_flag(TIM2,TIM_SR_UIF) )
+		;				// Until UIF=1
 }
 
 /*********************************************************************
