@@ -486,14 +486,14 @@ dump_afio(void) {
 		{  3,  3, Binary,  3, "PIN" }
 	};
 	static const struct bdesc afio_mapr[] = {
-		{ 31,  5, Binary,   3, "res" },
+		{ 31,  5, Binary,   5, "res" },
 		{ 26,  3, Binary,   7, "SQW_CFG" },
 		{ 23,  3, Binary,   3, "res" },
 		{ 20,  1, Binary,  16, "ADCETRGREG_REMAP" },
 		{ 19,  1, Binary, -18, "ADCw_ETRGINJ_REMAP" },
 		{ 18,  1, Binary,  17, "ADC1_TRGREG_REMAP" },
 		{ 17,  1, Binary,  18,  "ADC1_ETRGINJ_REMAP" },
-		{ 16,  1, Binary,  15, "TIME5CH4_IREMAP" },
+		{ 16,  1, Binary,   3, "res" },
 		{ 15,  1, Binary, -11, "PD001_REMAP" },
 		{ 14,  2, Binary,   9, "CAN_REMAP" },
 		{ 12,  1, Binary,  10, "TIM4_REMAP" },
@@ -505,17 +505,6 @@ dump_afio(void) {
 		{  2,  1, Binary,  12, "USART1_REMAP" },
 		{  1,  1, Binary,  10, "I2C1_REMAP" },
 		{  0,  1, Binary,  10, "SPI1_REMAP" },
-	};
-	static const struct bdesc afio_mapr2[] = {
-		{ 31, 16, Binary,  16, "res" },
-		{ 15,  5, Binary,   5, "res" },
-		{ 10,  1, Binary,   9, "FSMC_NADV" },
-		{  9,  1, Binary,  11, "TIM14_REMAP" },
-		{  8,  1, Binary,  11, "TIM13_REMAP" },
-		{  7,  1, Binary,  11, "TIM11_REMAP" },
-		{  6,  1, Binary,  11, "TIM10_REMAP" },
-		{  5,  1, Binary,  10, "TIM9_REMAP" },
-		{  4,  5, Binary,   5, "res" },
 	};
 	static const struct bdesc afio_exticr1[] = {
 		{ 31, 16, Binary, 16, "res" },
@@ -549,7 +538,6 @@ dump_afio(void) {
 	dump_reg(&AFIO_EVCR,"AFIO",0,"EVCR",afio_evcr,5);
 	usb_printf("  PORT: 000=A, 001=B, 010=C, 011=D. 100=E\n");
 	dump_reg(&AFIO_MAPR,"AFIO",0,"MAPR",afio_mapr,19);
-	dump_reg(&AFIO_MAPR2,"AFIO",0,"MAPR2",afio_mapr2,9);
 
 	dump_reg(&AFIO_EXTICR1,"AFIO",0,"EXTICR1",afio_exticr1,5);
 	dump_reg(&AFIO_EXTICR2,"AFIO",0,"EXTICR2",afio_exticr2,5);
@@ -806,12 +794,9 @@ dump_adc(void) {
 		{ 31, 16, Hex, 8, "ADC2DATA" },
 		{ 15, 16, Hex, 5, "DATA" },
 	};
-	static const volatile uint32_t *addrs[] = {
-		(volatile uint32_t *)ADC1,
-		(volatile uint32_t *)ADC2,
-	};
+	static const uint32_t addrs[] = { ADC1, ADC2 };
 	int dev = which_device(1,2);
-	const volatile uint32_t *a = addrs[dev-1];
+	const uint32_t a = addrs[dev-1];
 
 	if ( dev < 0 )
 		return;
@@ -1063,20 +1048,11 @@ dump_timers24(int dev) {
 		{  0,  1, Binary,  3, "CEN" },
 	};
 	static const struct bdesc timx_cr2[] = {
-		{ 31, 17, Binary, 17, "res" },
-		{ 14,  1, Binary,  4, "OIS4" },
-		{ 13,  1, Binary,  5, "OIS3N" },
-		{ 12,  1, Binary,  4, "OIS3" },
-		{ 11,  1, Binary,  5, "OIS2N" },
-		{ 10,  1, Binary,  4, "OIS2" },
-		{  9,  1, Binary,  5, "OIS1N" },
-		{  8,  1, Binary,  4, "OIS1" },
+		{ 31, 24, Binary, 24, "res" },
 		{  7,  1, Binary,  4, "TIS1" },
 		{  6,  3, Binary,  3, "MMS" },
 		{  3,  1, Binary,  4, "CCDS" },
-		{  2,  1, Binary,  4, "CCUS" },
-		{  1,  1, Binary,  3, "res" },
-		{  0,  1, Binary,  4, "CCPC" },
+		{  2,  3, Binary,  3, "res" },
 	};
 	static const struct bdesc timx_smcr[] = {
 		{ 31, 16, Binary, 16, "res" },
@@ -1219,12 +1195,8 @@ dump_timers24(int dev) {
 		{ 31, 16, Binary, 16, "res" },
 		{ 15, 16, Hex,     9, "DMAR" }
 	};
-	static const volatile uint32_t *addrs[] = {
-		(volatile uint32_t *)TIM2,
-		(volatile uint32_t *)TIM3,
-		(volatile uint32_t *)TIM4
-	};
-	const volatile uint32_t *a = addrs[dev-2];
+	static const uint32_t addrs[] = { TIM2, TIM3, TIM4 };
+	const uint32_t a = addrs[dev-2];
 
 	dump_reg(&TIM_CR1(a),"TIM",dev,"CR1",timx_cr1,9);
 	dump_reg(&TIM_CR2(a),"TIM",dev,"CR2",timx_cr2,5);
@@ -1271,11 +1243,7 @@ dump_backup(void) {
 		{  0,  1, Binary,  3, "CTE" },
 	};
 	static volatile uint32_t *addrs[] = {
-		&BKP_DR1, &BKP_DR2, &BKP_DR3, &BKP_DR4, &BKP_DR5, &BKP_DR6, &BKP_DR7, &BKP_DR8, &BKP_DR9, &BKP_DR10,&BKP_DR11,
-		&BKP_DR12,&BKP_DR13,&BKP_DR14,&BKP_DR15,&BKP_DR16,&BKP_DR17,&BKP_DR18,&BKP_DR19,&BKP_DR20,&BKP_DR21,&BKP_DR22,
-		&BKP_DR23,&BKP_DR24,&BKP_DR25,&BKP_DR26,&BKP_DR27,&BKP_DR28,&BKP_DR29,&BKP_DR30,&BKP_DR31,&BKP_DR32,&BKP_DR33,
-		&BKP_DR34,&BKP_DR35,&BKP_DR36,&BKP_DR37,&BKP_DR38,&BKP_DR39,&BKP_DR40,&BKP_DR41,&BKP_DR42
-
+		&BKP_DR1,&BKP_DR2, &BKP_DR3, &BKP_DR4, &BKP_DR5, &BKP_DR6, &BKP_DR7, &BKP_DR8, &BKP_DR9, &BKP_DR10
 	};
 	char name[24];
 	uint32_t x;
@@ -1285,7 +1253,7 @@ dump_backup(void) {
 	dump_reg(&BKP_CSR,"BKP",0,"CSR",bkp_csr,7);
 	usb_putch('\n');
 
-	for ( x=1; x<=42; ++x ) {
+	for ( x=1; x<=10; ++x ) {
 		mini_snprintf(name,sizeof name,"BKP_DR%u",(unsigned)x);
 		dump_reg_simple16(addrs[x-1],name,0,NULL,*addrs[x-1]);
 	}
@@ -1406,12 +1374,11 @@ monitor_task(void *arg __attribute((unused))) {
 int
 main(void) {
 
-	SCB_CCR &= ~SCB_CCR_UNALIGN_TRP;		// Make sure alignment is not enabled
-
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
 
 	rcc_periph_clock_enable(RCC_GPIOC);
-	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
+
+	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
 	xTaskCreate(monitor_task,"monitor",300,NULL,configMAX_PRIORITIES-1,NULL);
 
