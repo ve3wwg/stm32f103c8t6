@@ -99,6 +99,11 @@ PREREQUISITES:
         to your project subdirectory for further customization. Each
         project is capable of running a different FreeRTOS configuration.
 
+		5.	A library of useful functions is available in ./rtos/libwwg .
+				Some of the example applications use this library and will fail
+				to compile with out it. Build it by going into the ./rtos/libwwg 
+				directory and doing a "make".
+
 TEST EXAMPLES:
 --------------
 
