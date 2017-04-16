@@ -1,32 +1,31 @@
 Project stm32f103c8t6
 ---------------------
 
-This git project contains libopencm3 (only) and FreeRTOS+libopencm3 projects.
-This provides a ready development environment for those who want to apply the economical
-STM32F103 to using libopencm3 alone or in concert with
-FreeRTOS. Why struggle with  gleaning from forums etc.?
+This git project contains libopencm3 (only) and FreeRTOS+libopencm3
+projects. This provides a ready development environment for those who
+want to apply the economical STM32F103 to using libopencm3 alone or in
+concert with FreeRTOS.
 
-THIS PROJECT USES ONLY OPEN SOURCE TOOLS
+THIS PROJECT ONLY USES OPEN SOURCE TOOLS
 ----------------------------------------
 
-No Windows based IDE environments are used or implied! Linux and MacOS
-users rejoice (can you hear the cheers?) Vendors need to be reminded that
-not everyone uses Windows. 
+No Windows based IDE environments are used or implied! Cygwin, Linux,
+MacOS and *BSD environments should be suitable.
 
 This project exists to bring several components together in a manner
-that just works for the STM32F103 -- out of the box!
+that just works for the STM32F103.
 
 PROJECT STRUCTURE:
 ------------------
 
 The top level defines the environment common to libopencm3 mainly, and
-used by FreeRTOS builds in the ./rtos area.
+used by FreeRTOS builds in the ./rtos subdirectory.
 
 At the top level directory, projects like ./miniblink use libopencm3
 only (they do NOT use FreeRTOS).
 
-Under the subdirectory ./rtos, projects in subdirectories there use
-FreeRTOS (and libopencm3).
+The subdirectory ./rtos contains projects that do use FreeRTOS (and
+libopencm3).
 
     stm32f103c8t6/
         |- README.md
@@ -46,7 +45,7 @@ FreeRTOS (and libopencm3).
             |- Makefile         Used for creating new rtos projects
             |- Makefile.rtos    Rules for rtos project builds
             |- src/
-                |- *            Files used for project creastion
+                |- *            Files used for project creation
             |- libwwg
                 |- Makefile
                 |- include/*.h
@@ -138,5 +137,4 @@ LICENSE:
 All files covered by _this_ repo (_except_ those files copied from
 libopencm3 and FreeRTOS), are covered by the Gnu Lesser General Public
 License Version 3. See the file named LICENSE.
-
 
