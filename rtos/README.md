@@ -5,7 +5,7 @@ There is a Makefile at this level designed to setup new
 FreeRTOS projects in a subdirectory. To use it, simply
 perform:
 
-	make PROJECT=myproj
+	make -f Project.mk PROJECT=myproj
 
 This will create a subdirectory ./myproj containing the
 necessary source files and Makefile for that project.
@@ -22,8 +22,9 @@ these distributed sources if you need to save space.
 libwwg:
 -------
 
-Before attempting to make any rtos project depending
-upon libwwg, do:
+If you did a "make" at the top level directory, this
+should already be done. But if you made changes to the
+libwwg library, you can do:
 
     make -C ./libwwg
 
@@ -33,5 +34,5 @@ upon libwwg, do:
     compile with the FreeRTOSConfig.h file in
     libwwg/rtos. If the module(s) depend upon
     special customizations, then it is best to
-    copy the affected modules to the project
+    copy the affected modules to the specific project
     directory and build them there.
