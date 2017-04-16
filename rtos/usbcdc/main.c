@@ -17,6 +17,7 @@
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/timer.h>
+#include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/f1/bkp.h>
 
 #include "usbcdc.h"
@@ -34,7 +35,7 @@ enum Format {
 
 struct bdesc {
 	unsigned	sbit : 5;
-	unsigned	bits : 5;
+	unsigned	bits : 6;
 	enum Format	format : 3;
 	int		width : 6;
 	const char	*desc;
@@ -1278,6 +1279,96 @@ dump_timers(void) {
 	}
 }
 
+static void
+dump_dma(void) {
+	static const struct bdesc dma1_isr[] = {
+		{ 31,  4, Binary,  4, "res" },
+		{ 27,  1, Binary,  5, "TEIF7" },
+		{ 26,  1, Binary,  5, "HTIF7" },
+		{ 25,  1, Binary,  5, "TCIF7" },
+		{ 24,  1, Binary,  4, "GIF7" },
+		{ 23,  1, Binary,  5, "TEIF6" },
+		{ 22,  1, Binary,  5, "HTIF6" },
+		{ 21,  1, Binary,  5, "TCIF6" },
+		{ 20,  1, Binary,  4, "GIF6" },
+		{ 19,  1, Binary,  5, "TEIF5" },
+		{ 18,  1, Binary,  5, "HTIF5" },
+		{ 17,  1, Binary,  5, "TCIF5" },
+		{ 16,  1, Binary,  4, "GIF5" },
+		{ 15,  1, Binary,  5, "TEIF4" },
+		{ 14,  1, Binary,  5, "HTIF4" },
+		{ 13,  1, Binary,  5, "TCIF4" },
+		{ 12,  1, Binary,  4, "GIF4" },
+		{ 11,  1, Binary,  5, "TEIF3" },
+		{ 10,  1, Binary,  5, "HTIF2" },
+		{  9,  1, Binary,  5, "TCIF3" },
+		{  8,  1, Binary,  4, "GIF3" },
+		{  7,  1, Binary,  5, "TEIF2" },
+		{  6,  1, Binary,  5, "HTIF2" },
+		{  5,  1, Binary,  5, "TCIF2" },
+		{  4,  1, Binary,  4, "GIF2" },
+		{  3,  1, Binary,  5, "TEIF1" },
+		{  2,  1, Binary,  5, "HTIF1" },
+		{  1,  1, Binary,  5, "TCIF1" },
+		{  0,  1, Binary,  4, "GIF1" },
+	};
+	static const struct bdesc dma_ccrx[] = {
+		{ 31, 17, Binary, 17, "res" },
+		{ 14,  1, Binary,  7, "MEM2MEM" },
+		{ 13,  2, Binary,  2, "PL" },
+		{ 11,  2, Binary,  5, "MSIZE" },
+		{  9,  2, Binary,  5, "PSIZE" },
+		{  7,  1, Binary,  4, "MINC" },
+		{  6,  1, Binary,  4, "PINC" },
+		{  5,  1, Binary,  4, "CIRC" },
+		{  4,  1, Binary,  3, "DIR" },
+		{  3,  1, Binary,  4, "TEIE" },
+		{  2,  1, Binary,  4, "HTIE" },
+		{  1,  1, Binary,  4, "TCIE" },
+		{  0,  1, Binary,  2, "EN" },
+	};
+	static const struct bdesc dma_cndtrx[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Decimal, 5, "NDT" },
+	};
+	static const struct bdesc dma_cparx[] = {
+		{ 31, 32, Hex, 32, "PA" },
+	};
+	static const struct bdesc dma_cmarx[] = {
+		{ 31, 32, Hex, 32, "MA" },
+	};
+
+	dump_reg(&DMA1_ISR,"DMA",1,"ISR",dma1_isr,29);
+	dump_reg(&DMA1_CCR1,"DMA",1,"CCR1",dma_ccrx,13);
+	dump_reg(&DMA1_CCR2,"DMA",1,"CCR2",dma_ccrx,13);
+	dump_reg(&DMA1_CCR3,"DMA",1,"CCR3",dma_ccrx,13);
+	dump_reg(&DMA1_CCR4,"DMA",1,"CCR4",dma_ccrx,13);
+	dump_reg(&DMA1_CCR5,"DMA",1,"CCR5",dma_ccrx,13);
+	dump_reg(&DMA1_CCR6,"DMA",1,"CCR6",dma_ccrx,13);
+	dump_reg(&DMA1_CCR7,"DMA",1,"CCR7",dma_ccrx,13);
+	dump_reg(&DMA1_CNDTR1,"DMA",1,"CNDTR1",dma_cndtrx,2);
+	dump_reg(&DMA1_CNDTR2,"DMA",1,"CNDTR2",dma_cndtrx,2);
+	dump_reg(&DMA1_CNDTR3,"DMA",1,"CNDTR3",dma_cndtrx,2);
+	dump_reg(&DMA1_CNDTR4,"DMA",1,"CNDTR4",dma_cndtrx,2);
+	dump_reg(&DMA1_CNDTR5,"DMA",1,"CNDTR5",dma_cndtrx,2);
+	dump_reg(&DMA1_CNDTR6,"DMA",1,"CNDTR6",dma_cndtrx,2);
+	dump_reg(&DMA1_CNDTR7,"DMA",1,"CNDTR7",dma_cndtrx,2);
+	dump_reg(&DMA1_CPAR1,"DMA",1,"CPAR1",dma_cparx,1);
+	dump_reg(&DMA1_CPAR2,"DMA",1,"CPAR2",dma_cparx,1);
+	dump_reg(&DMA1_CPAR3,"DMA",1,"CPAR3",dma_cparx,1);
+	dump_reg(&DMA1_CPAR4,"DMA",1,"CPAR4",dma_cparx,1);
+	dump_reg(&DMA1_CPAR5,"DMA",1,"CPAR5",dma_cparx,1);
+	dump_reg(&DMA1_CPAR6,"DMA",1,"CPAR6",dma_cparx,1);
+	dump_reg(&DMA1_CPAR7,"DMA",1,"CPAR7",dma_cparx,1);
+	dump_reg(&DMA1_CMAR1,"DMA",1,"CMAR1",dma_cmarx,1);
+	dump_reg(&DMA1_CMAR2,"DMA",1,"CMAR2",dma_cmarx,1);
+	dump_reg(&DMA1_CMAR3,"DMA",1,"CMAR3",dma_cmarx,1);
+	dump_reg(&DMA1_CMAR4,"DMA",1,"CMAR4",dma_cmarx,1);
+	dump_reg(&DMA1_CMAR5,"DMA",1,"CMAR5",dma_cmarx,1);
+	dump_reg(&DMA1_CMAR6,"DMA",1,"CMAR6",dma_cmarx,1);
+	dump_reg(&DMA1_CMAR7,"DMA",1,"CMAR7",dma_cmarx,1);
+}
+
 /*
  * Monitor routine
  */
@@ -1290,19 +1381,20 @@ monitor(void) {
 		if ( menuf )
 			usb_printf(
 				"\nSTM32F103C8T6 Menu:\n"
-				"  a ....ADC Registers\n"
-				"  b ....Backupe Registers\n"
-				"  f ....AFIO Registers\n"
-				"  r ....RCC Registers\n"
+				"  a ... ADC Registers\n"
+				"  b ... Backupe Registers\n"
+				"  d ... DMA Registers\n"
+				"  f ... AFIO Registers\n"
+				"  r ... RCC Registers\n"
 				"  t ... Timer Registers\n"
-				"  v ....Interrupt Registers\n"
+				"  v ... Interrupt Registers\n"
 				"\n"
-				"  i ....GPIO Inputs\n"
-				"  o ....GPIO Outputs\n"
-				"  l ....GPIO Lock\n"
-				"  g ....GPIO Config/Mode Registers\n"
+				"  i ... GPIO Inputs\n"
+				"  o ... GPIO Outputs\n"
+				"  l ... GPIO Lock\n"
+				"  g ... GPIO Config/Mode Registers\n"
 				"\n"
-				"  x ....Exit\n"
+				"  x ... Exit\n"
 			);
 		menuf = false;
 
@@ -1324,6 +1416,9 @@ monitor(void) {
 			break;
 		case 'B':
 			dump_backup();
+			break;
+		case 'D':
+			dump_dma();
 			break;
 		case 'F':
 			dump_afio();
