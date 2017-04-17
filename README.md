@@ -125,7 +125,7 @@ CREATING NEW FreeRTOS PROJECTS:
 -------------------------------
 
     1. cd ./rtos
-    2. make PROJECT=name
+    2. make -f Project.mk PROJECT=name
     3. cd ./name
     4. Tweak and build
 
