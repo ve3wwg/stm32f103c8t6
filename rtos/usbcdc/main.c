@@ -18,6 +18,7 @@
 #include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/dma.h>
+#include <libopencm3/stm32/rtc.h>
 #include <libopencm3/stm32/f1/bkp.h>
 
 #include "usbcdc.h"
@@ -1369,6 +1370,63 @@ dump_dma(void) {
 	dump_reg(&DMA1_CMAR7,"DMA",1,"CMAR7",dma_cmarx,1);
 }
 
+static void
+dump_rtc(void) {
+	static const struct bdesc rtc_crh[] = {
+		{ 31, 29, Binary, 29, "res" },
+		{  2,  1, Binary,  4, "OWIE" },
+		{  1,  1, Binary,  5, "ALRIE" },
+		{  0,  1, Binary,  4, "SECIE" },
+	};
+	static const struct bdesc rtc_crl[] = {
+		{ 31, 26, Binary, 26, "res" },
+		{  5,  1, Binary,  5, "RTOFF" },
+		{  4,  1, Binary,  4, "CNF" },
+		{  3,  1, Binary,  3, "RSF" },
+		{  2,  1, Binary,  3, "OWF" },
+		{  1,  1, Binary,  4, "ALRF" },
+		{  0,  1, Binary,  4, "SECF" },
+	};
+	static const struct bdesc rtc_prll[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Decimal, 5, "PRL" },
+	};
+	static const struct bdesc rtc_divh[] = {
+		{ 31, 28, Binary, 28, "res" },
+		{  3,  4, Hex,     4, "DIVH" },
+	};
+	static const struct bdesc rtc_divl[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,    16, "DIVL" },
+	};
+	static const struct bdesc rtc_cnth[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,    16, "CNTH" },
+	};
+	static const struct bdesc rtc_cntl[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,    16, "CNTL" },
+	};
+	static const struct bdesc rtc_alrh[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,    16, "ALRH" },
+	};
+	static const struct bdesc rtc_alrl[] = {
+		{ 31, 16, Binary, 16, "res" },
+		{ 15, 16, Hex,    16, "ALRL" },
+	};
+
+	dump_reg(&RTC_CRH,"RTC",0,"CRH",rtc_crh,4);
+	dump_reg(&RTC_CRH,"RTL",0,"CRL",rtc_crl,7);
+	dump_reg(&RTC_PRLL,"RTL",0,"PRLL",rtc_prll,2);
+	dump_reg(&RTC_DIVH,"RTL",0,"DIVH",rtc_divh,2);
+	dump_reg(&RTC_DIVL,"RTL",0,"DIVL",rtc_divl,2);
+	dump_reg(&RTC_CNTH,"RTL",0,"CNTH",rtc_cnth,2);
+	dump_reg(&RTC_CNTL,"RTL",0,"CNTL",rtc_cntl,2);
+	dump_reg(&RTC_ALRH,"RTL",0,"ALRH",rtc_alrh,2);
+	dump_reg(&RTC_ALRL,"RTL",0,"ALRL",rtc_alrl,2);
+}
+
 /*
  * Monitor routine
  */
@@ -1387,6 +1445,7 @@ monitor(void) {
 				"  f ... AFIO Registers\n"
 				"  r ... RCC Registers\n"
 				"  t ... Timer Registers\n"
+				"  u ... RTC Registers\n"
 				"  v ... Interrupt Registers\n"
 				"\n"
 				"  i ... GPIO Inputs\n"
@@ -1440,6 +1499,9 @@ monitor(void) {
 			break;
 		case 'T':
 			dump_timers();
+			break;
+		case 'U':
+			dump_rtc();
 			break;
 		case 'V':
 			dump_intr();
