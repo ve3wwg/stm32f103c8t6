@@ -1,11 +1,10 @@
 NOTES:
 ------
 
-This is a demo of a USB CDC device for the STM32F103C8T6 (tested using
-MacOS). The demo provides a text menu driven system that allows the
-user to display STM32F103 registers (the STM32F103 register set is
-assumed). Pressing '?' or RETURN will prompt with a menu. Entering
-a single character like 'g' will display [GPIO configuration] register
-settings.
+This is a demo of the Timer capability, to generate from the timer a
+data signal for the WS2811 LED string. The only software involvement
+is to change the timer for each bit inside of the ISR.
 
-This project makes use of libwwg/usbcdc.c (from libwwg.a)
+Presently the usbcdc monitor program is included to allow examination
+of the registers and to control when to execute the setup and the
+timer start (this will change later).
