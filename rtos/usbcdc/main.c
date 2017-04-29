@@ -1,4 +1,4 @@
-/* USB CDC Demo, using the usbcdc library
+/* CDC Demo, using the usbcdc library
  * Warren W. Gay VE3WWG
  * Wed Mar 15 21:56:50 2017
  *
@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+#include <libopencm3/cm3/cortex.h>
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
@@ -20,6 +21,7 @@
 #include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/rtc.h>
 #include <libopencm3/stm32/f1/bkp.h>
+#include <libopencm3/stm32/f1/nvic.h>
 
 #include "usbcdc.h"
 #include "miniprintf.h"
@@ -1370,6 +1372,8 @@ dump_dma(void) {
 	dump_reg(&DMA1_CMAR7,"DMA",1,"CMAR7",dma_cmarx,1);
 }
 
+static volatile unsigned rtc_isr_count = 0u, rtc_alarm_count = 0u;
+
 static void
 dump_rtc(void) {
 	static const struct bdesc rtc_crh[] = {
@@ -1417,14 +1421,29 @@ dump_rtc(void) {
 	};
 
 	dump_reg(&RTC_CRH,"RTC",0,"CRH",rtc_crh,4);
-	dump_reg(&RTC_CRH,"RTL",0,"CRL",rtc_crl,7);
-	dump_reg(&RTC_PRLL,"RTL",0,"PRLL",rtc_prll,2);
-	dump_reg(&RTC_DIVH,"RTL",0,"DIVH",rtc_divh,2);
-	dump_reg(&RTC_DIVL,"RTL",0,"DIVL",rtc_divl,2);
-	dump_reg(&RTC_CNTH,"RTL",0,"CNTH",rtc_cnth,2);
-	dump_reg(&RTC_CNTL,"RTL",0,"CNTL",rtc_cntl,2);
-	dump_reg(&RTC_ALRH,"RTL",0,"ALRH",rtc_alrh,2);
-	dump_reg(&RTC_ALRL,"RTL",0,"ALRL",rtc_alrl,2);
+	dump_reg(&RTC_CRL,"RTC",0,"CRL",rtc_crl,7);
+	dump_reg(&RTC_PRLL,"RTC",0,"PRLL",rtc_prll,2);
+	dump_reg(&RTC_DIVH,"RTC",0,"DIVH",rtc_divh,2);
+	dump_reg(&RTC_DIVL,"RTC",0,"DIVL",rtc_divl,2);
+	dump_reg(&RTC_CNTH,"RTC",0,"CNTH",rtc_cnth,2);
+	dump_reg(&RTC_CNTL,"RTC",0,"CNTL",rtc_cntl,2);
+	dump_reg(&RTC_ALRH,"RTC",0,"ALRH",rtc_alrh,2);
+	dump_reg(&RTC_ALRL,"RTC",0,"ALRL",rtc_alrl,2);
+
+	usb_printf("rtc_isr_count = %u, rtc_alarm_count = %u, RTC_CRL=$%08X, CNTL=$%08X\n",rtc_isr_count,rtc_alarm_count,(unsigned)(RTC_CRL),(unsigned)(RTC_CNTL));
+}
+
+void
+rtc_isr(void) {
+
+	gpio_toggle(GPIOC,GPIO13);
+	rtc_clear_flag(RTC_SEC);
+	++rtc_isr_count;
+	
+	if ( rtc_check_flag(RTC_ALR) ) {
+		rtc_clear_flag(RTC_ALR);
+		++rtc_alarm_count;
+	}
 }
 
 /*
@@ -1534,10 +1553,9 @@ main(void) {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
 
 	rcc_periph_clock_enable(RCC_GPIOC);
-
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	xTaskCreate(monitor_task,"monitor",300,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(monitor_task,"monitor",350,NULL,configMAX_PRIORITIES-1,NULL);
 
 	usb_start(1);
 	gpio_clear(GPIOC,GPIO13);
