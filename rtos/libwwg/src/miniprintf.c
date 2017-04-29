@@ -104,7 +104,7 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 			bptr = buf + sizeof buf;
 			*--bptr = 0;
 			do	{
-				*--bptr = uint % 10 + '0';
+				*--bptr = uint % 10u + '0';
 				uint /= 10u;
 			} while ( uint != 0 );
 			mini_pad(mini,pad,width,bptr);
