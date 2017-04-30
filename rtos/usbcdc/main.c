@@ -23,12 +23,13 @@
 #include <libopencm3/stm32/f1/bkp.h>
 #include <libopencm3/stm32/f1/nvic.h>
 
-#include "usbcdc.h"
+#include "mcuio.h"
 #include "miniprintf.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+
 
 enum Format {
 	Binary=0,
@@ -60,13 +61,13 @@ static int
 dump_hdrs(int x,const struct bdesc *desc,int n) {
 	int w, tw, b, first=x;
 
-	usb_printf("  ");
+	std_printf("  ");
 	for ( ; x<n; ++x ) {
 		w = desc[x].width;
 		tw = strlen(desc[x].desc);
 
 		if ( x > first && w < 0 ) {
-			usb_putch('\n');
+			std_putc('\n');
 			return x;
 		} else if ( w < 0 )
 			w = -w;
@@ -76,9 +77,9 @@ dump_hdrs(int x,const struct bdesc *desc,int n) {
 		else	b = w - tw;
 
 		while ( b-- > 0 )
-			usb_putch(' ');
+			std_putc(' ');
 
-		usb_printf("%s%s",
+		std_printf("%s%s",
 			desc[x].desc,
 			x+1 < n ? "|" : "\n");
 	}
@@ -91,11 +92,11 @@ dump_vals(int x,uint32_t reg,const struct bdesc *desc,int n) {
 	uint32_t v, mask, shiftr;
 	int w, tw, b, first=x;
 
-	usb_printf("  ");
+	std_printf("  ");
 	for ( ; x<n; ++x ) {
 		w = desc[x].width;
 		if ( x>first && w < 0 ) {
-			usb_putch('\n');
+			std_putc('\n');
 			break;
 		} else if ( w < 0 )
 			w = -w;
@@ -125,9 +126,9 @@ dump_vals(int x,uint32_t reg,const struct bdesc *desc,int n) {
 		else	b = w - tw;
 
 		while ( b-- > 0 )
-			usb_putch(' ');
+			std_putc(' ');
 
-		usb_printf("%s%c",buf,x+1 < n ? '|' : '\n');
+		std_printf("%s%c",buf,x+1 < n ? '|' : '\n');
 	}
 }
 
@@ -142,7 +143,7 @@ dump_reg_info(volatile uint32_t *raddr,const char *dev,int no,const char *descri
 			dev,
 			descrip ? "_" : "",
 			descrip ? descrip : "");
-	usb_printf("\n%-12s: $%08X @ $%08X\n",name,reg,(uint32_t)raddr);
+	std_printf("\n%-12s: $%08X @ $%08X\n",name,(unsigned)reg,(unsigned)raddr);
 }
 
 static void
@@ -156,10 +157,10 @@ dump_reg_simple16(volatile uint32_t *raddr,const char *dev,int no,const char *de
 			dev,
 			descrip ? "_" : "",
 			descrip ? descrip : "");
-	usb_printf("%-12s: $%08X @ $%08X, VALUE: $%08X  %5u",name,reg,(uint32_t)raddr,(unsigned)value,(unsigned)value);
+	std_printf("%-12s: $%08X @ $%08X, VALUE: $%08X  %5u",name,(unsigned)reg,(unsigned)raddr,(unsigned)value,(unsigned)value);
 	if ( value & 0x8000 )
-		usb_printf("  (%d)",(int)value);
-	usb_printf("\n");
+		std_printf("  (%d)",(int)value);
+	std_printf("\n");
 }
 
 static void
@@ -390,9 +391,9 @@ dump_gpio(void) {
 	dump_reg(&GPIOC_CRH,"GPIOC",0,"CRH",gpiox_crlh,16);
 	dump_reg(&GPIOD_CRH,"GPIOD",0,"CRH",gpiox_crlh,16);
 
-	usb_printf("\n  CNFx In 00=Analog,    01=Floating input, 10=Input Pull-up/down, 11= Reserved\n");
-	usb_printf(  "      Out 00=Push/Pull, 01=Open-Drain,     10=AF Push/Pull,       11=AF Open Drain\n");
-	usb_printf(  "  MODEy:  00=Input,     01=Output 10 MHz,  10=Output 2 MHz,       11=Output 50 MHz\n");
+	std_printf("\n  CNFx In 00=Analog,    01=Floating input, 10=Input Pull-up/down, 11= Reserved\n");
+	std_printf(  "      Out 00=Push/Pull, 01=Open-Drain,     10=AF Push/Pull,       11=AF Open Drain\n");
+	std_printf(  "  MODEy:  00=Input,     01=Output 10 MHz,  10=Output 2 MHz,       11=Output 50 MHz\n");
 }
 
 static void
@@ -540,14 +541,14 @@ dump_afio(void) {
 	};
 
 	dump_reg(&AFIO_EVCR,"AFIO",0,"EVCR",afio_evcr,5);
-	usb_printf("  PORT: 000=A, 001=B, 010=C, 011=D. 100=E\n");
+	std_printf("  PORT: 000=A, 001=B, 010=C, 011=D. 100=E\n");
 	dump_reg(&AFIO_MAPR,"AFIO",0,"MAPR",afio_mapr,19);
 
 	dump_reg(&AFIO_EXTICR1,"AFIO",0,"EXTICR1",afio_exticr1,5);
 	dump_reg(&AFIO_EXTICR2,"AFIO",0,"EXTICR2",afio_exticr2,5);
 	dump_reg(&AFIO_EXTICR3,"AFIO",0,"EXTICR3",afio_exticr3,5);
 	dump_reg(&AFIO_EXTICR4,"AFIO",0,"EXTICR4",afio_exticr4,5);
-	usb_printf("  EXTIx: 0000=A, 0001=B, 0010=C, 0011=D\n");
+	std_printf("  EXTIx: 0000=A, 0001=B, 0010=C, 0011=D\n");
 }
 
 static void
@@ -658,9 +659,9 @@ which_device(int low,int high) {
 	char ch;
 	int dev;
 
-	usb_printf("Which device (%d-%d)? ",low,high);
-	ch = usb_getch();
-	usb_printf("%c\n",ch);
+	std_printf("Which device (%d-%d)? ",low,high);
+	ch = std_getc();
+	std_printf("%c\n",ch);
 
 	if ( ch < '0' || ch > '9' )
 		return -1;
@@ -1255,7 +1256,7 @@ dump_backup(void) {
 	dump_reg(&BKP_RTCCR,"BKP",0,"RTCCR",bkp_rtccr,5);
 	dump_reg(&BKP_CR,"BKP",0,"CR",bkp_cr,3);
 	dump_reg(&BKP_CSR,"BKP",0,"CSR",bkp_csr,7);
-	usb_putch('\n');
+	std_putc('\n');
 
 	for ( x=1; x<=10; ++x ) {
 		mini_snprintf(name,sizeof name,"BKP_DR%u",(unsigned)x);
@@ -1430,7 +1431,7 @@ dump_rtc(void) {
 	dump_reg(&RTC_ALRH,"RTC",0,"ALRH",rtc_alrh,2);
 	dump_reg(&RTC_ALRL,"RTC",0,"ALRL",rtc_alrl,2);
 
-	usb_printf("rtc_isr_count = %u, rtc_alarm_count = %u, RTC_CRL=$%08X, CNTL=$%08X\n",rtc_isr_count,rtc_alarm_count,(unsigned)(RTC_CRL),(unsigned)(RTC_CNTL));
+	std_printf("rtc_isr_count = %u, rtc_alarm_count = %u, RTC_CRL=$%08X, CNTL=$%08X\n",rtc_isr_count,rtc_alarm_count,(unsigned)(RTC_CRL),(unsigned)(RTC_CNTL));
 }
 
 void
@@ -1456,7 +1457,7 @@ monitor(void) {
 	
 	for (;;) {
 		if ( menuf )
-			usb_printf(
+			std_printf(
 				"\nSTM32F103C8T6 Menu:\n"
 				"  a ... ADC Registers\n"
 				"  b ... Backupe Registers\n"
@@ -1476,12 +1477,12 @@ monitor(void) {
 			);
 		menuf = false;
 
-		usb_printf("\n: ");
-		ch = usb_getch();
+		std_printf("\n: ");
+		ch = std_getc();
 
 		if ( isalpha(ch) )
 			ch = toupper(ch);
-		usb_printf("%c\n",ch);
+		std_printf("%c\n",ch);
 
 		switch ( ch ) {
 		case '?':
@@ -1528,7 +1529,7 @@ monitor(void) {
 		case 'X':
 			return;
 		default:
-			usb_printf(" ???\n");
+			std_printf(" ???\n");
 			menuf = true;
 		}
 	}
@@ -1559,6 +1560,7 @@ main(void) {
 
 	usb_start(1);
 	gpio_clear(GPIOC,GPIO13);
+	std_set_device(mcu_usb);			// Use USB for std I/O
 
 	vTaskStartScheduler();
 	for (;;);
