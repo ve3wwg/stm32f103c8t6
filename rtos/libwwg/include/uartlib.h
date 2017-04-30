@@ -33,6 +33,7 @@ int getline_uart(uint32_t uartno,char *buf,uint32_t bufsiz);	/* blocking */
 
 void uart1_putc(char ch);
 void uart1_puts(const char *buf);
+int uart1_vprintf(const char *format,va_list ap);
 int uart1_printf(const char *format,...) __attribute((format(printf,1,2)));
 int uart1_getc(void);
 int uart1_peek(void);
@@ -40,6 +41,7 @@ int uart1_gets(char *buf,unsigned bufsiz);
 
 void uart2_putc(char ch);
 void uart2_puts(const char *buf);
+int uart2_vprintf(const char *format,va_list ap);
 int uart2_printf(const char *format,...) __attribute((format(printf,1,2)));
 int uart2_getc(void);
 int uart2_peek(void);
@@ -47,6 +49,7 @@ int uart2_gets(char *buf,unsigned bufsiz);
 
 void uart3_putc(char ch);
 void uart3_puts(const char *buf);
+int uart3_vprintf(const char *format,va_list ap);
 int uart3_printf(const char *format,...) __attribute((format(printf,1,2)));
 int uart3_getc(void);
 int uart3_peek(void);

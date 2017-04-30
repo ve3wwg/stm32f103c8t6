@@ -3,6 +3,7 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -398,6 +399,11 @@ uart1_puts(const char *buf) {
 }
 
 int
+uart1_vprintf(const char *format,va_list ap) {
+	return mini_vprintf_cooked(uart1_putc,format,ap);
+}
+
+int
 uart1_printf(const char *format,...) {
 	va_list args;
 	int rc;
@@ -438,6 +444,11 @@ uart2_puts(const char *buf) {
 }
 
 int
+uart2_vprintf(const char *format,va_list ap) {
+	return mini_vprintf_cooked(uart1_putc,format,ap);
+}
+
+int
 uart2_printf(const char *format,...) {
 	va_list args;
 	int rc;
@@ -475,6 +486,11 @@ uart3_putc(char ch) {
 void
 uart3_puts(const char *buf) {
 	puts_uart(3,buf);
+}
+
+int
+uart3_vprintf(const char *format,va_list ap) {
+	return mini_vprintf_cooked(uart1_putc,format,ap);
 }
 
 int
