@@ -271,7 +271,7 @@ usb_task(void *arg) {
  * Put character to USB (blocks):
  */
 void
-usb_putch(char ch) {
+usb_putc(char ch) {
 	static const char cr = '\r';
 
 	while ( !usb_ready() )
@@ -289,7 +289,7 @@ void
 usb_puts(const char *buf) {
 
 	while ( *buf )
-		usb_putch(*buf++);
+		usb_putc(*buf++);
 }
 
 /*
@@ -301,7 +301,7 @@ usb_printf(const char *format,...) {
 	va_list args;
 
 	va_start(args,format);
-	rc = mini_vprintf_uncooked(usb_putch,format,args);
+	rc = mini_vprintf_uncooked(usb_putc,format,args);
 	va_end(args);
 	return rc;
 }
@@ -310,7 +310,7 @@ usb_printf(const char *format,...) {
  * Get one character from USB (blocking):
  */
 int
-usb_getch(void) {
+usb_getc(void) {
 	char ch;
 	uint32_t rc;
 
@@ -367,7 +367,7 @@ usb_gets(char *buf,unsigned maxbuf) {
 	int ch;
 
 	while ( bx < maxbuf ) {
-		ch = usb_getch();
+		ch = usb_getc();
 		if ( ch == -1 ) {
 			if ( !bx )
 				return -1;
