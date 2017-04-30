@@ -1,7 +1,7 @@
 DEMO UART3
 ----------
 
-This is a UART demo using library libwwg/uartlib.c, and of FreeRTOS
+This is a UART demo using library libwwg/src/uartlib.c, and of FreeRTOS
 queues. Task demo_task() continually sends messages to the terminal
 (through the UART), through the FreeRTOS queue (using uart_puts()). The
 application uart_puts() function queues bytes to the uart_task() to be
@@ -48,4 +48,3 @@ their input, you cannot backspace over the first character, if your
 first character was not CR or LF. If you force it to prompt first, you
 will then be able to edit the entire line because the entire input line
 will be under the control of getline_uart().
-
