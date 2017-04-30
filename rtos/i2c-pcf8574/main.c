@@ -176,10 +176,10 @@ task1(void *args) {
 
 	vTaskDelay(pdMS_TO_TICKS(5000));
 	usb_printf("Task1 begun:\nPress CR to begin:");
-//	first = usb_getch();
-	usb_getch();
-	usb_putch('\n');
-	usb_putch('\n');
+//	first = usb_getc();
+	usb_getc();
+	usb_putc('\n');
+	usb_putc('\n');
 
 	(void)args;
 	vTaskDelay(pdMS_TO_TICKS(1000));
