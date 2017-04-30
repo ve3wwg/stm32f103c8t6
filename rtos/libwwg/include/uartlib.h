@@ -20,6 +20,8 @@
 #ifndef UARTLIB_H
 #define UARTLIB_H
 
+#include <stdarg.h>
+
 int open_uart(uint32_t uartno,uint32_t baud,const char *cfg,const char *mode,int rts,int cts);
 void close_uart(uint32_t uartno);
 
