@@ -1,7 +1,6 @@
 /* Packaged FreeRTOS usbcdc library
  * Warren W. Gay VE3WWG
  */
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -293,6 +292,14 @@ usb_puts(const char *buf) {
 }
 
 /*
+ * USB vprintf() interface:
+ */
+int
+usb_vprintf(const char *format,va_list ap) {
+	return mini_vprintf_cooked(usb_putc,format,ap);
+}
+
+/*
  * Printf to USB:
  */
 int
@@ -301,7 +308,7 @@ usb_printf(const char *format,...) {
 	va_list args;
 
 	va_start(args,format);
-	rc = mini_vprintf_uncooked(usb_putc,format,args);
+	rc = mini_vprintf_cooked(usb_putc,format,args);
 	va_end(args);
 	return rc;
 }
