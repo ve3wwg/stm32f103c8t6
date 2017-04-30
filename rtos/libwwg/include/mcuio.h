@@ -3,6 +3,7 @@
  * Sun Apr 30 16:42:59 2017
  */
 #ifndef MCUIO_H
+#define MCUIO_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -67,7 +68,7 @@ inline int mcu_gets(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { retur
  * These I/O to the currently set std_set_device() device:
  *********************************************************************/
 
-inline void std_set_device(struct s_mcuio *device) { mcu_stdio = device; }
+inline void std_set_device(const struct s_mcuio *device) { mcu_stdio = device; }
 
 inline void std_putc(char ch) { mcu_putc(mcu_stdio,ch); }
 inline void std_puts(const char *buf) { mcu_puts(mcu_stdio,buf); }
