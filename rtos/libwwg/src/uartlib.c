@@ -14,6 +14,7 @@
 #include <libopencm3/cm3/nvic.h>
 
 #include "uartlib.h"
+#include "miniprintf.h"
 
 /*********************************************************************
  * Receive buffers
@@ -380,6 +381,126 @@ close_uart(uint32_t uartno) {
 		free(uart_data[ux]);
 		uart_data[ux] = 0;
 	}
+}
+
+/*********************************************************************
+ * Optional use routines for UART1
+ *********************************************************************/
+
+void
+uart1_putc(char ch) {
+	putc_uart(1,ch);
+}
+
+void
+uart1_puts(const char *buf) {
+	puts_uart(1,buf);
+}
+
+int
+uart1_printf(const char *format,...) {
+	va_list args;
+	int rc;
+
+	va_start(args,format);
+	rc = mini_vprintf_cooked(uart1_putc,format,args);
+	va_end(args);
+	return rc;
+}
+
+int
+uart1_getc(void) {
+	return getc_uart(1);
+}
+
+int
+uart1_peek(void) {
+	return getc_uart_nb(1);
+}
+
+int
+uart1_gets(char *buf,unsigned bufsiz) {
+	return getline_uart(1,buf,bufsiz);
+}
+
+/*********************************************************************
+ * Optional use routines for UART2
+ *********************************************************************/
+
+void
+uart2_putc(char ch) {
+	putc_uart(2,ch);
+}
+
+void
+uart2_puts(const char *buf) {
+	puts_uart(2,buf);
+}
+
+int
+uart2_printf(const char *format,...) {
+	va_list args;
+	int rc;
+
+	va_start(args,format);
+	rc = mini_vprintf_cooked(uart2_putc,format,args);
+	va_end(args);
+	return rc;
+}
+
+int
+uart2_getc(void) {
+	return getc_uart(2);
+}
+
+int
+uart2_peek(void) {
+	return getc_uart_nb(2);
+}
+
+int
+uart2_gets(char *buf,unsigned bufsiz) {
+	return getline_uart(2,buf,bufsiz);
+}
+
+/*********************************************************************
+ * Optional use routines for UART3
+ *********************************************************************/
+
+void
+uart3_putc(char ch) {
+	putc_uart(3,ch);
+}
+
+void
+uart3_puts(const char *buf) {
+	puts_uart(3,buf);
+}
+
+int
+uart3_printf(const char *format,...) {
+	va_list args;
+	int rc;
+
+	va_start(args,format);
+	rc = mini_vprintf_cooked(uart3_putc,format,args);
+	va_end(args);
+	return rc;
+}
+
+int
+uart3_getc(void) {
+	return getc_uart(3);
+}
+
+int
+uart3_peek(void) {
+	return getc_uart_nb(3);
+}
+
+int
+uart3_gets(char *buf,unsigned bufsiz) {
+	return getline_uart(3,buf,bufsiz);
 }
 
 /* End uartlib.c */
