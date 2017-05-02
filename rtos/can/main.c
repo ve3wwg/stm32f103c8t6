@@ -22,6 +22,7 @@
 #include <libopencm3/stm32/rtc.h>
 #include <libopencm3/stm32/f1/bkp.h>
 #include <libopencm3/stm32/f1/nvic.h>
+#include <libopencm3/stm32/can.h>
 
 #include "mcuio.h"
 #include "miniprintf.h"
@@ -1563,6 +1564,30 @@ main(void) {
 	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO_USART1_RX);
 	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO12);
 	open_uart(1,115200,"8N1","rw",1,1);
+
+	// For CAN1:
+	rcc_periph_clock_enable(RCC_GPIOB);
+	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_CAN_PB_TX);
+	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_INPUT_FLOAT,GPIO_CAN_PB_RX);
+
+        gpio_primary_remap(				// Map CAN1 to use PB8/PB9
+		AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF,      // Optional
+		AFIO_MAPR_CAN1_REMAP_PORTB);		// CAN_RX=PB8, CAN_TX=PB9
+
+	can_reset(CAN1);				// Reset CAN peripheral
+	can_init(CAN1,
+		false,					// ttcm=off
+		false,					// auto bus off management
+		true,					// Automatic wakeup mode.
+		true,					// No automatic retransmission.
+		false,					// Receive FIFO locked mode
+		false,					// Transmit FIFO priority (msg id)
+		1,					// Resynchronization time quanta jump width (0..3)
+		8,					// Time segment 1 time quanta width
+		4,					// Time segment 2 time quanta width
+		8,					// Baud rate prescaler
+		true,					// Loopback
+		false);					// Silent
 
 	gpio_clear(GPIOC,GPIO13);
 	std_set_device(mcu_uart1);			// Use UART1 for std I/O
