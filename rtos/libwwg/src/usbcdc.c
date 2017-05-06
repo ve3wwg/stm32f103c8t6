@@ -21,7 +21,6 @@
 static volatile char initialized = 0;			// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
 static QueueHandle_t usb_rxq;				// USB receive queue
-static volatile char cooked_mode = 1;			// True when using "cooked mode"
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -276,7 +275,7 @@ usb_putc(char ch) {
 	while ( !usb_ready() )
 		taskYIELD();
 
-	if ( cooked_mode && ch == '\n' )
+	if ( ch == '\n' )
 		xQueueSend(usb_txq,&cr,portMAX_DELAY);
 	xQueueSend(usb_txq,&ch,portMAX_DELAY);
 }
@@ -311,6 +310,18 @@ usb_printf(const char *format,...) {
 	rc = mini_vprintf_cooked(usb_putc,format,args);
 	va_end(args);
 	return rc;
+}
+
+/*
+ * Write (always) uncooked data:
+ */
+void
+usb_write(const char *buf,unsigned bytes) {
+
+	while ( bytes-- > 0 ) {
+		xQueueSend(usb_txq,buf,portMAX_DELAY);
+		++buf;
+	}
 }
 
 /*
@@ -418,17 +429,6 @@ usb_start(bool gpio_init) {
 	usbd_register_set_config_callback(udev,cdcacm_set_config);
 
 	xTaskCreate(usb_task,"USB",200,udev,configMAX_PRIORITIES-1,NULL);
-}
-
-/*
- * Enable/Disable cooked mode ('\n' becomes "\r\n"):
- */
-int
-usb_set_cooked(int cooked) {
-	int rc = cooked_mode;
-
-	cooked_mode = !!cooked;
-	return rc;
 }
 
 /*
