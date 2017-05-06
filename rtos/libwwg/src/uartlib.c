@@ -390,6 +390,8 @@ close_uart(uint32_t uartno) {
 
 void
 uart1_putc(char ch) {
+	if ( ch == '\n' )
+		putc_uart(1,'\r');
 	putc_uart(1,ch);
 }
 
@@ -429,12 +431,19 @@ uart1_gets(char *buf,unsigned bufsiz) {
 	return getline_uart(1,buf,bufsiz);
 }
 
+void
+uart1_write(const char *buf,unsigned bytes) {
+	write_uart(1,buf,bytes);
+}
+
 /*********************************************************************
  * Optional use routines for UART2
  *********************************************************************/
 
 void
 uart2_putc(char ch) {
+	if ( ch == '\n' )
+		putc_uart(2,'\r');
 	putc_uart(2,ch);
 }
 
@@ -474,12 +483,19 @@ uart2_gets(char *buf,unsigned bufsiz) {
 	return getline_uart(2,buf,bufsiz);
 }
 
+void
+uart2_write(const char *buf,unsigned bytes) {
+	write_uart(2,buf,bytes);
+}
+
 /*********************************************************************
  * Optional use routines for UART3
  *********************************************************************/
 
 void
 uart3_putc(char ch) {
+	if ( ch == '\n' )
+		putc_uart(3,'\r');
 	putc_uart(3,ch);
 }
 
@@ -517,6 +533,11 @@ uart3_peek(void) {
 int
 uart3_gets(char *buf,unsigned bufsiz) {
 	return getline_uart(3,buf,bufsiz);
+}
+
+void
+uart3_write(const char *buf,unsigned bytes) {
+	write_uart(3,buf,bytes);
 }
 
 /* End uartlib.c */
