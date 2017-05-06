@@ -102,7 +102,7 @@ dump_vals(int x,uint32_t reg,const struct bdesc *desc,int n) {
 		} else if ( w < 0 )
 			w = -w;
 
-		mask = (1 << (31 - desc[x].sbit)) - 1;
+		mask = (1 << desc[x].bits) - 1;
 		shiftr = desc[x].sbit - desc[x].bits + 1;
 		v = (reg >> shiftr) & mask;
 		switch ( desc[x].format ) {
@@ -1435,6 +1435,123 @@ dump_rtc(void) {
 	std_printf("rtc_isr_count = %u, rtc_alarm_count = %u, RTC_CRL=$%08X, CNTL=$%08X\n",rtc_isr_count,rtc_alarm_count,(unsigned)(RTC_CRL),(unsigned)(RTC_CNTL));
 }
 
+static void
+dump_can(void) {
+	static const struct bdesc can_mcr[] = {
+		{ 31, 15, Binary, 15, "res" },
+		{ 16,  1, Binary,  3, "DBF" },
+		{ 15,  1, Binary,  5, "RESET" },
+		{ 14,  7, Binary,  7, "res" },
+		{  7,  1, Binary,  4, "TTCN" },
+		{  6,  1, Binary,  4, "ABOM" },
+		{  5,  1, Binary,  4, "AWUM" },
+		{  4,  1, Binary,  4, "NART" },
+		{  3,  1, Binary,  4, "RFLM" },
+		{  2,  1, Binary,  4, "TXFP" },
+		{  1,  1, Binary,  5, "SLEEP" },
+		{  0,  1, Binary,  4, "INRQ" }
+	};
+	static const struct bdesc can_msr[] = {
+		{ 31, 20, Binary, 20, "res" },
+		{ 11,  1, Binary,  2, "RX" },
+		{ 10,  1, Binary,  4, "SAMP" },
+		{  9,  1, Binary,  3, "RXM" },
+		{  8,  1, Binary,  3, "TXM" },
+		{  7,  1, Binary,  3, "res" },
+		{  4,  1, Binary,  5, "SLAKI" },
+		{  3,  1, Binary,  4, "WKUI" },
+		{  2,  1, Binary,  4, "ERRI" },
+		{  1,  1, Binary,  4, "SLAK" },
+		{  0,  1, Binary,  4, "INAK" }
+	};
+	static const struct bdesc can_tsr[] = {
+		{ 31,  1, Binary,  4, "LOW2" },
+		{ 30,  1, Binary,  4, "LOW1" },
+		{ 29,  1, Binary,  4, "LOW0" },
+		{ 28,  1, Binary,  4, "TME2" },
+		{ 27,  1, Binary,  4, "TME1" },
+		{ 26,  1, Binary,  4, "TME0" },
+		{ 25,  2, Binary,  4, "CODE" },
+		{ 23,  1, Binary,  5, "ABRQ2" },
+		{ 22,  3, Binary,  3, "res" },
+		{ 19,  1, Binary,  5, "TERR2" },
+		{ 18,  1, Binary,  5, "ALST2" },
+		{ 17,  1, Binary,  5, "TXOK2" },
+		{ 16,  1, Binary,  5, "RQCP2" },
+		{ 15,  1, Binary,  5, "ABRQ1" },
+		{ 14,  3, Binary,  3, "res" },
+		{ 11,  1, Binary,  5, "TERR1" },
+		{ 10,  1, Binary,  5, "ALST1" },
+		{  9,  1, Binary,  5, "TXOK1" },
+		{  8,  1, Binary,  5, "RQCP1" },
+		{  7,  1, Binary,  5, "ABRQ0" },
+		{  3,  1, Binary,  5, "TERR0" },
+		{  2,  1, Binary,  5, "ALST0" },
+		{  1,  1, Binary,  5, "TXOK0" },
+		{  0,  1, Binary,  5, "RQCP0" },
+	};
+	// CAN_RF0R
+	// CAN_RF1R
+	// CAN_IER
+	static const struct bdesc can_esr[] = {
+		{ 31,  8, Decimal, 5, "REC" },
+		{ 22,  8, Decimal, 5, "TEC" },
+		{ 15,  9, Binary,  9, "res" },
+		{  6,  3, Binary,  3, "LEC" },
+		{  3,  1, Binary,  3, "res" },
+		{  2,  1, Binary,  4, "BOFF" },
+		{  1,  1, Binary,  4, "EPVF" },
+		{  0,  1, Binary,  4, "EWGF" },
+	};
+	static const struct bdesc can_btr[] = {
+		{ 31,  1, Binary,  4, "SILM" },
+		{ 30,  1, Binary,  4, "LBKM" },
+		{ 29,  4, Binary,  4, "res" },
+		{ 25,  2, Binary,  3, "SWJ" },
+		{ 23,  1, Binary,  3, "res" },
+		{ 22,  3, Decimal, 3, "TS2" },
+		{ 19,  4, Decimal, 4, "TS1" },
+		{ 15,  6, Binary,  6, "res" },
+		{  9, 10, Decimal, 4, "BRP" },
+	};
+	// CAN_TI0R
+	// CAN_TI2R
+	// CAN_TI2R
+	// CAN_TDT0R
+	// CAN_TDT1R
+	// CAN_TDT2R
+	// CAN_TDL0R
+	// CAN_TDL1R
+	// CAN_TDL2R
+	// CAN_TDH0R
+	// CAN_TDH1R
+	// CAN_TDH2R
+	// CAN_RI0R
+	// CAN_RI1R
+	// CAN_RDT0R
+	// CAN_RDT1R
+	// CAN_RDL0R
+	// CAN_RDL1R
+	// CAN_RDH0R
+	// CAN_RDH1R
+	// CAN_FMR
+	// CAN_FM1R
+	// CAN_FS1R
+	// CAN_FFA1R
+	// CAN_FA1R
+	// CAN_F0R1
+	// CAN_F0R2
+	// ...
+	// CAN_F13R1
+	// CAN_F13R2
+	
+	dump_reg(&CAN_MCR(CAN1),"CAN",0,"MCR",can_mcr,12);
+	dump_reg(&CAN_MSR(CAN1),"CAN",0,"MSR",can_msr,11);
+	dump_reg(&CAN_TSR(CAN1),"CAN",0,"TSR",can_tsr,24);
+	dump_reg(&CAN_ESR(CAN1),"CAN",0,"ESR",can_esr,8);
+	dump_reg(&CAN_BTR(CAN1),"CAN",0,"BTR",can_btr,9);
+}
+
 void
 rtc_isr(void) {
 
@@ -1448,6 +1565,10 @@ rtc_isr(void) {
 	}
 }
 
+static int canrc = 0;
+
+static void init_status(void);
+
 /*
  * Monitor routine
  */
@@ -1457,6 +1578,8 @@ monitor(void) {
 	bool menuf = true;
 	
 	for (;;) {
+		init_status();
+
 		if ( menuf )
 			std_printf(
 				"\nSTM32F103C8T6 Menu:\n"
@@ -1464,6 +1587,7 @@ monitor(void) {
 				"  b ... Backupe Registers\n"
 				"  d ... DMA Registers\n"
 				"  f ... AFIO Registers\n"
+				"  k ... CAN Registers\n"
 				"  r ... RCC Registers\n"
 				"  t ... Timer Registers\n"
 				"  u ... RTC Registers\n"
@@ -1509,6 +1633,9 @@ monitor(void) {
 		case 'I':
 			dump_gpio_inputs();
 			break;
+		case 'K':
+			dump_can();
+			break;
 		case 'L':
 			dump_gpio_locks();
 			break;
@@ -1529,11 +1656,44 @@ monitor(void) {
 			break;
 		case 'X':
 			return;
+		case 'Z':
+{
+	// BRP=1048822
+	canrc = can_init(CAN1,
+		false,					// ttcm=off
+		false,					// auto bus off management
+		true,					// Automatic wakeup mode.
+		true,					// No automatic retransmission.
+		false,					// Receive FIFO locked mode
+		false,					// Transmit FIFO priority (msg id)
+		CAN_BTR_SJW_1TQ,			// Resynchronization time quanta jump width (0..3)
+		CAN_BTR_TS1_1TQ,			// Time segment 1 time quanta width
+		CAN_BTR_TS2_2TQ,			// Time segment 2 time quanta width
+		247,					// Baud rate prescaler
+		true,					// Loopback
+		false);					// Silent
+}		
+			break;
 		default:
 			std_printf(" ???\n");
 			menuf = true;
 		}
 	}
+}
+
+static void
+init_status(void) {
+	std_printf("can_init returned rc=%d\n",canrc);
+}
+
+static void
+experiment(void) {
+	static unsigned counter = 0;
+	int rc;
+	
+	++counter;
+	rc = can_transmit(CAN1,23,false,false,sizeof counter,(uint8_t*)&counter);
+	std_printf("can_transmit(,23) returned rc=%d, counter=%u (canrc=%d)\n",rc,counter,canrc);
 }
 
 /*
@@ -1542,8 +1702,10 @@ monitor(void) {
 static void
 monitor_task(void *arg __attribute((unused))) {
 
-	for (;;)
+	for (;;) {
 		monitor();
+		experiment();
+	}
 }
 
 /*
@@ -1553,6 +1715,7 @@ int
 main(void) {
 
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
+	rcc_periph_clock_enable(RCC_AFIO);
 
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
@@ -1566,16 +1729,21 @@ main(void) {
 	open_uart(1,115200,"8N1","rw",1,1);
 
 	// For CAN1:
+//	RCC_APB1ENR |= RCC_APB1ENR_CAN1EN;		// Enable CAN clock
+	rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_CAN1EN);
 	rcc_periph_clock_enable(RCC_GPIOB);
+
+//	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,GPIO_CAN_PB_TX);
 	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_CAN_PB_TX);
-	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_INPUT_FLOAT,GPIO_CAN_PB_RX);
+	gpio_set_mode(GPIOB,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO_CAN_PB_RX);
 
         gpio_primary_remap(				// Map CAN1 to use PB8/PB9
 		AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF,      // Optional
 		AFIO_MAPR_CAN1_REMAP_PORTB);		// CAN_RX=PB8, CAN_TX=PB9
 
 	can_reset(CAN1);				// Reset CAN peripheral
-	can_init(CAN1,
+#if 0
+	canrc = xcan_init(CAN1,
 		false,					// ttcm=off
 		false,					// auto bus off management
 		true,					// Automatic wakeup mode.
@@ -1585,9 +1753,41 @@ main(void) {
 		1,					// Resynchronization time quanta jump width (0..3)
 		8,					// Time segment 1 time quanta width
 		4,					// Time segment 2 time quanta width
-		8,					// Baud rate prescaler
+		247,					// Baud rate prescaler
 		true,					// Loopback
 		false);					// Silent
+#endif
+#if 0
+ void can_enable_irq(uint32_t canport, uint32_t irq)
+
+@param[in] canport Unsigned int32. CAN block register base @ref can_reg_base.
+@param[in] id Unsigned int32. Message ID.
+@param[in] ext bool. Extended message ID?
+@param[in] rtr bool. Request transmit?
+@param[in] length Unsigned int8. Message payload length.
+@param[in] data Unsigned int8[]. Message payload data.
+@returns int 0, 1 or 2 on success and depending on which outgoing mailbox got
+selected. -1 if no mailbox was available and no transmission got queued.
+ */
+ int can_transmit(uint32_t canport, uint32_t id, bool ext, bool rtr,
+                  uint8_t length, uint8_t *data)
+                  
+@param[in] canport Unsigned int32. CAN block register base @ref can_reg_base.
+@param[in] fifo Unsigned int8. FIFO id.
+@param[in] release bool. Release the FIFO automatically after coping data out.
+@param[out] id Unsigned int32 pointer. Message ID.
+@param[out] ext bool pointer. The message ID is extended?
+@param[out] rtr bool pointer. Request of transmission?
+@param[out] fmi Unsigned int32 pointer. ID of the matched filter.
+@param[out] length Unsigned int8 pointer. Length of message payload.
+@param[out] data Unsigned int8[]. Message payload data.
+ */
+ void can_receive(uint32_t canport, uint8_t fifo, bool release, uint32_t *id,
+                  bool *ext, bool *rtr, uint32_t *fmi, uint8_t *length,
+                                   uint8_t *data)
+                                   
+
+#endif
 
 	gpio_clear(GPIOC,GPIO13);
 	std_set_device(mcu_uart1);			// Use UART1 for std I/O
