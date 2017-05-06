@@ -6,16 +6,16 @@
 #include "mcuio.h"
 
 static const struct s_mcuio dev_uart1 =
-	{ uart1_putc, uart1_puts, uart1_vprintf, uart1_getc, uart1_peek, uart1_gets };
+	{ uart1_putc, uart1_puts, uart1_vprintf, uart1_getc, uart1_peek, uart1_gets, uart1_write };
 
 static const struct s_mcuio dev_uart2 =
-	{ uart2_putc, uart2_puts, uart2_vprintf, uart2_getc, uart2_peek, uart2_gets };
+	{ uart2_putc, uart2_puts, uart2_vprintf, uart2_getc, uart2_peek, uart2_gets, uart2_write };
 
 static const struct s_mcuio dev_uart3 =
-	{ uart3_putc, uart3_puts, uart3_vprintf, uart3_getc, uart3_peek, uart3_gets };
+	{ uart3_putc, uart3_puts, uart3_vprintf, uart3_getc, uart3_peek, uart3_gets, uart3_write };
 
 static const struct s_mcuio dev_usb =
-	{ usb_putc, usb_puts, usb_vprintf, usb_getc, usb_peek, usb_gets };
+	{ usb_putc, usb_puts, usb_vprintf, usb_getc, usb_peek, usb_gets, usb_write };
 
 const struct s_mcuio
 	*mcu_uart1 = &dev_uart1,

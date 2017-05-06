@@ -30,6 +30,7 @@ typedef int (*vprintf_t)(const char *format,va_list ap);
 typedef int (*getch_t)(void);
 typedef int (*peek_t)(void);
 typedef int (*gets_t)(char *buf,unsigned maxbuf);
+typedef void (*write_t)(const char *buf,unsigned bytes);
 
 struct s_mcuio {
 	putch_t		putc;	// put character
@@ -38,6 +39,7 @@ struct s_mcuio {
 	getch_t		getc;	// get character
 	peek_t		peek;	// peek at a character
 	gets_t		gets;	// get a line (string)
+	write_t		write;	// Write uncooked data
 };
 
 /*********************************************************************
@@ -63,6 +65,7 @@ int mcu_printf(const struct s_mcuio *dev,const char *format,...) __attribute((fo
 inline int mcu_getc(const struct s_mcuio *dev) { return dev->getc(); }
 inline int mcu_peek(const struct s_mcuio *dev) { return dev->peek(); }
 inline int mcu_gets(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return dev->gets(buf,maxbuf); }
+inline void mcu_write(const struct s_mcuio *dev,const char *buf,unsigned bytes) { dev->write(buf,bytes); }
 
 /*********************************************************************
  * These I/O to the currently set std_set_device() device:
@@ -77,6 +80,7 @@ int std_printf(const char *format,...) __attribute((format(printf,1,2)));
 inline int std_getc(void) { return mcu_getc(mcu_stdio); }
 inline int std_peek(void) { return mcu_peek(mcu_stdio); }
 inline int std_gets(char *buf,unsigned maxbuf) { return mcu_gets(mcu_stdio,buf,maxbuf); }
+inline void std_write(const char *buf,unsigned bytes) { mcu_write(mcu_stdio,buf,bytes); }
 
 #endif // MCUIO_H
 // End mcuio.h
