@@ -1667,8 +1667,8 @@ monitor(void) {
 		false,					// Receive FIFO locked mode
 		false,					// Transmit FIFO priority (msg id)
 		CAN_BTR_SJW_1TQ,			// Resynchronization time quanta jump width (0..3)
-		CAN_BTR_TS1_1TQ,			// Time segment 1 time quanta width
-		CAN_BTR_TS2_2TQ,			// Time segment 2 time quanta width
+		CAN_BTR_TS1_6TQ,			// Time segment 1 time quanta width
+		CAN_BTR_TS2_7TQ,			// Time segment 2 time quanta width
 		247,					// Baud rate prescaler
 		true,					// Loopback
 		false);					// Silent
@@ -1729,12 +1729,11 @@ main(void) {
 	open_uart(1,115200,"8N1","rw",1,1);
 
 	// For CAN1:
-//	RCC_APB1ENR |= RCC_APB1ENR_CAN1EN;		// Enable CAN clock
 	rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_CAN1EN);
 	rcc_periph_clock_enable(RCC_GPIOB);
 
-//	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,GPIO_CAN_PB_TX);
-	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_CAN_PB_TX);
+	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,GPIO_CAN_PB_TX);
+//	gpio_set_mode(GPIOB,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_CAN_PB_TX);
 	gpio_set_mode(GPIOB,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO_CAN_PB_RX);
 
         gpio_primary_remap(				// Map CAN1 to use PB8/PB9
