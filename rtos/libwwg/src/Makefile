@@ -14,6 +14,7 @@ OBJS 		= $(patsubst %.cpp,%.o,$(TEMP2))
 
 usbcdc.o: ../include/usbcdc.h
 uartlib.o: ../include/uartlib.h
+mcuio.o: ../include/mcuio.h
 
 include ../../../Makefile.incl
 include ../../Makefile.rtos
