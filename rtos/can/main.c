@@ -1585,16 +1585,6 @@ dump_can(void) {
 		{  7,  4, Binary,  4, "res" },
 		{  3,  4, Decimal, 3, "DCL" },
 	};
-	// CAN_FMR
-	// CAN_FM1R
-	// CAN_FS1R
-	// CAN_FFA1R
-	// CAN_FA1R
-	// CAN_F0R1
-	// CAN_F0R2
-	// ...
-	// CAN_F13R1
-	// CAN_F13R2
 	
 	dump_reg(&CAN_MCR(CAN1),"CAN",0,"MCR",can_mcr,12);
 	dump_reg(&CAN_MSR(CAN1),"CAN",0,"MSR",can_msr,11);
@@ -1620,11 +1610,93 @@ dump_can(void) {
 	dump_reg(&CAN_RI1R(CAN1),"CAN",0,"RI1R",can_rixr,5);
 	dump_reg(&CAN_RDT0R(CAN1),"CAN",0,"RDT0R",can_rdtxr,4);
 	dump_reg(&CAN_RDT1R(CAN1),"CAN",0,"RDT1R",can_rdtxr,4);
-
 	dump_reg(&CAN_RDL0R(CAN1),"CAN",0,"RDL0R",can_tdlxr,4);
 	dump_reg(&CAN_RDL1R(CAN1),"CAN",0,"RDL1R",can_tdlxr,4);
 	dump_reg(&CAN_RDH0R(CAN1),"CAN",0,"RDH0R",can_tdhxr,4);
 	dump_reg(&CAN_RDH1R(CAN1),"CAN",0,"RDH1R",can_tdhxr,4);
+}
+
+static void
+dump_can_filter(void) {
+	static const struct bdesc can_fmr[] = {
+		{ 31, 18, Binary, 18, "res" },
+		{ 13,  8, Decimal, 6, "CAN2SB" },
+		{  7,  7, Binary,  7, "res" },
+		{  0,  1, Binary,  5, "FINIT" },
+	};
+	static const struct bdesc can_fm1r[] = {
+		{ 31,  4, Binary,  4, "res" },
+		{ 27,  1, Binary,  5, "FBM27" },
+		{ 26,  1, Binary,  5, "FBM26" },
+		{ 25,  1, Binary,  5, "FBM25" },
+		{ 24,  1, Binary,  5, "FBM24" },
+		{ 23,  1, Binary,  5, "FBM23" },
+		{ 22,  1, Binary,  5, "FBM22" },
+		{ 21,  1, Binary,  5, "FBM21" },
+		{ 20,  1, Binary,  5, "FBM20" },
+		{ 19,  1, Binary,  5, "FBM19" },
+		{ 18,  1, Binary,  5, "FBM18" },
+		{ 17,  1, Binary,  5, "FBM17" },
+		{ 16,  1, Binary,  5, "FBM16" },
+		{ 15,  1, Binary,  -5, "FBM15" },
+		{ 14,  1, Binary,  5, "FBM14" },
+		{ 13,  1, Binary,  5, "FBM13" },
+		{ 12,  1, Binary,  5, "FBM12" },
+		{ 11,  1, Binary,  5, "FBM11" },
+		{ 10,  1, Binary,  5, "FBM10" },
+		{  9,  1, Binary,  4, "FBM9" },
+		{  8,  1, Binary,  4, "FBM8" },
+		{  7,  1, Binary,  4, "FBM7" },
+		{  6,  1, Binary,  4, "FBM6" },
+		{  5,  1, Binary,  4, "FBM5" },
+		{  4,  1, Binary,  4, "FBM4" },
+		{  3,  1, Binary,  4, "FBM3" },
+		{  2,  1, Binary,  4, "FBM2" },
+		{  1,  1, Binary,  4, "FBM1" },
+		{  0,  1, Binary,  4, "FBM0" },
+	};
+	static const struct bdesc can_fs1r[] = {
+		{ 31,  4, Binary,  4, "res" },
+		{ 27,  1, Binary,  5, "FSC27" },
+		{ 26,  1, Binary,  5, "FSC26" },
+		{ 25,  1, Binary,  5, "FSC25" },
+		{ 24,  1, Binary,  5, "FSC24" },
+		{ 23,  1, Binary,  5, "FSC23" },
+		{ 22,  1, Binary,  5, "FSC22" },
+		{ 21,  1, Binary,  5, "FSC21" },
+		{ 20,  1, Binary,  5, "FSC20" },
+		{ 19,  1, Binary,  5, "FSC19" },
+		{ 18,  1, Binary,  5, "FSC18" },
+		{ 17,  1, Binary,  5, "FSC17" },
+		{ 16,  1, Binary,  5, "FSC16" },
+		{ 15,  1, Binary,  -5, "FSC15" },
+		{ 14,  1, Binary,  5, "FSC14" },
+		{ 13,  1, Binary,  5, "FSC13" },
+		{ 12,  1, Binary,  5, "FSC12" },
+		{ 11,  1, Binary,  5, "FSC11" },
+		{ 10,  1, Binary,  5, "FSC10" },
+		{  9,  1, Binary,  4, "FSC9" },
+		{  8,  1, Binary,  4, "FSC8" },
+		{  7,  1, Binary,  4, "FSC7" },
+		{  6,  1, Binary,  4, "FSC6" },
+		{  5,  1, Binary,  4, "FSC5" },
+		{  4,  1, Binary,  4, "FSC4" },
+		{  3,  1, Binary,  4, "FSC3" },
+		{  2,  1, Binary,  4, "FSC2" },
+		{  1,  1, Binary,  4, "FSC1" },
+		{  0,  1, Binary,  4, "FSC0" },
+	};
+	// CAN_FFA1R
+	// CAN_FA1R
+	// CAN_F0R1
+	// CAN_F0R2
+	// ...
+	// CAN_F13R1
+	// CAN_F13R2
+	
+	dump_reg(&CAN_FMR(CAN1),"CAN",0,"FMR",can_fmr,4);
+	dump_reg(&CAN_FM1R(CAN1),"CAN",0,"FM1R",can_fm1r,29);
+	dump_reg(&CAN_FS1R(CAN1),"CAN",0,"FS1R",can_fs1r,29);
 
 }
 
@@ -1664,6 +1736,7 @@ monitor(void) {
 				"  d ... DMA Registers\n"
 				"  f ... AFIO Registers\n"
 				"  k ... CAN Registers\n"
+				"  q ... CAN Filter Registers\n"
 				"  r ... RCC Registers\n"
 				"  t ... Timer Registers\n"
 				"  u ... RTC Registers\n"
@@ -1717,6 +1790,9 @@ monitor(void) {
 			break;
 		case 'O':
 			dump_gpio_outputs();
+			break;
+		case 'Q':
+			dump_can_filter();
 			break;
 		case 'R':
 			dump_rcc();
