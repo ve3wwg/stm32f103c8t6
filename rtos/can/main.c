@@ -1546,7 +1546,6 @@ dump_can(void) {
 		{ 15,  6, Binary,  6, "res" },
 		{  9, 10, Decimal, 4, "BRP" },
 	};
-	// CAN_TI0R
 	static const struct bdesc can_tixr[] = {
 		{ 31, 11, Hex,     5, "STDID" },
 		{ 20, 18, Hex,     6, "EXID" },
@@ -1554,25 +1553,38 @@ dump_can(void) {
 		{  1,  1, Binary,  3, "RTR" },
 		{  0,  1, Binary,  4, "TXRQ" },
 	};
-	// CAN_TI2R
-	// CAN_TI2R
-	// CAN_TDT0R
-	// CAN_TDT1R
-	// CAN_TDT2R
-	// CAN_TDL0R
-	// CAN_TDL1R
-	// CAN_TDL2R
-	// CAN_TDH0R
-	// CAN_TDH1R
-	// CAN_TDH2R
-	// CAN_RI0R
-	// CAN_RI1R
-	// CAN_RDT0R
-	// CAN_RDT1R
-	// CAN_RDL0R
-	// CAN_RDL1R
-	// CAN_RDH0R
-	// CAN_RDH1R
+	static const struct bdesc can_tdtxr[] = {
+		{ 31, 16, Decimal, 5, "TIME" },
+		{ 15,  7, Binary,  7, "res" },
+		{  8,  1, Binary,  3, "TGT" },
+		{  7,  4, Binary,  4, "res" },
+		{  3,  4, Decimal, 3, "DCL" },
+	};
+	static const struct bdesc can_tdlxr[] = {
+		{ 31,  8, Binary,  8, "DATA3" },
+		{ 23,  8, Binary,  8, "DATA2" },
+		{ 15,  8, Binary,  8, "DATA1" },
+		{  7,  8, Binary,  8, "DATA0" },
+	};
+	static const struct bdesc can_tdhxr[] = {
+		{ 31,  8, Binary,  8, "DATA7" },
+		{ 23,  8, Binary,  8, "DATA6" },
+		{ 15,  8, Binary,  8, "DATA5" },
+		{  7,  8, Binary,  8, "DATA4" },
+	};
+	static const struct bdesc can_rixr[] = {
+		{ 31, 11, Hex,     5, "STDID" },
+		{ 20, 18, Hex,     6, "EXID" },
+		{  2,  1, Binary,  3, "IDE" },
+		{  1,  1, Binary,  3, "RTR" },
+		{  0,  1, Binary,  3, "res" },
+	};
+	static const struct bdesc can_rdtxr[] = {
+		{ 31, 16, Decimal, 5, "TIME" },
+		{ 15,  8, Binary,  8, "FMI" },
+		{  7,  4, Binary,  4, "res" },
+		{  3,  4, Decimal, 3, "DCL" },
+	};
 	// CAN_FMR
 	// CAN_FM1R
 	// CAN_FS1R
@@ -1595,6 +1607,25 @@ dump_can(void) {
 	dump_reg(&CAN_TI0R(CAN1),"CAN",0,"TI0R",can_tixr,5);
 	dump_reg(&CAN_TI1R(CAN1),"CAN",0,"TI1R",can_tixr,5);
 	dump_reg(&CAN_TI2R(CAN1),"CAN",0,"TI2R",can_tixr,5);
+	dump_reg(&CAN_TDT0R(CAN1),"CAN",0,"TDT0R",can_tdtxr,5);
+	dump_reg(&CAN_TDT1R(CAN1),"CAN",0,"TDT1R",can_tdtxr,5);
+	dump_reg(&CAN_TDT2R(CAN1),"CAN",0,"TDT2R",can_tdtxr,5);
+	dump_reg(&CAN_TDL0R(CAN1),"CAN",0,"TDL0R",can_tdlxr,4);
+	dump_reg(&CAN_TDL1R(CAN1),"CAN",0,"TDL1R",can_tdlxr,4);
+	dump_reg(&CAN_TDL2R(CAN1),"CAN",0,"TDL2R",can_tdlxr,4);
+	dump_reg(&CAN_TDH0R(CAN1),"CAN",0,"TDH0R",can_tdhxr,4);
+	dump_reg(&CAN_TDH1R(CAN1),"CAN",0,"TDH1R",can_tdhxr,4);
+	dump_reg(&CAN_TDH2R(CAN1),"CAN",0,"TDH2R",can_tdhxr,4);
+	dump_reg(&CAN_RI0R(CAN1),"CAN",0,"RI0R",can_rixr,5);
+	dump_reg(&CAN_RI1R(CAN1),"CAN",0,"RI1R",can_rixr,5);
+	dump_reg(&CAN_RDT0R(CAN1),"CAN",0,"RDT0R",can_rdtxr,4);
+	dump_reg(&CAN_RDT1R(CAN1),"CAN",0,"RDT1R",can_rdtxr,4);
+
+	dump_reg(&CAN_RDL0R(CAN1),"CAN",0,"RDL0R",can_tdlxr,4);
+	dump_reg(&CAN_RDL1R(CAN1),"CAN",0,"RDL1R",can_tdlxr,4);
+	dump_reg(&CAN_RDH0R(CAN1),"CAN",0,"RDH0R",can_tdhxr,4);
+	dump_reg(&CAN_RDH1R(CAN1),"CAN",0,"RDH1R",can_tdhxr,4);
+
 }
 
 void
