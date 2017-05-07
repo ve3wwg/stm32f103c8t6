@@ -1490,9 +1490,41 @@ dump_can(void) {
 		{  1,  1, Binary,  5, "TXOK0" },
 		{  0,  1, Binary,  5, "RQCP0" },
 	};
-	// CAN_RF0R
-	// CAN_RF1R
-	// CAN_IER
+	static const struct bdesc can_rf0r[] = {
+		{ 31, 26, Binary, 26, "res" },
+		{  5,  1, Binary,  5, "RFMO0" },
+		{  4,  1, Binary,  5, "FOVR0" },
+		{  3,  1, Binary,  5, "FULL0" },
+		{  2,  1, Binary,  3, "res" },
+		{  1,  2, Decimal, 4, "FMP0" },
+	};
+	static const struct bdesc can_rf1r[] = {
+		{ 31, 26, Binary, 26, "res" },
+		{  5,  1, Binary,  5, "RFMO1" },
+		{  4,  1, Binary,  5, "FOVR1" },
+		{  3,  1, Binary,  5, "FULL1" },
+		{  2,  1, Binary,  3, "res" },
+		{  1,  2, Decimal, 4, "FMP1" },
+	};
+	static const struct bdesc can_ier[] = {
+		{ 31, 14, Binary, 14, "res" },
+		{ 17,  1, Binary,  5, "SLKIE" },
+		{ 16,  1, Binary,  5, "WKUIE" },
+		{ 15,  1, Binary,  5, "ERRIE" },
+		{ 14,  3, Binary,  3, "res" },
+		{ 11,  1, Binary,  5, "LECIE" },
+		{ 10,  1, Binary,  5, "BOFIE" },
+		{  9,  1, Binary,  5, "EPVIE" },
+		{  8,  1, Binary,  5, "EWGIE" },
+		{  7,  1, Binary,  3, "res" },
+		{  6,  1, Binary,  6, "FOVIE1" },
+		{  5,  1, Binary,  5, "FFIE1" },
+		{  4,  1, Binary,  6, "FMPIE1" },
+		{  3,  1, Binary,  6, "FOVIE0" },
+		{  2,  1, Binary,  5, "FFIE0" },
+		{  1,  1, Binary,  6, "FMPIE0" },
+		{  0,  1, Binary,  5, "TMEIE" },
+	};
 	static const struct bdesc can_esr[] = {
 		{ 31,  8, Decimal, 5, "REC" },
 		{ 22,  8, Decimal, 5, "TEC" },
@@ -1515,6 +1547,13 @@ dump_can(void) {
 		{  9, 10, Decimal, 4, "BRP" },
 	};
 	// CAN_TI0R
+	static const struct bdesc can_tixr[] = {
+		{ 31, 11, Hex,     5, "STDID" },
+		{ 20, 18, Hex,     6, "EXID" },
+		{  2,  1, Binary,  3, "IDE" },
+		{  1,  1, Binary,  3, "RTR" },
+		{  0,  1, Binary,  4, "TXRQ" },
+	};
 	// CAN_TI2R
 	// CAN_TI2R
 	// CAN_TDT0R
@@ -1550,6 +1589,12 @@ dump_can(void) {
 	dump_reg(&CAN_TSR(CAN1),"CAN",0,"TSR",can_tsr,24);
 	dump_reg(&CAN_ESR(CAN1),"CAN",0,"ESR",can_esr,8);
 	dump_reg(&CAN_BTR(CAN1),"CAN",0,"BTR",can_btr,9);
+	dump_reg(&CAN_RF0R(CAN1),"CAN",0,"RF0R",can_rf0r,6);
+	dump_reg(&CAN_RF1R(CAN1),"CAN",0,"RF1R",can_rf1r,6);
+	dump_reg(&CAN_IER(CAN1),"CAN",0,"IER",can_ier,17);
+	dump_reg(&CAN_TI0R(CAN1),"CAN",0,"TI0R",can_tixr,5);
+	dump_reg(&CAN_TI1R(CAN1),"CAN",0,"TI1R",can_tixr,5);
+	dump_reg(&CAN_TI2R(CAN1),"CAN",0,"TI2R",can_tixr,5);
 }
 
 void
