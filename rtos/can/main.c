@@ -1,9 +1,6 @@
-/* CDC Demo, using the usbcdc library
+/* main.c : CAN
  * Warren W. Gay VE3WWG
- * Wed Mar 15 21:56:50 2017
- *
- * This demo consists of a text menu driven app, to display
- * STM32F103 registers (STM32F103C8T6 register set assumed).
+ * Tue May  9 20:58:59 2017
  */
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +28,18 @@
 #include "task.h"
 #include "queue.h"
 
+struct s_canmsg {
+	uint32_t	msgid;		// Message ID
+	uint32_t	fmi;		// Format index
+	bool		xmsgidf;	// Extended message flag
+	bool		rtrf;		// RTR flag
+	uint8_t		length;		// Data length
+	uint8_t		data[8];	// Received data
+};
+
+TaskHandle_t montsk = 0;
+TaskHandle_t rxtsk = 0;
+QueueHandle_t canmsgq = 0;
 
 enum Format {
 	Binary=0,
@@ -1700,22 +1709,75 @@ dump_can_filter(void) {
 
 }
 
-void
-rtc_isr(void) {
+static int canrc = 0;
+static volatile unsigned isrcount0 = 0u, isrcount1 = 0;
 
-	gpio_toggle(GPIOC,GPIO13);
-	rtc_clear_flag(RTC_SEC);
-	++rtc_isr_count;
-	
-	if ( rtc_check_flag(RTC_ALR) ) {
-		rtc_clear_flag(RTC_ALR);
-		++rtc_alarm_count;
+static void init_status(void);
+
+static void 
+recv(unsigned fifo) {
+	uint32_t msgid, fmi, counter[2];
+	uint8_t length;
+	unsigned msgcount;
+	bool xmsgidf, rtrf;
+
+	if ( fifo == 0 )
+		msgcount = CAN_RF0R(CAN1) & 3;
+	else	msgcount = CAN_RF1R(CAN1) & 3;
+
+	if ( msgcount <= 0u )
+		return;
+
+	std_printf("FMP%u=%u\n",fifo,msgcount);
+
+	while ( msgcount-- > 0 ) {
+		can_receive(
+			CAN1,
+			fifo,			// FIFO #
+			true,			// Release	
+			&msgid,
+	                &xmsgidf,		// true if msgid is extended
+			&rtrf,			// true if requested transmission
+			&fmi,			// Matched filter index
+			&length,		// Returned length
+			(uint8_t *)counter);
+
+		std_printf("FIFO #%u: msgid=%u, xmsgidf=%d, rtrf=%d, fmi=%u, length=%u, counter=%u\n",
+			fifo, (unsigned)msgid, (int)xmsgidf, (int)rtrf, (unsigned)fmi,(unsigned)length,(unsigned)counter[0]);
 	}
 }
 
-static int canrc = 0;
+static void
+can_rx_isr(uint8_t fifo,unsigned msgcount) {
+	struct s_canmsg cmsg;
 
-static void init_status(void);
+	while ( msgcount-- > 0 ) {
+		can_receive(
+			CAN1,
+			fifo,			// FIFO # 1
+			true,			// Release	
+			&cmsg.msgid,
+	                &cmsg.xmsgidf,		// true if msgid is extended
+			&cmsg.rtrf,		// true if requested transmission
+			&cmsg.fmi,		// Matched filter index
+			&cmsg.length,		// Returned length
+			cmsg.data);
+		// If the queue is full, the message is lost
+		xQueueSendToBackFromISR(canmsgq,&cmsg,NULL);
+	}
+}
+
+void
+usb_lp_can_rx0_isr(void) {
+	++isrcount0;
+	can_rx_isr(0,CAN_RF0R(CAN1)&3);
+}
+
+void
+can_rx1_isr(void) {
+	++isrcount1;
+	can_rx_isr(1,CAN_RF1R(CAN1)&3);
+}
 
 /*
  * Monitor routine
@@ -1809,23 +1871,12 @@ monitor(void) {
 		case 'X':
 			return;
 		case 'Z':
-{
-	// BRP=1048822
-	canrc = can_init(CAN1,
-		false,					// ttcm=off
-		false,					// auto bus off management
-		true,					// Automatic wakeup mode.
-		true,					// No automatic retransmission.
-		false,					// Receive FIFO locked mode
-		false,					// Transmit FIFO priority (msg id)
-		CAN_BTR_SJW_1TQ,			// Resynchronization time quanta jump width (0..3)
-		CAN_BTR_TS1_6TQ,			// Time segment 1 time quanta width
-		CAN_BTR_TS2_7TQ,			// Time segment 2 time quanta width
-		247,					// Baud rate prescaler
-		true,					// Loopback
-		false);					// Silent
-}		
 			break;
+		case 'Y':
+			recv(0);
+			recv(1);
+			break;
+
 		default:
 			std_printf(" ???\n");
 			menuf = true;
@@ -1835,17 +1886,34 @@ monitor(void) {
 
 static void
 init_status(void) {
-	std_printf("can_init returned rc=%d\n",canrc);
+
+	std_printf("can_init returned rc=%d, isrcount={%u,%u}\n",
+		canrc,isrcount0,isrcount1);
 }
 
 static void
 experiment(void) {
 	static unsigned counter = 0;
 	int rc;
-	
+
 	++counter;
 	rc = can_transmit(CAN1,23,false,false,sizeof counter,(uint8_t*)&counter);
 	std_printf("can_transmit(,23) returned rc=%d, counter=%u (canrc=%d)\n",rc,counter,canrc);
+}
+
+static void
+can_rx_task(void *arg __attribute((unused))) {
+	struct s_canmsg cmsg;
+	uint32_t *counter = (uint32_t*)cmsg.data;
+
+	for (;;) {
+		if ( xQueueReceive(canmsgq,&cmsg,portMAX_DELAY) == pdPASS ) {
+			std_printf("[%4u:%c,%u]\n",
+				(unsigned)cmsg.msgid,
+				cmsg.rtrf ? 'R' : 'D',
+				(unsigned)*counter);
+		}
+	}
 }
 
 /*
@@ -1892,58 +1960,48 @@ main(void) {
 		AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF,      // Optional
 		AFIO_MAPR_CAN1_REMAP_PORTB);		// CAN_RX=PB8, CAN_TX=PB9
 
-	can_reset(CAN1);				// Reset CAN peripheral
-#if 0
-	canrc = xcan_init(CAN1,
+	canrc = can_init(
+		CAN1,
 		false,					// ttcm=off
 		false,					// auto bus off management
 		true,					// Automatic wakeup mode.
 		true,					// No automatic retransmission.
 		false,					// Receive FIFO locked mode
 		false,					// Transmit FIFO priority (msg id)
-		1,					// Resynchronization time quanta jump width (0..3)
-		8,					// Time segment 1 time quanta width
-		4,					// Time segment 2 time quanta width
+		CAN_BTR_SJW_1TQ,			// Resynchronization time quanta jump width (0..3)
+		CAN_BTR_TS1_6TQ,			// Time segment 1 time quanta width
+		CAN_BTR_TS2_7TQ,			// Time segment 2 time quanta width
 		247,					// Baud rate prescaler
-		true,					// Loopback
+		false,					// Loopback
 		false);					// Silent
-#endif
-#if 0
- void can_enable_irq(uint32_t canport, uint32_t irq)
 
-@param[in] canport Unsigned int32. CAN block register base @ref can_reg_base.
-@param[in] id Unsigned int32. Message ID.
-@param[in] ext bool. Extended message ID?
-@param[in] rtr bool. Request transmit?
-@param[in] length Unsigned int8. Message payload length.
-@param[in] data Unsigned int8[]. Message payload data.
-@returns int 0, 1 or 2 on success and depending on which outgoing mailbox got
-selected. -1 if no mailbox was available and no transmission got queued.
- */
- int can_transmit(uint32_t canport, uint32_t id, bool ext, bool rtr,
-                  uint8_t length, uint8_t *data)
-                  
-@param[in] canport Unsigned int32. CAN block register base @ref can_reg_base.
-@param[in] fifo Unsigned int8. FIFO id.
-@param[in] release bool. Release the FIFO automatically after coping data out.
-@param[out] id Unsigned int32 pointer. Message ID.
-@param[out] ext bool pointer. The message ID is extended?
-@param[out] rtr bool pointer. Request of transmission?
-@param[out] fmi Unsigned int32 pointer. ID of the matched filter.
-@param[out] length Unsigned int8 pointer. Length of message payload.
-@param[out] data Unsigned int8[]. Message payload data.
- */
- void can_receive(uint32_t canport, uint8_t fifo, bool release, uint32_t *id,
-                  bool *ext, bool *rtr, uint32_t *fmi, uint8_t *length,
-                                   uint8_t *data)
-                                   
+	can_filter_id_mask_16bit_init(
+		CAN1,
+		5,
+		0, 0xFFFF,
+		1, 0xFFFF,
+		0,
+		true);
 
-#endif
+	can_filter_id_mask_16bit_init(
+		CAN1,
+		6,
+		0, 0xFFFF,
+		1, 0xFFFF,
+		1,
+		true);
+
+	canmsgq = xQueueCreate(33,sizeof(struct s_canmsg));
+
+	nvic_enable_irq(NVIC_USB_LP_CAN_RX0_IRQ);
+	nvic_enable_irq(NVIC_CAN_RX1_IRQ);
+	can_enable_irq(CAN1,CAN_IER_FMPIE0|CAN_IER_FMPIE1);
 
 	gpio_clear(GPIOC,GPIO13);
 	std_set_device(mcu_uart1);			// Use UART1 for std I/O
 
-	xTaskCreate(monitor_task,"monitor",350,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(monitor_task,"monitor",200,NULL,configMAX_PRIORITIES-1,&montsk);
+	xTaskCreate(can_rx_task,"canrx",200,NULL,configMAX_PRIORITIES-1,&rxtsk);
 	vTaskStartScheduler();
 	for (;;);
 }
