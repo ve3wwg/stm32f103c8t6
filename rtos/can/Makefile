@@ -2,21 +2,23 @@
 #  Project Makefile
 ######################################################################
 
-BINARY		= main
-SRCFILES	= main.c canmsgs.c rtos/heap_4.c rtos/list.c rtos/port.c rtos/queue.c rtos/tasks.c rtos/opencm3.c
-LDSCRIPT	= stm32f103c8t6.ld
+.PSEUDO: all front clean clobber flash flash_front
 
-# DEPS		= 	# Any additional dependencies for your build
-# CLOBBER	+= 	# Any additional files to be removed with "make clobber"
+all:
+	$(MAKE) -f Makefile.main -$(MAKEFLAGS)
+	$(MAKE) -f Makefile.front -$(MAKEFLAGS)
 
-include ../../Makefile.incl
-include ../Makefile.rtos
+clean:
+	$(MAKE) -f Makefile.main -$(MAKEFLAGS) clean
+	$(MAKE) -f Makefile.front -$(MAKEFLAGS) clean
 
-######################################################################
-#  NOTES:
-#	1. remove any modules you don't need from SRCFILES
-#	2. "make clean" will remove *.o etc., but leaves *.elf, *.bin
-#	3. "make clobber" will "clean" and remove *.elf, *.bin etc.
-#	4. "make flash" will perform:
-#	   st-flash write main.bin 0x8000000
-######################################################################
+clobber:
+	$(MAKE) -f Makefile.main -$(MAKEFLAGS) clobber
+	$(MAKE) -f Makefile.front -$(MAKEFLAGS) clobber
+
+flash:
+	$(MAKE) -f Makefile.main -$(MAKEFLAGS) flash
+
+flash_front:
+	$(MAKE) -f Makefile.front -$(MAKEFLAGS) flash
+

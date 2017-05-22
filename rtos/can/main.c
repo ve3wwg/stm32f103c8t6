@@ -7,19 +7,8 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include <libopencm3/cm3/cortex.h>
-#include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/stm32/exti.h>
-#include <libopencm3/stm32/adc.h>
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/stm32/dma.h>
-#include <libopencm3/stm32/rtc.h>
-#include <libopencm3/stm32/f1/bkp.h>
-#include <libopencm3/stm32/f1/nvic.h>
-#include <libopencm3/stm32/can.h>
 
 #include "FreeRTOS.h"
 #include "mcuio.h"
@@ -27,29 +16,73 @@
 #include "canmsgs.h"
 #include "monitor.h"
 
+#define GPIO_PORT_LED		GPIOC		// Builtin LED port
+#define GPIO_LED		GPIO13		// Builtin LED
+
+/*********************************************************************
+ * Set LED On/Off
+ *********************************************************************/
+static void
+led(bool on) {
+	if ( on )
+		gpio_clear(GPIO_PORT_LED,GPIO_LED);
+	else	gpio_set(GPIO_PORT_LED,GPIO_LED);
+}
+
 /*********************************************************************
  * CAN Receive Callback
  *********************************************************************/
 void
 can_recv(struct s_canmsg *msg) {
-        uint32_t *counter = (uint32_t*)msg->data;
 
-	std_printf("[%4u(%d/%u):%c,%u]\n",
+	std_printf("[%4u(%d/%u):%c,$%02X]\n",
 		(unsigned)msg->msgid,
 		msg->fifo,(unsigned)msg->fmi,
 		msg->rtrf ? 'R' : 'D',
-		(unsigned)*counter);
+		msg->data[0]);
 }
 
-/*
- * Monitor task:
- */
+/*********************************************************************
+ * Enable/Disable a signal lamp or parking lamps
+ *********************************************************************/
+
 static void
-monitor_task(void *arg __attribute((unused))) {
+lamp_enable(enum MsgID id,bool enable) {
+	struct s_lamp_en msg;
+
+	msg.enable = enable;
+	msg.reserved = 0;
+	can_xmit(id,false,false,sizeof msg,&msg);
+}
+
+/*********************************************************************
+ * Console:
+ *********************************************************************/
+static void
+console_task(void *arg __attribute((unused))) {
+	char ch;
 
         for (;;) {
-                monitor();
-		can_xmit(32,false,false,3,"Hi!");
+		std_printf("> ");
+		ch = std_getc();
+		std_printf("%c\n",ch);
+
+		switch ( ch ) {
+		case 'L':
+		case 'l':
+			lamp_enable(ID_LeftEn,ch == 'L');
+			break;
+		case 'R':
+		case 'r':
+			lamp_enable(ID_RightEn,ch == 'R');
+			break;
+		case 'P':
+		case 'p':
+			lamp_enable(ID_ParkEn,ch == 'P');
+			break;
+		default:
+			std_printf("??\n");
+		}
         }
 }
 
@@ -62,22 +95,19 @@ main(void) {
         rcc_clock_setup_in_hse_8mhz_out_72mhz();        // Use this for "blue pill"
 
         rcc_periph_clock_enable(RCC_GPIOC);
-        gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
+        gpio_set_mode(GPIO_PORT_LED,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO_LED);
 
-        rcc_periph_clock_enable(RCC_GPIOA);
-        gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_USART1_TX);
-        gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO11);
-
-        gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO_USART1_RX);
-        gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_FLOAT,GPIO12);
+	rcc_periph_clock_enable(RCC_GPIOA);
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_USART1_TX);
+	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO11);
 
 	std_set_device(mcu_uart1);			// Use UART1 for std I/O
         open_uart(1,115200,"8N1","rw",1,1);
+
 	initialize_can(false,true);			// !nart, locked
 
-	gpio_clear(GPIOC,GPIO13);
-
-	xTaskCreate(monitor_task,"monitor",300,NULL,configMAX_PRIORITIES-1,NULL);
+	led(false);
+	xTaskCreate(console_task,"console",300,NULL,configMAX_PRIORITIES-1,NULL);
 	vTaskStartScheduler();
 	for (;;);
 }
