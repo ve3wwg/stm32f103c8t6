@@ -27,6 +27,25 @@ struct s_canmsg {
 	uint8_t		fifo : 1;	// RX Fifo 0 or 1
 };
 
+enum MsgID {
+	ID_LeftEn = 100,		// Left signals on/off (s_lamp_en)
+	ID_RightEn,			// Right signals on/off (s_lamp_en)
+	ID_ParkEn,			// Parking lights on/off (s_lamp_en)
+	ID_HeartBeat = 200		// Heartbeat signal (s_lamp_status)
+};
+
+struct s_lamp_en {
+	uint8_t		enable : 1;	// 1==on, 0==off
+	uint8_t		reserved : 1;
+};
+
+struct s_lamp_status {
+	uint8_t		left : 1;	// Left signal on
+	uint8_t		right : 1;	// Right signal on
+	uint8_t		park : 1;	// Parking lights on
+	uint8_t		reserved : 5;
+};
+
 void initialize_can(bool nart,bool locked);
 void can_recv(struct s_canmsg *msg);
 void can_xmit(uint32_t id,bool ext,bool rtr,uint8_t length,void *data);
