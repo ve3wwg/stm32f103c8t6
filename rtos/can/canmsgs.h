@@ -19,7 +19,7 @@
 
 struct s_canmsg {
 	uint32_t	msgid;		// Message ID
-	uint32_t	fmi;		// Format index
+	uint32_t	fmi;		// Filter index
 	uint8_t		length;		// Data length
 	uint8_t		data[8];	// Received data
 	uint8_t		xmsgidf : 1;	// Extended message flag
@@ -27,8 +27,9 @@ struct s_canmsg {
 	uint8_t		fifo : 1;	// RX Fifo 0 or 1
 };
 
-void initialize_can(void);
+void initialize_can(bool nart,bool locked);
 void can_rx_callback(struct s_canmsg *msg);
+void can_tx_queue(uint32_t id,bool ext,bool rtr,uint8_t length,void *data);
 
 #endif // CANMSGS_H
 

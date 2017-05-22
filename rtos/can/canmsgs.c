@@ -9,7 +9,18 @@
 #include "FreeRTOS.h"
 #include "canmsgs.h"
 
-static QueueHandle_t canmsgq = 0;
+static QueueHandle_t canrxq = 0;
+
+/*********************************************************************
+ * Queue a CAN message to be sent:
+ *********************************************************************/
+
+void
+can_tx_queue(uint32_t id,bool ext,bool rtr,uint8_t length,void *data) {
+
+	while ( can_transmit(CAN1,id,ext,rtr,length,(uint8_t*)data) == -1 )
+		taskYIELD();
+}
 
 /*********************************************************************
  * Main CAN RX ISR routine for FIFO x
@@ -35,7 +46,7 @@ can_rx_isr(uint8_t fifo,unsigned msgcount) {
                 cmsg.rtrf = rtrf;
                 cmsg.fifo = fifo;
                 // If the queue is full, the message is lost
-                xQueueSendToBackFromISR(canmsgq,&cmsg,NULL);
+                xQueueSendToBackFromISR(canrxq,&cmsg,NULL);
         }
 }
 
@@ -66,7 +77,7 @@ can_rx_task(void *arg __attribute((unused))) {
         struct s_canmsg cmsg;
 
         for (;;) {
-                if ( xQueueReceive(canmsgq,&cmsg,portMAX_DELAY) == pdPASS )
+                if ( xQueueReceive(canrxq,&cmsg,portMAX_DELAY) == pdPASS )
 			can_rx_callback(&cmsg);
         }
 }
@@ -76,7 +87,7 @@ can_rx_task(void *arg __attribute((unused))) {
  *********************************************************************/
 
 void
-initialize_can() {
+initialize_can(bool nart,bool locked) {
 
         rcc_periph_clock_enable(RCC_AFIO);
         rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_CAN1EN);
@@ -95,8 +106,8 @@ initialize_can() {
                 false,                                  // ttcm=off
                 false,                                  // auto bus off management
                 true,                                   // Automatic wakeup mode.
-                true,                                   // No automatic retransmission.
-                false,                                  // Receive FIFO locked mode
+                nart,                                   // No automatic retransmission.
+                locked,                                 // Receive FIFO locked mode
                 false,                                  // Transmit FIFO priority (msg id)
                 PARM_SJW,	                        // Resynchronization time quanta jump width (0..3)
                 PARM_TS1,				// segment 1 time quanta width
@@ -121,7 +132,7 @@ initialize_can() {
 		1,					// FIFO 1
 		true);
 
-	canmsgq = xQueueCreate(33,sizeof(struct s_canmsg));
+	canrxq = xQueueCreate(33,sizeof(struct s_canmsg));
 
 	nvic_enable_irq(NVIC_USB_LP_CAN_RX0_IRQ);
 	nvic_enable_irq(NVIC_CAN_RX1_IRQ);
