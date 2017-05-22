@@ -31,7 +31,7 @@
  * CAN Receive Callback
  *********************************************************************/
 void
-can_rx_callback(struct s_canmsg *msg) {
+can_recv(struct s_canmsg *msg) {
         uint32_t *counter = (uint32_t*)msg->data;
 
 	std_printf("[%4u(%d/%u):%c,%u]\n",
@@ -49,7 +49,7 @@ monitor_task(void *arg __attribute((unused))) {
 
         for (;;) {
                 monitor();
-		can_tx_queue(32,false,false,3,"Hi!");
+		can_xmit(32,false,false,3,"Hi!");
         }
 }
 

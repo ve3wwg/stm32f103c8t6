@@ -16,7 +16,7 @@ static QueueHandle_t canrxq = 0;
  *********************************************************************/
 
 void
-can_tx_queue(uint32_t id,bool ext,bool rtr,uint8_t length,void *data) {
+can_xmit(uint32_t id,bool ext,bool rtr,uint8_t length,void *data) {
 
 	while ( can_transmit(CAN1,id,ext,rtr,length,(uint8_t*)data) == -1 )
 		taskYIELD();
@@ -78,7 +78,7 @@ can_rx_task(void *arg __attribute((unused))) {
 
         for (;;) {
                 if ( xQueueReceive(canrxq,&cmsg,portMAX_DELAY) == pdPASS )
-			can_rx_callback(&cmsg);
+			can_recv(&cmsg);
         }
 }
 

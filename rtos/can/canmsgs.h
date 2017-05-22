@@ -28,8 +28,8 @@ struct s_canmsg {
 };
 
 void initialize_can(bool nart,bool locked);
-void can_rx_callback(struct s_canmsg *msg);
-void can_tx_queue(uint32_t id,bool ext,bool rtr,uint8_t length,void *data);
+void can_recv(struct s_canmsg *msg);
+void can_xmit(uint32_t id,bool ext,bool rtr,uint8_t length,void *data);
 
 #endif // CANMSGS_H
 
