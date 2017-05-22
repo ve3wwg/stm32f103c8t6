@@ -49,6 +49,7 @@ monitor_task(void *arg __attribute((unused))) {
 
         for (;;) {
                 monitor();
+		can_tx_queue(32,false,false,3,"Hi!");
         }
 }
 
@@ -72,7 +73,7 @@ main(void) {
 
 	std_set_device(mcu_uart1);			// Use UART1 for std I/O
         open_uart(1,115200,"8N1","rw",1,1);
-	initialize_can();
+	initialize_can(false,true);			// !nart, locked
 
 	gpio_clear(GPIOC,GPIO13);
 
