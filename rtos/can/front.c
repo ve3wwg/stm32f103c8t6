@@ -1,6 +1,6 @@
 /* front.c : CAN front contoller
- * Warren W. Gay VE3WWG
- * Mon May 22 08:45:51 2017
+ * Mon May 22 08:45:51 2017	Warren W. Gay VE3WWG
+ * Uses CAN on PA11/PA12
  */
 #include <stdlib.h>
 #include <string.h>
@@ -110,10 +110,11 @@ main(void) {
 	lamp_enable(ID_LeftEn,false);
 	lamp_enable(ID_RightEn,false);
 	lamp_enable(ID_ParkEn,false);
+
 	gpio_clear(GPIO_PORT_LED,GPIO_LED);
 
 	// Initialize CAN
-	initialize_can(false,true);			// !nart, locked
+	initialize_can(false,true,false);		// !nart, locked, altcfg=false PA11/PA12
 
 	xTaskCreate(controller_task,"front",300,NULL,configMAX_PRIORITIES-1,NULL);
 	vTaskStartScheduler();
