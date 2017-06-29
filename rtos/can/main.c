@@ -1,6 +1,6 @@
 /* main.c : CAN
- * Warren W. Gay VE3WWG
- * Tue May  9 20:58:59 2017
+ * Tue May  9 20:58:59 2017	Warren W. Gay VE3WWG
+ * Uses CAN on PB8/PB9, UART1 115200,"8N1","rw",1,1
  */
 #include <stdlib.h>
 #include <string.h>
@@ -62,6 +62,8 @@ static void
 console_task(void *arg __attribute((unused))) {
 	char ch;
 
+	std_printf("CAN Console Ready:\n");
+
         for (;;) {
 		std_printf("> ");
 		ch = std_getc();
@@ -81,7 +83,7 @@ console_task(void *arg __attribute((unused))) {
 			lamp_enable(ID_ParkEn,ch == 'P');
 			break;
 		default:
-			std_printf("??\n");
+			std_printf("A/O/L/R/P??\n");
 		}
         }
 }
@@ -104,7 +106,7 @@ main(void) {
 	std_set_device(mcu_uart1);			// Use UART1 for std I/O
         open_uart(1,115200,"8N1","rw",1,1);
 
-	initialize_can(false,true);			// !nart, locked
+	initialize_can(false,true,true);		// !nart, locked, altcfg=true PB8/PB9
 
 	led(false);
 	xTaskCreate(console_task,"console",300,NULL,configMAX_PRIORITIES-1,NULL);
