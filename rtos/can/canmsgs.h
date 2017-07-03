@@ -31,6 +31,8 @@ enum MsgID {
 	ID_LeftEn = 100,		// Left signals on/off (s_lamp_en)
 	ID_RightEn,			// Right signals on/off (s_lamp_en)
 	ID_ParkEn,			// Parking lights on/off (s_lamp_en)
+	ID_BrakeEn,			// Brake lights on/off (s_lamp_en)
+	ID_Flash,			// Inverts signal bulb flash
 	ID_HeartBeat = 200		// Heartbeat signal (s_lamp_status)
 };
 
@@ -43,7 +45,9 @@ struct s_lamp_status {
 	uint8_t		left : 1;	// Left signal on
 	uint8_t		right : 1;	// Right signal on
 	uint8_t		park : 1;	// Parking lights on
-	uint8_t		reserved : 5;
+	uint8_t		brake : 1;	// Brake lines on
+	uint8_t		flash : 1;	// True for signal flash
+	uint8_t		reserved : 4;
 };
 
 void initialize_can(bool nart,bool locked,bool altcfg);
