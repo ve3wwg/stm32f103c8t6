@@ -24,29 +24,51 @@
 #define LAMP_RIGHT		GPIO13		// Right turn signal
 #define LAMP_PARK		GPIO12		// Parking lights
 
-static volatile struct s_lamp_status lamp_status;
+static volatile struct s_lamp_status lamp_status = { 0, 0, 0, 0, 0, 0 };
+
+static void
+lamp_on(bool on,uint16_t gpios) {
+
+	if ( on )
+		gpio_clear(LAMP_PORT,gpios);
+	else	gpio_set(LAMP_PORT,gpios);
+}
 
 /*********************************************************************
  * Lamp Enables
  *********************************************************************/
 static void
 lamp_enable(enum MsgID id,bool enable) {
-	void (*enfunc)(uint32_t port,uint16_t gpios) = enable ? gpio_clear : gpio_set;
-
-	lamp_status.reserved = 0;
 
 	switch ( id ) {
+	case ID_ParkEn:
+		lamp_status.park = enable;
+		lamp_on(enable,LAMP_PARK);
+		return;
 	case ID_LeftEn:
-		enfunc(LAMP_PORT,LAMP_LEFT);
 		lamp_status.left = enable;
+		if ( !enable ) {
+			lamp_status.flash = false;
+			lamp_on(false,LAMP_LEFT);
+		} else	{
+			lamp_on(!lamp_status.flash,LAMP_LEFT);
+		}
 		break;
 	case ID_RightEn:
-		enfunc(LAMP_PORT,LAMP_RIGHT);
 		lamp_status.right = enable;
+		if ( !enable ) {
+			lamp_status.flash = false;
+			lamp_on(false,LAMP_RIGHT);
+		} else	{
+			lamp_on(!lamp_status.flash,LAMP_RIGHT);
+		}
 		break;
-	case ID_ParkEn:
-		enfunc(LAMP_PORT,LAMP_PARK);
-		lamp_status.park = enable;
+	case ID_Flash:
+		lamp_status.flash ^= true;
+		lamp_on(lamp_status.left & !lamp_status.flash,LAMP_LEFT);
+		lamp_on(lamp_status.right & !lamp_status.flash,LAMP_RIGHT);
+		break;
+	case ID_BrakeEn:
 		break;
 	default:
 		break;
@@ -69,6 +91,7 @@ can_recv(struct s_canmsg *msg) {
 		case ID_LeftEn:
 		case ID_RightEn:
 		case ID_ParkEn:
+		case ID_Flash:
 			lamp_enable((enum MsgID)msg->msgid,msgp->lamp.enable);
 			break;
 		default:
@@ -107,10 +130,7 @@ main(void) {
 	gpio_set_mode(LAMP_PORT,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,LAMP_PARK);
 	gpio_set_mode(GPIO_PORT_LED,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO_LED);
 
-	lamp_enable(ID_LeftEn,false);
-	lamp_enable(ID_RightEn,false);
-	lamp_enable(ID_ParkEn,false);
-
+	gpio_set(LAMP_PORT,LAMP_LEFT|LAMP_RIGHT|LAMP_PARK);
 	gpio_clear(GPIO_PORT_LED,GPIO_LED);
 
 	// Initialize CAN
