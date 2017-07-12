@@ -9,6 +9,7 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/adc.h>
 
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -23,6 +24,7 @@
 
 static SemaphoreHandle_t mutex;			// Handle to mutex
 struct s_lamp_status lamp_status = { 0, 0, 0, 0, 0, 0 };
+static volatile bool show_rx = false;
 
 /*********************************************************************
  * Set PC13 LED On/Off
@@ -35,16 +37,45 @@ led(bool on) {
 }
 
 /*********************************************************************
+ * Display temperature
+ *********************************************************************/
+
+static void
+display_temp(int temp100) {
+	int dd;
+
+	if ( temp100 > 0 )
+		dd = temp100 % 100;
+	else	dd = (-temp100) % 100;
+	std_printf("Temperature: +%d.%02d C\n",temp100/100,dd);
+}
+
+/*********************************************************************
  * CAN Receive Callback
  *********************************************************************/
 void
 can_recv(struct s_canmsg *msg) {
+	union u_msg {
+		struct s_temp100 temp;
+	} *msgp = (union u_msg *)msg->data;
 
-	std_printf("[%4u(%d/%u):%c,$%02X]\n",
-		(unsigned)msg->msgid,
-		msg->fifo,(unsigned)msg->fmi,
-		msg->rtrf ? 'R' : 'D',
-		msg->data[0]);
+	if ( show_rx ) {
+		std_printf("[%4u(%d/%u):%c,$%02X]\n",
+			(unsigned)msg->msgid,
+			msg->fifo,(unsigned)msg->fmi,
+			msg->rtrf ? 'R' : 'D',
+			msg->data[0]);
+	}
+
+	if ( !msg->rtrf ) {
+		switch ( msg->msgid ) {
+		case ID_Temp:
+			display_temp(msgp->temp.celciusx100);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 /*********************************************************************
@@ -81,6 +112,50 @@ lamp_enable(enum MsgID id,bool enable) {
 }
 
 /*********************************************************************
+ * Request rear unit to send temperature
+ *********************************************************************/
+
+static void
+request_temp(void) {
+	struct s_temp100 temp_msg;
+
+	can_xmit(ID_Temp,false,true/*RTR*/,0,&temp_msg);
+}
+
+#if 0
+/*********************************************************************
+ * Return temperature in C * 100
+ *********************************************************************/
+static char *
+degrees_C(void) {
+	static char buf[12];
+	int vref, vtemp, temp100, dd;
+
+	vtemp = (int)read_adc(ADC_CHANNEL_TEMP) * 3300 / 4095;
+	vref = (int)read_adc(ADC_CHANNEL_VREF) * 3300 / 4095;
+
+	temp100 = (vref - vtemp) / 45 + 2500; // temp = (1.43 - Vtemp) / 4.5 + 25.00
+	if ( temp100 > 0 )
+		dd = temp100 % 100;
+	else	dd = (-temp100) % 100;
+	mini_snprintf(buf,sizeof buf,"+%d.%02d C",temp100/100,dd);
+	return buf;
+}
+#endif
+
+static void
+show_menu(void) {
+	std_printf(
+		"\nMenu:\n\n"
+		"  L - Turn on left signals\n"
+		"  R - Turn on right signals\n"
+		"  P - Turn on parking lights\n"
+		"  B - Activate brake lights\n"
+		"  Lower case the above to turn OFF\n\n"
+		"  V - Verbose mode (show received messages)\n\n");
+}
+
+/*********************************************************************
  * Console:
  *********************************************************************/
 static void
@@ -92,6 +167,8 @@ console_task(void *arg __attribute__((unused))) {
 	xSemaphoreTake(mutex,portMAX_DELAY);		// Initialize this as locked
 	lockedf = true;
 
+	std_printf("Car simulation begun.\n");
+	show_menu();
 	std_printf("CAN Console Ready:\n");
 
         for (;;) {
@@ -128,9 +205,18 @@ console_task(void *arg __attribute__((unused))) {
 			lamp_status.brake = ch == 'B';
 			lamp_enable(ID_BrakeEn,lamp_status.brake);
 			break;
+		case 'V':
+		case 'v':
+			// Toggle show messages received (verbose mode)
+			show_rx ^= true;
+			break;
+		case '\r':
+			break;
 		default:
-			std_printf("L/R/P??\n");
+			show_menu();
 		}
+
+		request_temp();
 
 		if ( flashf ) {
 			if ( (lamp_status.left || lamp_status.right) && lockedf ) {
