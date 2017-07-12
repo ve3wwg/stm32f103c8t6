@@ -33,12 +33,17 @@ enum MsgID {
 	ID_ParkEn,			// Parking lights on/off (s_lamp_en)
 	ID_BrakeEn,			// Brake lights on/off (s_lamp_en)
 	ID_Flash,			// Inverts signal bulb flash
+	ID_Temp,			// Temperature
 	ID_HeartBeat = 200		// Heartbeat signal (s_lamp_status)
 };
 
 struct s_lamp_en {
 	uint8_t		enable : 1;	// 1==on, 0==off
 	uint8_t		reserved : 1;
+};
+
+struct s_temp100 {
+	int		celciusx100;	// Degrees Celcius x 100
 };
 
 struct s_lamp_status {
