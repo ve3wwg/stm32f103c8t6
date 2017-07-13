@@ -81,7 +81,7 @@ lamp_enable(enum MsgID id,bool enable) {
 static uint16_t
 read_adc(uint8_t channel) {
 
-	adc_set_sample_time(ADC1,channel,ADC_SMPR_SMP_1DOT5CYC);
+	adc_set_sample_time(ADC1,channel,ADC_SMPR_SMP_239DOT5CYC);
 	adc_start_conversion_direct(ADC1);
 	while ( !adc_eoc(ADC1) )
 		taskYIELD();
@@ -148,7 +148,7 @@ controller_task(void *arg __attribute((unused))) {
 
         for (;;) {
 		vTaskDelay(pdMS_TO_TICKS(500));
-		can_xmit(ID_HeartBeat,false,false,sizeof lamp_status,(void *)&lamp_status);
+		can_xmit(ID_HeartBeat2,false,false,sizeof lamp_status,(void *)&lamp_status);
 		gpio_toggle(GPIO_PORT_LED,GPIO_LED);
         }
 }
@@ -181,16 +181,16 @@ main(void) {
 
 	xTaskCreate(controller_task,"front",300,NULL,configMAX_PRIORITIES-1,NULL);
 
-	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_ADC1EN);
+	rcc_peripheral_enable_clock(&RCC_APB2ENR,RCC_APB2ENR_ADC1EN);
 	adc_power_off(ADC1);
-	rcc_peripheral_reset(&RCC_APB2RSTR, RCC_APB2RSTR_ADC1RST);
-	rcc_peripheral_clear_reset(&RCC_APB2RSTR, RCC_APB2RSTR_ADC1RST);
-	rcc_set_adcpre(RCC_CFGR_ADCPRE_PCLK2_DIV2);
-	adc_set_dual_mode(ADC_CR1_DUALMOD_IND);
+	rcc_peripheral_reset(&RCC_APB2RSTR,RCC_APB2RSTR_ADC1RST);
+	rcc_peripheral_clear_reset(&RCC_APB2RSTR,RCC_APB2RSTR_ADC1RST);
+	rcc_set_adcpre(RCC_CFGR_ADCPRE_PCLK2_DIV6);	// Set. 12MHz, Max. 14MHz
+	adc_set_dual_mode(ADC_CR1_DUALMOD_IND);		// Independent mode
 	adc_disable_scan_mode(ADC1);
 	adc_set_right_aligned(ADC1);
 	adc_set_single_conversion_mode(ADC1);
-	adc_set_sample_time(ADC1,ADC_CHANNEL_TEMP,ADC_SMPR_SMP_1DOT5CYC);
+	adc_set_sample_time(ADC1,ADC_CHANNEL_TEMP,ADC_SMPR_SMP_239DOT5CYC);
 	adc_enable_temperature_sensor();
 	adc_power_on(ADC1);
 	adc_reset_calibration(ADC1);
