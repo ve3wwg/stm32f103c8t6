@@ -47,7 +47,7 @@ display_temp(int temp100) {
 	if ( temp100 > 0 )
 		dd = temp100 % 100;
 	else	dd = (-temp100) % 100;
-	std_printf("Temperature: +%d.%02d C\n",temp100/100,dd);
+	std_printf("Temperature: +%d.%02d C\n> ",temp100/100,dd);
 }
 
 /*********************************************************************
