@@ -34,7 +34,8 @@ enum MsgID {
 	ID_BrakeEn,			// Brake lights on/off (s_lamp_en)
 	ID_Flash,			// Inverts signal bulb flash
 	ID_Temp,			// Temperature
-	ID_HeartBeat = 200		// Heartbeat signal (s_lamp_status)
+	ID_HeartBeat = 200,		// Heartbeat signal (s_lamp_status)
+	ID_HeartBeat2			// Rear unit heartbeat
 };
 
 struct s_lamp_en {
