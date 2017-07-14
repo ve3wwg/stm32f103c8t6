@@ -26,6 +26,9 @@
 
 static volatile struct s_lamp_status lamp_status = { 0, 0, 0, 0, 0, 0 };
 
+/*********************************************************************
+ * Turn the given lamp(s) on/off:
+ *********************************************************************/
 static void
 lamp_on(bool on,uint16_t gpios) {
 
@@ -100,9 +103,9 @@ can_recv(struct s_canmsg *msg) {
 	}
 }
 
-/*
+/*********************************************************************
  * Monitor task:
- */
+ *********************************************************************/
 static void
 controller_task(void *arg __attribute((unused))) {
 
@@ -113,9 +116,9 @@ controller_task(void *arg __attribute((unused))) {
         }
 }
 
-/*
+/*********************************************************************
  * Main program: Device initialization etc.
- */
+ *********************************************************************/
 int
 main(void) {
 
