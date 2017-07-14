@@ -1,6 +1,6 @@
 /* rear.c : CAN rear contoller
  * Mon Jul  3 08:49:40 2017	Warren W. Gay VE3WWG
- * Uses CAN on PA11/PA12
+ * Uses CAN on PA11/PA12:
  */
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +27,9 @@
 
 static volatile struct s_lamp_status lamp_status = { 0, 0, 0, 0, 0, 0 };
 
+/*********************************************************************
+ * Turn the given lamp(s) on/off
+ *********************************************************************/
 static void
 lamp_on(bool on,uint16_t gpios) {
 
@@ -142,7 +145,6 @@ can_recv(struct s_canmsg *msg) {
 /*********************************************************************
  * Monitor task:
  *********************************************************************/
-
 static void
 controller_task(void *arg __attribute((unused))) {
 
@@ -181,6 +183,7 @@ main(void) {
 
 	xTaskCreate(controller_task,"front",300,NULL,configMAX_PRIORITIES-1,NULL);
 
+	// Initialize ADC:
 	rcc_peripheral_enable_clock(&RCC_APB2ENR,RCC_APB2ENR_ADC1EN);
 	adc_power_off(ADC1);
 	rcc_peripheral_reset(&RCC_APB2RSTR,RCC_APB2RSTR_ADC1RST);
