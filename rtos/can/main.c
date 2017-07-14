@@ -37,9 +37,8 @@ led(bool on) {
 }
 
 /*********************************************************************
- * Display temperature
+ * Display temperature (from rear controller)
  *********************************************************************/
-
 static void
 display_temp(int temp100) {
 	int dd;
@@ -81,7 +80,6 @@ can_recv(struct s_canmsg *msg) {
 /*********************************************************************
  * Signal Flash task
  *********************************************************************/
-
 static void
 flash_task(void *arg __attribute__((unused))) {
 	struct s_lamp_en msg;
@@ -101,7 +99,6 @@ flash_task(void *arg __attribute__((unused))) {
 /*********************************************************************
  * Enable/Disable a signal lamp or parking lamps
  *********************************************************************/
-
 static void
 lamp_enable(enum MsgID id,bool enable) {
 	struct s_lamp_en msg;
@@ -114,7 +111,6 @@ lamp_enable(enum MsgID id,bool enable) {
 /*********************************************************************
  * Request rear unit to send temperature
  *********************************************************************/
-
 static void
 request_temp(void) {
 	struct s_temp100 temp_msg;
@@ -122,27 +118,9 @@ request_temp(void) {
 	can_xmit(ID_Temp,false,true/*RTR*/,0,&temp_msg);
 }
 
-#if 0
 /*********************************************************************
- * Return temperature in C * 100
+ * Display a menu:
  *********************************************************************/
-static char *
-degrees_C(void) {
-	static char buf[12];
-	int vref, vtemp, temp100, dd;
-
-	vtemp = (int)read_adc(ADC_CHANNEL_TEMP) * 3300 / 4095;
-	vref = (int)read_adc(ADC_CHANNEL_VREF) * 3300 / 4095;
-
-	temp100 = (vref - vtemp) / 45 + 2500; // temp = (1.43 - Vtemp) / 4.5 + 25.00
-	if ( temp100 > 0 )
-		dd = temp100 % 100;
-	else	dd = (-temp100) % 100;
-	mini_snprintf(buf,sizeof buf,"+%d.%02d C",temp100/100,dd);
-	return buf;
-}
-#endif
-
 static void
 show_menu(void) {
 	std_printf(
@@ -231,9 +209,9 @@ console_task(void *arg __attribute__((unused))) {
         }
 }
 
-/*
+/*********************************************************************
  * Main program: Device initialization etc.
- */
+ *********************************************************************/
 int
 main(void) {
 
