@@ -181,7 +181,7 @@ main(void) {
 	// Initialize CAN
 	initialize_can(false,true,false);		// !nart, locked, altcfg=false PA11/PA12
 
-	xTaskCreate(controller_task,"front",300,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(controller_task,"rear",300,NULL,configMAX_PRIORITIES-1,NULL);
 
 	// Initialize ADC:
 	rcc_peripheral_enable_clock(&RCC_APB2ENR,RCC_APB2ENR_ADC1EN);
