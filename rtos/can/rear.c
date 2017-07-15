@@ -85,6 +85,7 @@ static uint16_t
 read_adc(uint8_t channel) {
 
 	adc_set_sample_time(ADC1,channel,ADC_SMPR_SMP_239DOT5CYC);
+	adc_set_regular_sequence(ADC1,1,&channel);
 	adc_start_conversion_direct(ADC1);
 	while ( !adc_eoc(ADC1) )
 		taskYIELD();
