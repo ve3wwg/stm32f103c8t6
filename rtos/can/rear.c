@@ -97,12 +97,12 @@ read_adc(uint8_t channel) {
  *********************************************************************/
 static int
 degrees_C100(void) {
-	int vref, vtemp;
+	static const int v25 = 143;	// 1.43 V
+	int vtemp;
 
 	vtemp = (int)read_adc(ADC_CHANNEL_TEMP) * 3300 / 4095;
-	vref = (int)read_adc(ADC_CHANNEL_VREF) * 3300 / 4095;
 
-	return (vref - vtemp) / 45 + 2500; // temp = (1.43 - Vtemp) / 4.5 + 25.00
+	return (v25 - vtemp) / 45 + 2500; // temp = (1.43 - Vtemp) / 4.5 + 25.00
 }
 
 /*********************************************************************
