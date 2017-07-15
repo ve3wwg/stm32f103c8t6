@@ -26,6 +26,7 @@ static uint16_t
 read_adc(uint8_t channel) {
 
 	adc_set_sample_time(ADC1,channel,ADC_SMPR_SMP_239DOT5CYC);
+	adc_set_regular_sequence(ADC1,1,&channel);
 	adc_start_conversion_direct(ADC1);
 	while ( !adc_eoc(ADC1) )
 		taskYIELD();
@@ -51,17 +52,22 @@ degrees_C100(void) {
 static void
 demo_task(void *arg __attribute((unused))) {
 	int temp100, vref;
+	int adc0, adc1;
 
         for (;;) {
 		vTaskDelay(pdMS_TO_TICKS(1500));
 		gpio_toggle(GPIO_PORT_LED,GPIO_LED);
 
 		temp100 = degrees_C100();
-		vref = (int)read_adc(ADC_CHANNEL_VREF) * 330 / 4095;
-		
-		std_printf("Temperature %d.%02d C, Vref %d.%02d Volts\n",
+		vref = read_adc(ADC_CHANNEL_VREF) * 330 / 4095;
+		adc0 = read_adc(0) * 330 / 4095;
+		adc1 = read_adc(1) * 330 / 4095;
+
+		std_printf("Temperature %d.%02d C, Vref %d.%02d Volts, ch0 %d.%02d V, ch1 %d.%02d V\n",
 			temp100/100,temp100%100,
-			vref/100,vref%100);
+			vref/100,vref%100,
+			adc0/100,adc0%100,
+			adc1/100,adc1%100);
         }
 }
 
@@ -72,6 +78,11 @@ int
 main(void) {
 
         rcc_clock_setup_in_hse_8mhz_out_72mhz();        // Use this for "blue pill"
+
+        rcc_periph_clock_enable(RCC_GPIOA);		// Enable GPIOA for ADC
+;	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_ANALOG,GPIO0);
+	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_ANALOG,GPIO1);
+
         rcc_periph_clock_enable(RCC_GPIOC);		// Enable GPIOC for LED
 	gpio_set_mode(GPIO_PORT_LED,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO_LED);
 	gpio_clear(GPIO_PORT_LED,GPIO_LED);
