@@ -23,18 +23,11 @@ static void
 gpio_setup(void) {
 
 	/* Enable GPIOC clock. */
-	/* Manually: */
-	// RCC_APB2ENR |= RCC_APB2ENR_IOPCEN;
-	/* Using API functions: */
 	rcc_periph_clock_enable(RCC_GPIOC);
 
 	/* Set GPIO8 (in GPIO port C) to 'output push-pull'. */
-	/* Manually: */
-	// GPIOC_CRH = (GPIO_CNF_OUTPUT_PUSHPULL << (((8 - 8) * 4) + 2));
-	// GPIOC_CRH |= (GPIO_MODE_OUTPUT_2_MHZ << ((8 - 8) * 4));
-	/* Using API functions: */
-	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
+	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,
+		      GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 }
 
 int
@@ -44,28 +37,12 @@ main(void) {
 	gpio_setup();
 
 	for (;;) {
-		/* Manually: */
-		// GPIOC_BSRR = GPIO8;		/* LED off */
-		// for (i = 0; i < 800000; i++)	/* Wait a bit. */
-		// 	__asm__("nop");
-		// GPIOC_BRR = GPIO8;		/* LED on */
-		// for (i = 0; i < 800000; i++)	/* Wait a bit. */
-		// 	__asm__("nop");
-
-		/* Using API functions gpio_set()/gpio_clear(): */
-		// gpio_set(GPIOC, GPIO8);	/* LED off */
-		// for (i = 0; i < 800000; i++)	/* Wait a bit. */
-		// 	__asm__("nop");
-		// gpio_clear(GPIOC, GPIO8);	/* LED on */
-		// for (i = 0; i < 800000; i++)	/* Wait a bit. */
-		// 	__asm__("nop");
-
-		gpio_toggle(GPIOC, GPIO13);	/* LED on/off */
-		for (i = 0; i < 1000000; i++)	/* Wait a bit. */
+		gpio_clear(GPIOC,GPIO13);	/* LED on */
+		for (i = 0; i < 1500000; i++)	/* Wait a bit. */
 			__asm__("nop");
 
-		gpio_toggle(GPIOC, GPIO13);	/* LED on/off */
-		for (i = 0; i < 400000; i++)	/* Wait a bit. */
+		gpio_set(GPIOC,GPIO13);		/* LED off */
+		for (i = 0; i < 500000; i++)	/* Wait a bit. */
 			__asm__("nop");
 	}
 
