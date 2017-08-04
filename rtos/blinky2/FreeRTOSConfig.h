@@ -98,7 +98,8 @@
 #define configUSE_TRACE_FACILITY	0
 #define configUSE_16_BIT_TICKS		0
 #define configIDLE_SHOULD_YIELD		1
-#define configUSE_MUTEXES		1
+#define configUSE_MUTEXES		0
+#define configCHECK_FOR_STACK_OVERFLOW	1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 		0
@@ -107,12 +108,12 @@
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
 
-#define INCLUDE_vTaskPrioritySet	1
-#define INCLUDE_uxTaskPriorityGet	1
-#define INCLUDE_vTaskDelete		1
+#define INCLUDE_vTaskPrioritySet	0
+#define INCLUDE_uxTaskPriorityGet	0
+#define INCLUDE_vTaskDelete		0
 #define INCLUDE_vTaskCleanUpResources	0
-#define INCLUDE_vTaskSuspend		1
-#define INCLUDE_vTaskDelayUntil		1
+#define INCLUDE_vTaskSuspend		0
+#define INCLUDE_vTaskDelayUntil		0
 #define INCLUDE_vTaskDelay		1
 
 /* This is the raw value as per the Cortex-M3 NVIC.  Values can be 255
@@ -129,4 +130,3 @@ NVIC value of 255. */
 #define configLIBRARY_KERNEL_INTERRUPT_PRIORITY	15
 
 #endif /* FREERTOS_CONFIG_H */
-
