@@ -6,10 +6,11 @@
  * uses usart_send_blocking() to write characters.
  *
  * STM32F103C8T6:
- *	RX:	A9  <====> TX of TTL serial
- *	TX:	A10 <====> RX of TTL serial
+ *	TX:	A9  <====> RX of TTL serial
+ *	RX:	A10 <====> TX of TTL serial
  *	CTS:	A11 (not used)
  *	RTS:	A12 (not used)
+ *	Config:	8N1
  *	Baud:	38400
  * Caution:
  *	Not all GPIO pins are 5V tolerant, so be careful to
@@ -27,8 +28,11 @@ uart_setup(void) {
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_USART1);
 
-	// UART TX on PA13:
-	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_USART1_TX);
+	// UART TX on PA9: GPIO_USART1_TX = GPIO9
+	gpio_set_mode(GPIOA,
+		GPIO_MODE_OUTPUT_50_MHZ,
+		GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,
+		GPIO_USART1_TX);
 
 	usart_set_baudrate(USART1,38400);
 	usart_set_databits(USART1,8);
@@ -45,10 +49,8 @@ uart_putc(char ch) {
 }
 
 static void
-task1(void *args) {
+task1(void *args __attribute((void))) {
 	int c = 'Z';
-
-	(void)args;
 
 	for (;;) {
 		gpio_toggle(GPIOC,GPIO13);
