@@ -1,8 +1,19 @@
 /* Task based UART demo:
+ * Warren Gay VE3WWG
  *
  * This simple demonstration runs from task1, writing 012...XYZ lines
  * one after the other, at a rate of 5 characters/second. This demo
  * uses usart_send_blocking() to write characters.
+ *
+ * STM32F103C8T6:
+ *	RX:	A9  <====> TX of TTL serial
+ *	TX:	A10 <====> RX of TTL serial
+ *	CTS:	A11 (not used)
+ *	RTS:	A12 (not used)
+ *	Baud:	38400
+ * Caution:
+ *	Not all GPIO pins are 5V tolerant, so be careful to
+ *	get the wiring correct.
  */
 #include <FreeRTOS.h>
 #include <task.h>
@@ -13,22 +24,10 @@
 static void
 uart_setup(void) {
 
-	//////////////////////////////////////////////////////////////
-	// STM32F103C8T6:
-	//	RX:	A9  <====> TX of TTL serial
-	//	TX:	A10 <====> RX of TTL serial
-	//	CTS:	A11 (not used)
-	//	RTS:	A12 (not used)
-	//	Baud:	38400
-	// Caution:
-	//	Not all GPIO pins are 5V tolerant, so be careful to
-	//	get the wiring correct.
-	//////////////////////////////////////////////////////////////
-
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_USART1);
 
-	// GPIO_USART1_TX/GPIO13 on GPIO port A for tx
+	// UART TX on PA13:
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_USART1_TX);
 
 	usart_set_baudrate(USART1,38400);
@@ -66,14 +65,17 @@ task1(void *args) {
 int
 main(void) {
 
-	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Use this for "blue pill"
+	rcc_clock_setup_in_hse_8mhz_out_72mhz(); // Blue pill
+
+	// PC13:
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
 	uart_setup();
 
-	xTaskCreate(task1,"LED",100,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(task1,"task1",100,NULL,configMAX_PRIORITIES-1,NULL);
 	vTaskStartScheduler();
+
 	for (;;);
 	return 0;
 }
