@@ -9,9 +9,8 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/nvic.h>
 
-#define mainECHO_TASK_PRIORITY				( tskIDLE_PRIORITY + 1 )
+#define mainECHO_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
 
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,signed portCHAR *pcTaskName);
 
