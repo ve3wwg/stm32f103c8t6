@@ -8,8 +8,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 
-#define mainECHO_TASK_PRIORITY ( tskIDLE_PRIORITY + 1 )
-
 extern void vApplicationStackOverflowHook(
 	xTaskHandle *pxTask,
 	signed portCHAR *pcTaskName);

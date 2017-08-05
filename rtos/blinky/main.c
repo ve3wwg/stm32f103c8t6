@@ -2,15 +2,11 @@
  *
  * The LED on PC13 is toggled in task1.
  */
-#include <string.h>
-
 #include "FreeRTOS.h"
 #include "task.h"
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-
-#define mainECHO_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
 
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,signed portCHAR *pcTaskName);
 
