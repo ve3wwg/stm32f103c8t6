@@ -2,8 +2,6 @@
  *
  * The LED on PC13 is toggled in task1.
  */
-#include <string.h>
-
 #include "FreeRTOS.h"
 #include "task.h"
 
