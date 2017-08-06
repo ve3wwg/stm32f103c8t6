@@ -51,10 +51,8 @@ uart_setup(void) {
  * USART Task: 
  *********************************************************************/
 static void
-uart_task(void *args) {
+uart_task(void *args __attribute__((unused))) {
 	char ch;
-
-	(void)args;
 
 	for (;;) {
 		// Receive char to be TX
