@@ -1,4 +1,4 @@
-/* Task based UART demo:
+/* Task based USART demo:
  * Warren Gay VE3WWG
  *
  * This simple demonstration runs from task1, writing 012...XYZ lines
@@ -22,13 +22,16 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 
+/*********************************************************************
+ * Setup the UART
+ *********************************************************************/
 static void
 uart_setup(void) {
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_USART1);
 
-	// UART TX on PA9: GPIO_USART1_TX = GPIO9
+	// UART TX on PA9 (GPIO_USART1_TX)
 	gpio_set_mode(GPIOA,
 		GPIO_MODE_OUTPUT_50_MHZ,
 		GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,
@@ -43,13 +46,19 @@ uart_setup(void) {
 	usart_enable(USART1);
 }
 
+/*********************************************************************
+ * Send one character to the UART
+ *********************************************************************/
 static inline void
 uart_putc(char ch) {
 	usart_send_blocking(USART1,ch);
 }
 
+/*********************************************************************
+ * Send characters to the UART, slowly
+ *********************************************************************/
 static void
-task1(void *args __attribute((void))) {
+task1(void *args __attribute__((unused))) {
 	int c = 'Z';
 
 	for (;;) {
@@ -64,6 +73,9 @@ task1(void *args __attribute((void))) {
 	}
 }
 
+/*********************************************************************
+ * Main program
+ *********************************************************************/
 int
 main(void) {
 
