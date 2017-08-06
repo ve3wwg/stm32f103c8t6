@@ -59,17 +59,19 @@ uart_putc(char ch) {
  *********************************************************************/
 static void
 task1(void *args __attribute__((unused))) {
-	int c = 'Z';
+	int c = '0' - 1;
 
 	for (;;) {
 		gpio_toggle(GPIOC,GPIO13);
 		vTaskDelay(pdMS_TO_TICKS(200));
 		if ( ++c >= 'Z' ) {
+			uart_putc(c);
 			uart_putc('\r');
 			uart_putc('\n');
-			c = '0';
-		}		
-		uart_putc(c);
+			c = '0' - 1;
+		} else	{
+			uart_putc(c);
+		}
 	}
 }
 
