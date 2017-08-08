@@ -1,7 +1,7 @@
 /* Task based UART demo, using queued communication.
  *
- *	RX:	A9  <====> TX of TTL serial
- *	TX:	A10 <====> RX of TTL serial
+ *	TX:	A9  ====> TX of TTL serial
+ *	RX:	A10 <==== RX of TTL serial (not used)
  *	CTS:	A11 (not used)
  *	RTS:	A12 (not used)
  *	Config:	8N1
@@ -29,7 +29,7 @@ uart_setup(void) {
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_USART1);
 
-	// PA9 (GPIO_USART1_TX)
+	// UART TX on PA9 (GPIO_USART1_TX)
 	gpio_set_mode(GPIOA,
 		GPIO_MODE_OUTPUT_50_MHZ,
 		GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,
@@ -57,9 +57,9 @@ uart_task(void *args __attribute__((unused))) {
 	for (;;) {
 		// Receive char to be TX
 		if ( xQueueReceive(uart_txq,&ch,500) == pdPASS ) {
-			while ((USART_SR(USART1) & USART_SR_TXE) == 0)
+			while ( !usart_get_flag(USART1,USART_SR_TXE) )
 				taskYIELD();	// Yield until ready
-			usart_send_blocking(USART1,ch);
+			usart_send(USART1,ch);
 		}
 		// Toggle LED to show signs of life
 		gpio_toggle(GPIOC,GPIO13);
@@ -103,7 +103,11 @@ main(void) {
 
 	// GPIO PC13:
 	rcc_periph_clock_enable(RCC_GPIOC);
-	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
+	gpio_set_mode(
+		GPIOC,
+		GPIO_MODE_OUTPUT_2_MHZ,
+		GPIO_CNF_OUTPUT_PUSHPULL,
+		GPIO13);
 
 	uart_setup();
 
