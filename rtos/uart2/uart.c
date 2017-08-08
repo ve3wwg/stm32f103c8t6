@@ -56,8 +56,11 @@ uart_task(void *args __attribute__((unused))) {
 
 	for (;;) {
 		// Receive char to be TX
-		if ( xQueueReceive(uart_txq,&ch,500) == pdPASS )
-			usart_send_blocking(USART1,ch);	// blocking call
+		if ( xQueueReceive(uart_txq,&ch,500) == pdPASS ) {
+			while ((USART_SR(USART1) & USART_SR_TXE) == 0)
+				taskYIELD();	// Yield until ready
+			usart_send_blocking(USART1,ch);
+		}
 		// Toggle LED to show signs of life
 		gpio_toggle(GPIOC,GPIO13);
 	}
