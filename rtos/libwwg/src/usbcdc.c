@@ -365,7 +365,7 @@ usb_peek(void) {
 
 /*
  * Get a line of text ending with CF / LF,
- * (blocking):
+ * (blocking). Input is echoed.
  *
  * ARGUMENTS:
  *	buf		Input buffer
@@ -384,7 +384,7 @@ usb_gets(char *buf,unsigned maxbuf) {
 	unsigned bx = 0;
 	int ch;
 
-	while ( bx < maxbuf ) {
+	while ( maxbuf > 0 && bx+1 < maxbuf ) {
 		ch = usb_getc();
 		if ( ch == -1 ) {
 			if ( !bx )
@@ -393,11 +393,14 @@ usb_gets(char *buf,unsigned maxbuf) {
 		}
 		if ( ch == '\r' || ch == '\n' ) {
 			buf[bx++] = '\n';
+			usb_putc('\n');
 			break;
 		}
 		buf[bx++] = (char)ch;
+		usb_putc(ch);
 	}
 
+	buf[bx] = 0;
 	return bx;
 }
 
