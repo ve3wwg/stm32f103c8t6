@@ -5,17 +5,17 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
 
-#include "uartlib.h"
-#include "miniprintf.h"
+#include <uartlib.h>
+#include <miniprintf.h>
 
 /*********************************************************************
  * Receive buffers
@@ -41,7 +41,6 @@ static struct s_uart_info uarts[3] = {
 	{ USART3, RCC_USART3, NVIC_USART3_IRQ }
 };
 
-/* static const uint32_t uarts[3] = { USART1, USART2, USART3 }; */
 static struct s_uart *uart_data[3] = { 0, 0, 0 };
 
 /*********************************************************************
