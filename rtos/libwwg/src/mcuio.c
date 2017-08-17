@@ -3,7 +3,7 @@
  * Sun Apr 30 16:46:11 2017
  */
 #include <stdarg.h>
-#include "mcuio.h"
+#include <mcuio.h>
 
 static const struct s_mcuio dev_uart1 =
 	{ uart1_putc, uart1_puts, uart1_vprintf, uart1_getc, uart1_peek, uart1_gets, uart1_write };
