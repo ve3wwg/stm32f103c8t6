@@ -11,12 +11,12 @@
 #include <libopencm3/usb/cdc.h>
 #include <libopencm3/cm3/scb.h>
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
 
-#include "usbcdc.h"
-#include "miniprintf.h"
+#include <usbcdc.h>
+#include <miniprintf.h>
 
 static volatile char initialized = 0;			// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
