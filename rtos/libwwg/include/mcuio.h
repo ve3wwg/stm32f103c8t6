@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "uartlib.h"
-#include "usbcdc.h"
+#include <uartlib.h>
+#include <usbcdc.h>
 
 /*********************************************************************
  * IMPORTANT NOTE:
