@@ -21,10 +21,10 @@
 #include <libopencm3/stm32/f1/nvic.h>
 #include <libopencm3/stm32/can.h>
 
-#include "FreeRTOS.h"
-#include "mcuio.h"
-#include "miniprintf.h"
-#include "monitor.h"
+#include <FreeRTOS.h>
+#include <mcuio.h>
+#include <miniprintf.h>
+#include <monitor.h>
 
 enum Format {
         Binary=0,
