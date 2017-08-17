@@ -6,11 +6,12 @@
  * with full responsibility and at your own risk.
  */
 #include <string.h>
-#include "miniprintf.h"
+#include <miniprintf.h>
 
-/*
+/*********************************************************************
  * Internal structure for I/O
- */
+ *********************************************************************/
+
 struct s_mini_args {
 	void	(*putc)(char,void *);	// The putc() function to invoke
 	void 	*argp;			// Associated data struct
@@ -18,10 +19,11 @@ struct s_mini_args {
 
 typedef struct s_mini_args miniarg_t;	// Abbreviated ref to s_mini_args
 
-/*
+/*********************************************************************
  * Internal: Write string msg until null byte, to the I/O
  *           routine described by s_mini_args.
- */
+ *********************************************************************/
+
 static void
 mini_write(miniarg_t *mini,const char *msg) {
 	char ch;
@@ -30,9 +32,10 @@ mini_write(miniarg_t *mini,const char *msg) {
 		mini->putc(ch,mini->argp);
 }
 
-/*
+/*********************************************************************
  * Internal: Pad % field to width, give text buffer.
- */
+ *********************************************************************/
+
 static void
 mini_pad(miniarg_t *mini,char pad,int width,const char *text) {
 	int slen;
@@ -45,9 +48,10 @@ mini_pad(miniarg_t *mini,char pad,int width,const char *text) {
 	}
 }
 
-/*
+/*********************************************************************
  * Internal: mini_printf() engine.
- */
+ *********************************************************************/
+
 static void
 internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 	char ch, pad, sgn;	/* Current char, pad char and sign char */
@@ -168,9 +172,10 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 	}
 }
 
-/*
+/*********************************************************************
  * s_internal trackes the count of bytes output:
- */
+ *********************************************************************/
+
 struct s_internal {
 	void (*putc)(char);	/* User's putc() routine to be used */
 	unsigned count;		/* Bytes output */
@@ -191,9 +196,10 @@ mini_putc(char ch,void *argp) {
 	}
 }
 
-/*
+/*********************************************************************
  * Internal: Perform cooked/uncooked printf()
- */
+ *********************************************************************/
+
 static int
 mini_vprintf0(void (*putc)(char),int cooked,const char *format,va_list args) {
 	miniarg_t mini;
@@ -210,17 +216,19 @@ mini_vprintf0(void (*putc)(char),int cooked,const char *format,va_list args) {
 	return intern.count;		/* Return byte count */
 }
 
-/*
+/*********************************************************************
  * External: Perform cooked mode printf()
- */
+ *********************************************************************/
+
 int
 mini_vprintf_cooked(void (*putc)(char),const char *format,va_list args) {
 	return mini_vprintf0(putc,1,format,args);
 }
 
-/*
+/*********************************************************************
  * External: Perform uncooked (as is) printf()
- */
+ *********************************************************************/
+
 int
 mini_vprintf_uncooked(void (*putc)(char),const char *format,va_list args) {
 	return mini_vprintf0(putc,0,format,args);
@@ -245,9 +253,10 @@ mini_sputc(char ch,void *argp) {
 	*ctl->ptr++ = ch;
 }
 
-/*
+/*********************************************************************
  * External: sprintf() to buffer (not cooked)
- */
+ *********************************************************************/
+
 int
 mini_snprintf(char *buf,unsigned maxbuf,const char *format,...) {
 	miniarg_t mini;			/* printf struct */
