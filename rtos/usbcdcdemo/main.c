@@ -1,38 +1,55 @@
-/* usbcdcdemo.c : USBCDC Example
- *
+/* usbcdcdemo.c : USBCDC Example (adventure)
  * Warren Gay
  */
 #include <FreeRTOS.h>
 #include <task.h>
+#include <semphr.h>
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 
+#include <common.h>
 #include <usbcdc.h>
 
+static SemaphoreHandle_t sem_flash = 0;
+
 static void
-demotask(void *args __attribute__((unused))) {
-	char name[40];
-	int namelen;
+flasher(void *arg __attribute__((unused))) {
 
 	for (;;) {
+		xSemaphoreTake(sem_flash,portMAX_DELAY);
 		gpio_toggle(GPIOC,GPIO13);
+		xSemaphoreGive(sem_flash);
+		vTaskDelay(pdMS_TO_TICKS(400));
+	}
+}
 
-		usb_puts("\nEnter your name: ");
-		usb_gets(name,sizeof name);
+void
+set_lamp(enum LampActions action) {
+	static bool have = false;
 
-		if ( name[0] == '\n' ) {
-			usb_printf("No name entered. Please try again.\n");
-			continue;
+	switch ( action ) {
+	case Take:
+		if ( have ) {
+			xSemaphoreGive(sem_flash);
+			have = false;
 		}
-
-		namelen = strlen(name);
-		if ( namelen > 0 && name[namelen-1] == '\n' )
-			name[namelen-1] = 0;		// Stomp out newline
-
-		usb_printf("Hello %s!\n",name);
-		gpio_toggle(GPIOC,GPIO13);
+		break;
+	case Filled:
+		if ( !have ) {
+			xSemaphoreTake(sem_flash,portMAX_DELAY);
+			gpio_clear(GPIOC,GPIO13); // LED on
+			have = true;
+		}
+		break;
+	case Drop:
+		if ( !have ) {
+			xSemaphoreTake(sem_flash,portMAX_DELAY);
+			have = true;
+		}
+		gpio_set(GPIOC,GPIO13);		// LED off
+		break;
 	}
 }
 
@@ -45,7 +62,12 @@ main(void) {
 
 	usb_start(true);
 
-	xTaskCreate(demotask,"demo",100,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(adventure,"game",300,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(flasher,"flash",100,NULL,configMAX_PRIORITIES-1,NULL);
+
+	sem_flash = xSemaphoreCreateMutex();
+	set_lamp(Drop);
+
 	vTaskStartScheduler();
 	for (;;);
 	return 0;
