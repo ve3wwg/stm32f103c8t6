@@ -17,6 +17,7 @@
 
 #include <usbcdc.h>
 #include <miniprintf.h>
+#include <getline.h>
 
 static volatile char initialized = 0;			// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
@@ -333,69 +334,11 @@ usb_getc(void) {
 }
 
 /*
- * Peek to see if there is more input from USB:
- *
- * RETURNS:
- *	1	At least one character is waiting to be read
- *	0	No data to read.
- *	-1	USB error (disconnected?)
+ * Get an edited input line
  */
 int
-usb_peek(void) {
-	char ch;
-	uint32_t rc;
-
-	rc = xQueuePeek(usb_rxq,&ch,0);
-
-	switch ( rc ) {
-	case errQUEUE_EMPTY:
-		return 0;
-	case pdPASS:
-		return 1;
-	default:
-		return -1;
-	}
-}
-
-/*
- * Get a line of text ending with CF / LF,
- * (blocking):
- *
- * ARGUMENTS:
- *	buf		Input buffer
- *	maxbuf		Maximum # of bytes
- *
- * RETURNS:
- *	# of bytes read
- *
- * NOTES:
- *	Reading stops with first CR/LF, or
- *	maximum length, whichever occurs
- *	first.
- */
-int
-usb_gets(char *buf,unsigned maxbuf) {
-	unsigned bx = 0;
-	int ch;
-
-	while ( maxbuf > 0 && bx+1 < maxbuf ) {
-		ch = usb_getc();
-		if ( ch == -1 ) {
-			if ( !bx )
-				return -1;
-			break;
-		}
-		if ( ch == '\r' || ch == '\n' ) {
-			buf[bx++] = '\n';
-			usb_putc('\n');
-			break;
-		}
-		buf[bx++] = (char)ch;
-		usb_putc(ch);
-	}
-
-	buf[bx] = 0;
-	return bx;
+usb_getline(char *buf,unsigned bufsiz) {
+	return getline(buf,bufsiz,usb_getc,usb_putc);
 }
 
 /*
