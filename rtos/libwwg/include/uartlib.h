@@ -41,6 +41,7 @@ int uart1_getc(void);
 int uart1_peek(void);
 int uart1_gets(char *buf,unsigned bufsiz);
 void uart1_write(const char *buf,unsigned bytes);
+int uart1_getline(char *buf,unsigned bufsiz);
 
 void uart2_putc(char ch);
 void uart2_puts(const char *buf);
@@ -50,6 +51,7 @@ int uart2_getc(void);
 int uart2_peek(void);
 int uart2_gets(char *buf,unsigned bufsiz);
 void uart2_write(const char *buf,unsigned bytes);
+int uart2_getline(char *buf,unsigned bufsiz);
 
 void uart3_putc(char ch);
 void uart3_puts(const char *buf);
@@ -59,6 +61,7 @@ int uart3_getc(void);
 int uart3_peek(void);
 int uart3_gets(char *buf,unsigned bufsiz);
 void uart3_write(const char *buf,unsigned bytes);
+int uart3_getline(char *buf,unsigned bufsiz);
 
 #endif // UARTLIB_H
 
