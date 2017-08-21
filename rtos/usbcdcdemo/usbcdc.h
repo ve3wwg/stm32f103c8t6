@@ -19,8 +19,7 @@ int usb_vprintf(const char *format,va_list ap);
 int usb_printf(const char *format,...);
 
 int usb_getc(void);
-int usb_peek(void);
-int usb_gets(char *buf,unsigned maxbuf);
+int usb_getline(char *buf,unsigned maxbuf);
 
 #endif /* LIBUSBCDC_H */
 
