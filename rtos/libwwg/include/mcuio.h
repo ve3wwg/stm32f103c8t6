@@ -10,6 +10,7 @@
 
 #include <uartlib.h>
 #include <usbcdc.h>
+#include <getline.h>
 
 /*********************************************************************
  * IMPORTANT NOTE:
@@ -33,13 +34,14 @@ typedef int (*gets_t)(char *buf,unsigned maxbuf);
 typedef void (*write_t)(const char *buf,unsigned bytes);
 
 struct s_mcuio {
-	putch_t		putc;	// put character
-	puts_t		puts;	// put string
+	putch_t		putc;		// put character
+	puts_t		puts;		// put string
 	vprintf_t	vprintf;
-	getch_t		getc;	// get character
-	peek_t		peek;	// peek at a character
-	gets_t		gets;	// get a line (string)
-	write_t		write;	// Write uncooked data
+	getch_t		getc;		// get character
+	peek_t		peek;		// peek at a character
+	gets_t		gets;		// get a line (string)
+	write_t		write;		// Write uncooked data
+	gets_t		getline;	// edited get line
 };
 
 /*********************************************************************
@@ -66,6 +68,7 @@ inline int mcu_getc(const struct s_mcuio *dev) { return dev->getc(); }
 inline int mcu_peek(const struct s_mcuio *dev) { return dev->peek(); }
 inline int mcu_gets(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return dev->gets(buf,maxbuf); }
 inline void mcu_write(const struct s_mcuio *dev,const char *buf,unsigned bytes) { dev->write(buf,bytes); }
+inline int mcu_getline(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return getline(buf,maxbuf,dev->getc,dev->putc); }
 
 /*********************************************************************
  * These I/O to the currently set std_set_device() device:
@@ -81,6 +84,7 @@ inline int std_getc(void) { return mcu_getc(mcu_stdio); }
 inline int std_peek(void) { return mcu_peek(mcu_stdio); }
 inline int std_gets(char *buf,unsigned maxbuf) { return mcu_gets(mcu_stdio,buf,maxbuf); }
 inline void std_write(const char *buf,unsigned bytes) { mcu_write(mcu_stdio,buf,bytes); }
+inline int std_getline(char *buf,unsigned maxbuf) { return mcu_getline(mcu_stdio,buf,maxbuf); }
 
 #endif // MCUIO_H
 // End mcuio.h
