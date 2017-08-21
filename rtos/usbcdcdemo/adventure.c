@@ -678,10 +678,7 @@ static void doUse(void)
 static void prompt(void)
 {
     usb_printf("? ");        
-    usb_gets(buffer, sizeof(buffer)-1);
-
-    /* Remove trailing newline */
-    buffer[strlen(buffer)-1] = '\0';
+    usb_getline(buffer,sizeof(buffer));
 }
 
 /* Do special things unrelated to command typed. */
