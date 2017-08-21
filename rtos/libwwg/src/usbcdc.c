@@ -17,6 +17,7 @@
 
 #include <usbcdc.h>
 #include <miniprintf.h>
+#include <getline.h>
 
 static volatile char initialized = 0;			// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
@@ -383,7 +384,7 @@ int
 usb_gets(char *buf,unsigned maxbuf) {
 	unsigned bx = 0;
 	int ch;
-
+	
 	while ( maxbuf > 0 && bx+1 < maxbuf ) {
 		ch = usb_getc();
 		if ( ch == -1 ) {
@@ -399,9 +400,18 @@ usb_gets(char *buf,unsigned maxbuf) {
 		buf[bx++] = (char)ch;
 		usb_putc(ch);
 	}
-
+	
 	buf[bx] = 0;
 	return bx;
+}
+ 					
+/*
+ * Get an edited line:
+ */
+int
+usb_getline(char *buf,unsigned maxbuf) {
+
+	return getline(buf,maxbuf,usb_getc,usb_putc);
 }
 
 /*
