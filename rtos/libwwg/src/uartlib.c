@@ -16,6 +16,7 @@
 
 #include <uartlib.h>
 #include <miniprintf.h>
+#include <getline.h>
 
 /*********************************************************************
  * Receive buffers
@@ -33,12 +34,14 @@ struct s_uart_info {
 	uint32_t	usart;			/* USART address */
 	uint32_t	rcc;			/* RCC address */
 	uint32_t	irq;			/* IRQ number */
+	int		(*getc)(void);
+	void		(*putc)(char ch);
 };
 
 static struct s_uart_info uarts[3] = {
-	{ USART1, RCC_USART1, NVIC_USART1_IRQ },
-	{ USART2, RCC_USART2, NVIC_USART2_IRQ },
-	{ USART3, RCC_USART3, NVIC_USART3_IRQ }
+	{ USART1, RCC_USART1, NVIC_USART1_IRQ, uart1_getc, uart1_putc },
+	{ USART2, RCC_USART2, NVIC_USART2_IRQ, uart2_getc, uart2_putc },
+	{ USART3, RCC_USART3, NVIC_USART3_IRQ, uart3_getc, uart3_putc }
 };
 
 static struct s_uart *uart_data[3] = { 0, 0, 0 };
@@ -340,30 +343,9 @@ getc_uart(uint32_t uartno) {
 
 int
 getline_uart(uint32_t uartno,char *buf,uint32_t bufsiz) {
-	uint32_t kx = 0;
-	char ch;
+	struct s_uart_info *uart = &uarts[uartno-1];
 
-	while ( kx + 1 < bufsiz ) {
-		ch = getc_uart(uartno);
-		if ( ch == '\r' || ch == '\n' )
-			break;
-
-		switch ( ch ) {
-		case '\b':	/* Backspace */
-		case 0x7F: 	/* DEL/Rubout */
-			if ( kx > 0 ) {
-				puts_uart(uartno,"\b \b");
-				--kx;
-			}
-			break;
-		default:
-			putc_uart(uartno,ch);
-			buf[kx++] = ch;
-		}
-	}
-
-	buf[kx] = 0;
-	return kx;
+	return getline(buf,bufsiz,uart->getc,uart->putc);
 }
 
 /*********************************************************************
@@ -435,6 +417,11 @@ uart1_write(const char *buf,unsigned bytes) {
 	write_uart(1,buf,bytes);
 }
 
+int
+uart1_getline(char *buf,unsigned bufsiz) {
+	return getline_uart(1,buf,bufsiz);
+}
+
 /*********************************************************************
  * Optional use routines for UART2
  *********************************************************************/
@@ -487,6 +474,11 @@ uart2_write(const char *buf,unsigned bytes) {
 	write_uart(2,buf,bytes);
 }
 
+int
+uart2_getline(char *buf,unsigned bufsiz) {
+	return getline_uart(2,buf,bufsiz);
+}
+
 /*********************************************************************
  * Optional use routines for UART3
  *********************************************************************/
@@ -531,6 +523,11 @@ uart3_peek(void) {
 
 int
 uart3_gets(char *buf,unsigned bufsiz) {
+	return getline_uart(3,buf,bufsiz);
+}
+
+int
+uart3_getline(char *buf,unsigned bufsiz) {
 	return getline_uart(3,buf,bufsiz);
 }
 
