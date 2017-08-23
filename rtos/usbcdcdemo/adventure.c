@@ -45,8 +45,8 @@
 #include <string.h> 
 #include <strings.h> 
 
-#include <usbcdc.h>
-#include <common.h>
+#include "usbcdc.h"
+#include "common.h"
 
 /* Maximum number of items user can carry */
 #define MAXITEMS 5
