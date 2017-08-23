@@ -7,9 +7,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-void usb_start(bool gpio_init);
-int usb_ready(void);
+void usb_start(void);
+bool usb_ready(void);
 
 void usb_putc(char ch);
 void usb_puts(const char *buf);
