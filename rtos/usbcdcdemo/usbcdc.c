@@ -14,12 +14,13 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
+#include <stdbool.h>
 
 #include <usbcdc.h>
 #include <miniprintf.h>
 #include <getline.h>
 
-static volatile char initialized = 0;			// True when USB configured
+static volatile bool initialized = false;		// True when USB configured
 static QueueHandle_t usb_txq;				// USB transmit queue
 static QueueHandle_t usb_rxq;				// USB receive queue
 
@@ -233,7 +234,7 @@ cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue __attribute__((unused))
 		USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
 		cdcacm_control_request);
 
-	initialized = 1;
+	initialized = true;
 }
 
 /*
