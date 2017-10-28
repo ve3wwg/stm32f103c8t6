@@ -6,6 +6,7 @@
  * with full responsibility and at your own risk.
  */
 #include <string.h>
+#include <stdbool.h>
 #include <miniprintf.h>
 
 /*********************************************************************
@@ -56,10 +57,13 @@ static void
 internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 	char ch, pad, sgn;	/* Current char, pad char and sign char */
 	int vint, width;	/* Integer value to print and field width */
+	long vlong;
 	unsigned uint;		/* Unsigned value to print */
+	unsigned long ulong;	/* Unsigned long value to print */
 	const char *sptr;	/* String to print */
-	char buf[32], *bptr;	/* Formatting buffer for int/uint */
+	char buf[40], *bptr;	/* Formatting buffer for int/uint */
 	char ccase = 0;
+	bool longf;		/* True when %ld */
 
 	while ( (ch = *format++) != 0 ) {
 		if ( ch != '%' ) {
@@ -94,40 +98,72 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 		if ( !ch )
 			break;		/* Exit loop if we hit end of format string (in error) */
 
+		if ( ch == 'l' ) {
+			longf = true;
+			ch = *format++;
+		}
+
 		/*
 		 * Format according to type: d, x, or s
 		 */
 		switch ( ch ) {
 		case 'c':
-			vint = va_arg(arg,int);
+			if ( !longf )
+				vint = va_arg(arg,int);
+			else	vint = va_arg(arg,long);
 			mini->putc((char)vint,mini->argp);
 			break;
 
 		case 'u':		/* Unsigned decimal */
-			uint = va_arg(arg,unsigned);
-			bptr = buf + sizeof buf;
-			*--bptr = 0;
-			do	{
-				*--bptr = uint % 10u + '0';
-				uint /= 10u;
-			} while ( uint != 0 );
+			if ( !longf ) {
+				uint = va_arg(arg,unsigned);
+				bptr = buf + sizeof buf;
+				*--bptr = 0;
+				do	{
+					*--bptr = uint % 10u + '0';
+					uint /= 10u;
+				} while ( uint != 0 );
+			} else	{
+				ulong = va_arg(arg,unsigned long);
+				bptr = buf + sizeof buf;
+				*--bptr = 0;
+				do	{
+					*--bptr = ulong % 10u + '0';
+					ulong /= 10u;
+				} while ( ulong != 0 );
+			}
 			mini_pad(mini,pad,width,bptr);
 			mini_write(mini,bptr);
 			break;
 
 		case 'd':		/* Decimal format */
-			vint = va_arg(arg,int);
-			if ( vint < 0 ) {
-				mini->putc('-',mini->argp);
-				vint = -vint;
-			} else if ( sgn == '+' )
-				mini->putc(sgn,mini->argp);
-			bptr = buf + sizeof buf;
-			*--bptr = 0;
-			do	{
-				*--bptr = vint % 10 + '0';
-				vint /= 10;
-			} while ( vint != 0 );
+			if ( !longf ) {
+				vint = va_arg(arg,int);
+				if ( vint < 0 ) {
+					mini->putc('-',mini->argp);
+					vint = -vint;
+				} else if ( sgn == '+' )
+					mini->putc(sgn,mini->argp);
+				bptr = buf + sizeof buf;
+				*--bptr = 0;
+				do	{
+					*--bptr = vint % 10 + '0';
+					vint /= 10;
+				} while ( vint != 0 );
+			} else	{
+				vlong = va_arg(arg,long);
+				if ( vlong < 0 ) {
+					mini->putc('-',mini->argp);
+					vlong = -vlong;
+				} else if ( sgn == '+' )
+					mini->putc(sgn,mini->argp);
+				bptr = buf + sizeof buf;
+				*--bptr = 0;
+				do	{
+					*--bptr = vlong % 10 + '0';
+					vlong /= 10;
+				} while ( vlong != 0 );
+			}
 			mini_pad(mini,pad,width,bptr);
 			mini_write(mini,bptr);
 			break;
@@ -139,14 +175,25 @@ internal_vprintf(miniarg_t *mini,const char *format,va_list arg) {
 			ccase = 0x20;	/* Flip case */
 			/* Fall Thru */
 		case 'X':
-			uint = va_arg(arg,unsigned);
-			bptr = buf + sizeof buf;
-			*--bptr = 0;
-			do	{
-				ch = uint & 0x0F;
-				*--bptr = ch + (ch <= 9 ? '0' : ('A'^ccase)-10);
-				uint >>= 4;
-			} while ( uint != 0 );
+			if ( !longf ) {
+				uint = va_arg(arg,unsigned);
+				bptr = buf + sizeof buf;
+				*--bptr = 0;
+				do	{
+					ch = uint & 0x0F;
+					*--bptr = ch + (ch <= 9 ? '0' : ('A'^ccase)-10);
+					uint >>= 4;
+				} while ( uint != 0 );
+			} else	{
+				ulong = va_arg(arg,unsigned long);
+				bptr = buf + sizeof buf;
+				*--bptr = 0;
+				do	{
+					ch = ulong & 0x0F;
+					*--bptr = ch + (ch <= 9 ? '0' : ('A'^ccase)-10);
+					ulong >>= 4;
+				} while ( ulong != 0 );
+			}
 			mini_pad(mini,pad,width,bptr);
 			mini_write(mini,bptr);
 			break;
