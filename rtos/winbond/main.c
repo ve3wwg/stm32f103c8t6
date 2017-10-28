@@ -19,6 +19,7 @@
 
 #include "mcuio.h"
 #include "miniprintf.h"
+#include "intelhex.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -431,6 +432,73 @@ erase(uint32_t spi,uint32_t addr) {
 	else	std_printf("%s FAILED.\n",what);
 }
 
+static void
+load_ihex(uint32_t spi) {
+	s_ihex ihex;
+	char buf[600];
+	unsigned rtype, count = 0, start = 0, ux;
+
+	if ( w25_is_wprotect(spi) ) {
+		std_printf("Flash is write protected.\n");
+		return;
+	}
+
+	ihex_init(&ihex);
+	std_printf("\nReady for Intel Hex upload:\n");
+
+	for (;;) {
+		std_printf("%08X ",(unsigned)ihex.compaddr);
+
+		for ( ux=0; ux+1<sizeof buf; ++ux ) {
+			do	{
+				buf[ux] = std_getc();
+			} while ( ux == 0 && ( buf[ux] == '\r' || buf[ux] == '\n' ) );
+			if ( buf[ux] == '\r' || buf[ux] == '\n' )
+				break;
+			std_putc(buf[ux]);
+		}
+		buf[ux] = 0;		
+		std_putc('\n');
+
+		if ( !strchr(buf,':') ) {
+			// Skip line with no hex
+			continue;
+		}
+
+		rtype = ihex_parse(&ihex,buf);
+		
+		switch ( rtype ) {
+		case IHEX_RT_DATA:	// data record
+			w25_write_data(spi,ihex.addr&0x00FFFFFF,ihex.data,ihex.length);
+			ihex.compaddr += ihex.length;
+			break;
+		case IHEX_RT_EOF:	// end	// of-file record
+			break;
+		case IHEX_RT_XSEG:	// extended segment address record
+			break;
+		case IHEX_RT_XLADDR:	// extended linear address record
+			ihex.compaddr = ihex.baseaddr + ihex.addr;
+			break;
+		case IHEX_RT_SLADDR:	// start linear address record (MDK-ARM)
+			start = ihex.compaddr;
+			break;
+		default:
+			std_printf("Error %02X: '%s'\n",(unsigned)rtype,buf);
+			continue;
+		}
+		++count;
+		
+		if ( rtype == IHEX_RT_EOF )
+			break;
+		if ( strchr(buf,0x1A) || strchr(buf,0x04) )
+			break;			// EOF from ascii-xfr
+
+	}
+		
+	vTaskDelay(pdMS_TO_TICKS(1500));
+	std_printf("\nRead %u ihex records: entry at %08X \n",count,start);
+}
+
 /*
  * Monitor task:
  */
@@ -443,6 +511,8 @@ monitor_task(void *arg __attribute((unused))) {
 	const char *device;
 	bool menuf = true;
 	
+	std_printf("\nMonitor Task Started.\n");
+
 	for (;;) {
 		if ( menuf ) {
 			std_printf(
@@ -453,6 +523,7 @@ monitor_task(void *arg __attribute((unused))) {
 				"  d ... Dump page\n"
 				"  e ... Erase (Sector/Block/64K/Chip)\n"
 				"  i ... Manufacture/Device info\n"
+				"  h ... Ready to load Intel hex\n"
 				"  j ... JEDEC ID info\n"
 				"  r ... Read byte\n"
 				"  p ... Program byte(s)\n"
@@ -560,6 +631,9 @@ monitor_task(void *arg __attribute((unused))) {
 			w25_write_en(SPI1,false);
 			flash_status();
 			break;
+		case 'H':
+			load_ihex(SPI1);
+			break;
 		default:
 			std_printf(" ???\n");
 			menuf = true;
@@ -620,7 +694,7 @@ main(void) {
 	std_set_device(mcu_usb);			// Use USB for std I/O
 	gpio_clear(GPIOC,GPIO13);			// PC13 = off
 
-	xTaskCreate(monitor_task,"monitor",100,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(monitor_task,"monitor",500,NULL,configMAX_PRIORITIES-1,NULL);
 	vTaskStartScheduler();
 	for (;;);
 	return 0;
