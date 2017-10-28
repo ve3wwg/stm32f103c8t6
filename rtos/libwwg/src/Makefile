@@ -2,7 +2,7 @@
 #  libwwg/src/Makefile for libwwg.a
 ######################################################################
 
-SRCFILES	= usbcdc.c uartlib.o miniprintf.o mcuio.o getline.o monitor.o
+SRCFILES	= usbcdc.c uartlib.o miniprintf.o mcuio.o getline.o monitor.o winbond.o
 
 TEMP1 		= $(patsubst %.c,%.o,$(SRCFILES))
 TEMP2		= $(patsubst %.asm,%.o,$(TEMP1))
