@@ -65,12 +65,12 @@ getline(char *buf,unsigned bufsiz,int (*get)(void),void (*put)(char ch)) {
 				put(buf[bufx]);
 			break;
 		case CONTROL('H'):	// Backspace char
+		case 0x7F:		// Rubout
 			if ( bufx <= 0 )
 				break;
 			--bufx;
 			put('\b');
 			// Fall thru
-		case 0x7F:		// Rubout
 		case CONTROL('D'):	// Delete char
 			if ( bufx < buflen ) {
 				memmove(buf+bufx,buf+bufx+1,buflen-bufx-1);
