@@ -40,6 +40,9 @@
 #define W25_CMD_READ_UID	0x4B
 #define W25_CMD_PWR_ON		0xAB
 #define W25_CMD_PWR_OFF		0xB9
+#define W25_CMD_ERA_SECTOR	0x20
+#define W25_CMD_ERA_32K		0x52
+#define W25_CMD_ERA_64K		0xD8
 
 #define DUMMY			0x00
 
@@ -79,6 +82,13 @@ w25_wait(uint32_t spi) {
 
 	while ( w25_read_sr1(spi) & W25_SR1_BUSY )
 		taskYIELD();
+}
+
+static bool
+w25_is_wprotect(uint32_t spi) {
+
+	w25_wait(spi);
+	return !(w25_read_sr1(spi) & W25_SR1_WEL);
 }
 
 static void
@@ -153,11 +163,8 @@ w25_power(uint32_t spi,bool on) {
 
 static bool
 w25_chip_erase(uint32_t spi) {
-	uint8_t sr1;
 
-	w25_wait(spi);
-	sr1 = w25_read_sr1(spi);
-	if ( !(sr1 & W25_SR1_WEL) ) {
+	if ( w25_is_wprotect(spi) ) {
 		std_printf("Not Erased! Chip is not write enabled.\n");
 		return false;
 	}
@@ -169,9 +176,7 @@ w25_chip_erase(uint32_t spi) {
 
 	std_printf("Erasing chip..\n");
 
-	w25_wait(spi);
-	sr1 = w25_read_sr1(spi);
-	if ( sr1 & W25_SR1_WEL ) {
+	if ( !w25_is_wprotect(spi) ) {
 		std_printf("Not Erased! Chip erase failed.\n");
 		return false;
 	}
@@ -199,34 +204,40 @@ w25_read_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	return addr;	
 }
 
-static uint32_t		// New address is returned
+static unsigned		// New address is returned
 w25_write_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	uint8_t *udata = (uint8_t*)data;
 
-	if ( !(w25_read_sr1(spi) & W25_SR1_WEL) ) {
-		std_printf("Write disabled: Cannot write byte.\n");
-		return addr;
-	}
-
 	w25_wait(spi);
+	w25_write_en(spi,true);
+	w25_wait(spi);
+
+	if ( w25_is_wprotect(spi) ) {
+		std_printf("Write disabled.\n");
+		return 0xFFFFFFFF;	// Indicate error
+	}
 
 	spi_enable(spi);
 	spi_xfer(spi,W25_CMD_WRITE_DATA);
 	spi_xfer(spi,addr >> 16);
 	spi_xfer(spi,(addr >> 8) & 0xFF);
 	spi_xfer(spi,addr & 0xFF);
-
 	for ( ; bytes-- > 0; ++addr )
 		spi_xfer(spi,*udata++);
-
 	spi_disable(spi);
 	return addr;	
 }
 
 static void
 flash_status(void) {
+	uint8_t s;
 
-	std_printf("SR1 = %02X\n",w25_read_sr1(SPI1));
+	s = w25_read_sr1(SPI1);
+	std_printf("SR1 = %02X (%s)\n",
+		s,
+		s & W25_SR1_WEL
+			? "write enabled"
+			: "write protected");
 	std_printf("SR2 = %02X\n",w25_read_sr2(SPI1));
 }
 
@@ -237,7 +248,14 @@ get_data24(const char *prompt) {
 
 	std_printf("%s: ",prompt);
 
-	while ( (ch = std_getc()) != '\r' ) {
+	while ( (ch = std_getc()) != '\r' && ch != '\n' ) {
+		if ( ch == '\b' || ch == 0x7F ) {
+			v >>= 4;
+			std_puts("\b \b");
+			if ( count > 0 )
+				--count;
+			continue;
+		}
 		if ( ch >= '0' && ch <= '9' ) {
 			v <<= 4;
 			v |= ch & 0x0F;
@@ -249,9 +267,12 @@ get_data24(const char *prompt) {
 				v <<= 4;
 				v |= ((ch & 0x0F) - 1 + 10);
 				std_putc(ch);
-			} else	break;
+			} else	{
+				std_puts("?\b");
+				continue;
+			}
 		}
-		if ( ++count >= 6 )
+		if ( ++count > 6 )
 			break;
 	}
 	return v & 0xFFFFFF;
@@ -262,12 +283,20 @@ get_data8(const char *prompt) {
 	unsigned v = 0u, count = 0u;
 	char ch;
 
-	std_printf("%s: ",prompt);
+	if ( prompt )
+		std_printf("%s: ",prompt);
 
-	while ( (ch = std_getc()) != '\r' ) {
+	while ( (ch = std_getc()) != '\r' && ch != '\n' && !strchr(",./;\t",ch) ) {
 		if ( ch == '"' || ch == '\'' ) {
 			v = std_getc();
 			break;
+		}
+		if ( ch == '\b' || ch == 0x7F ) {
+			v >>= 4;
+			std_puts("\b \b");
+			if ( count > 0 )
+				--count;
+			continue;
 		}
 		if ( ch >= '0' && ch <= '9' ) {
 			v <<= 4;
@@ -280,12 +309,126 @@ get_data8(const char *prompt) {
 				v <<= 4;
 				v |= ((ch & 0x0F) - 1 + 10);
 				std_putc(ch);
-			} else	break;
+			} else	{
+				std_puts("?\b");
+				continue;
+			}
 		}
-		if ( ++count >= 2 )
+		if ( ++count > 2 )
 			break;
 	}
+	if ( !count )
+		return 0xFFFF;	// No data
 	return v & 0xFF;
+}
+
+static void
+w25_erase_block(uint32_t spi,uint32_t addr,uint8_t cmd) {
+	const char *what;
+	
+	if ( w25_is_wprotect(spi) ) {
+		std_printf("Write protected. Erase not performed.\n");
+		return;
+	}
+
+	switch ( cmd ) {
+	case W25_CMD_ERA_SECTOR:
+		what = "sector";
+		addr &= ~(4*1024-1);
+		break;
+	case W25_CMD_ERA_32K:
+		what = "32K block";
+		addr &= ~(32*1024-1);
+		break;
+	case W25_CMD_ERA_64K:
+		what = "64K block";
+		addr &= ~(64*1024-1);
+		break;
+	default:
+		return;	// Should not happen
+	}
+
+	spi_enable(spi);
+	spi_xfer(spi,cmd);
+	spi_xfer(spi,addr >> 16);
+	spi_xfer(spi,(addr >> 8) & 0xFF);
+	spi_xfer(spi,addr & 0xFF);
+	spi_disable(spi);
+
+	std_printf("%s erased, starting at %06X\n",
+		what,(unsigned)addr);
+}
+
+static uint32_t
+dump_page(uint32_t spi,uint32_t addr) {
+	char buf[17];
+
+	addr &= ~0xFF;		// Start on page boundary
+
+	for ( int x=0; x<16; ++x, addr += 16 ) {
+		std_printf("%06X ",(unsigned)addr);
+		w25_read_data(spi,addr,buf,16);
+		for ( uint32_t offset=0; offset<16; ++offset )
+			std_printf("%02X ",buf[offset]);
+		for ( uint32_t offset=0; offset<16; ++offset ) {
+			if ( buf[offset] < ' ' || buf[offset] >= 0x7F )
+				std_putc('.');
+			else	std_putc(buf[offset]);
+		}
+		std_putc('\n');
+	}
+	return addr;
+}
+
+static void
+erase(uint32_t spi,uint32_t addr) {
+	const char *what;
+	char ch;
+
+	if ( w25_is_wprotect(spi) ) {
+		std_printf("Write protected. Erase not possible.\n");
+		return;
+	}
+
+	std_printf(
+		"\nErase what?\n"
+		"  s ... Erase 4K sector\n"
+		"  b ... Erase 32K block\n"
+		"  z ... Erase 64K block\n"
+		"  c ... Erase entire chip\n"
+		"\nanything else to cancel\n: ");
+		
+	ch = std_getc();
+	if ( isupper(ch) )
+		ch = tolower(ch);
+
+	std_putc(ch);
+	std_putc('\n');
+
+	switch ( ch ) {
+	case 's':
+		w25_erase_block(spi,addr,W25_CMD_ERA_SECTOR);
+		what = "Sector";
+		break;
+	case 'b':
+		w25_erase_block(spi,addr,W25_CMD_ERA_32K);
+		what = "32K block";
+		break;
+	case 'z':
+		w25_erase_block(spi,addr,W25_CMD_ERA_64K);
+		what = "64K block";
+		break;
+	case 'c':
+		w25_chip_erase(SPI1);
+		return;
+	default:
+		std_printf("Erase CANCELLED.\n");
+		return;
+	}
+
+	if ( w25_is_wprotect(spi) )
+		std_printf("%s erased.\n",what);
+	else	std_printf("%s FAILED.\n",what);
 }
 
 /*
@@ -293,7 +436,7 @@ get_data8(const char *prompt) {
  */
 static void
 monitor_task(void *arg __attribute((unused))) {
-	int ch, wel = 0, devx;
+	int ch, devx;
 	unsigned addr = 0u;
 	uint8_t data = 0, idbuf[8];
 	uint32_t info;
@@ -303,22 +446,22 @@ monitor_task(void *arg __attribute((unused))) {
 	for (;;) {
 		if ( menuf ) {
 			std_printf(
-				"\nWinbond Menu:\n"
+				"\nWinbond Flash Menu:\n"
 				"  0 ... Power down\n"
 				"  1 ... Power on\n"
 				"  a ... Set address\n"
-				"  d ... Set data\n"
-				"  e ... Chip erase\n"
+				"  d ... Dump page\n"
+				"  e ... Erase (Sector/Block/64K/Chip)\n"
 				"  i ... Manufacture/Device info\n"
 				"  j ... JEDEC ID info\n"
 				"  r ... Read byte\n"
-				"  p ... Program byte\n"
+				"  p ... Program byte(s)\n"
 				"  s ... Flash status\n"
 				"  u ... Read unique ID\n"
-				"  w ... Toggle Write Enable Latch\n"
+				"  w ... Write Enable\n"
+				"  x ... Write protect\n"
 			);
-			std_printf("Address: %012X\n",addr);
-			std_printf("Data:    %02X\n",data);
+			std_printf("\nAddress: %06X\n",addr);
 		}
 		menuf = false;
 
@@ -373,18 +516,16 @@ monitor_task(void *arg __attribute((unused))) {
 		case 'S':
 			flash_status();
 			break;
-		case 'W':
-			w25_write_en(SPI1,wel^=1);
-			flash_status();
-			break;
 		case 'E':
-			w25_chip_erase(SPI1);
+			erase(SPI1,addr);
 			break;
 		case 'A':
 			addr = get_data24("Address");
+			std_printf("\nAddress: %06X\n",addr);
 			break;
 		case 'D':
-			data = get_data8("Data");
+			addr = dump_page(SPI1,addr);
+			std_printf("Address: %06X\n",addr);
 			break;
 		case 'R':
 			addr = w25_read_data(SPI1,addr,(char*)&data,1);
@@ -394,13 +535,30 @@ monitor_task(void *arg __attribute((unused))) {
 			else	std_putc('\n');
 			break;
 		case 'P':
-			if ( !(w25_read_sr1(SPI1) & W25_SR1_WEL) ) {
-				std_printf("Can't: write protected.\n");
-			} else	{
-				std_printf("$%06X: ",addr);
-				data = get_data8("");
-				addr = w25_write_data(SPI1,addr,&data,1);
+			{
+				unsigned a;
+				uint16_t d, count = 0u;
+
+				std_printf("$%06X ",addr);
+				while ( (d = get_data8(0)) != 0xFFFF ) {
+					std_putc(' ');
+					data = d & 0xFF;
+					a = w25_write_data(SPI1,addr,&data,1);
+					if ( a == 0xFFFFFFFF )
+						break;
+					addr = a;
+					++count;
+				}
+				std_printf("\n$%06X %u bytes written.\n",addr,count);
 			}
+			break;
+		case 'W':
+			w25_write_en(SPI1,true);
+			flash_status();
+			break;
+		case 'X':
+			w25_write_en(SPI1,false);
+			flash_status();
 			break;
 		default:
 			std_printf(" ???\n");
