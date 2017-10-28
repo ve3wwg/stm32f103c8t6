@@ -1,6 +1,18 @@
-/* Simple LED task demo:
+/* Winbond W25Q32 Code
+ * Warren Gay Fri Oct 27 23:52:33 2017
  *
- * The LED on PC13 is toggled in task1.
+ * Important!  	You must have a pullup resistor on the NSS
+ * 	       	line in order that the NSS (/CS) SPI output
+ *		functions correctly as a chip select. The
+ *		SPI peripheral configures NSS pin as an
+ *		open drain output.
+ *
+ * PINS:
+ *	PC13	LED
+ *	PA4	/CS (NSS, with 10k pullup)
+ *	PA5	SCK
+ *	PA6	MISO
+ *	PA7	MOSI
  */
 #include <string.h>
 #include <ctype.h>
