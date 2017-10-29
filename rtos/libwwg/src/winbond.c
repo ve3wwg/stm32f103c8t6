@@ -261,7 +261,7 @@ w25_erase_block(uint32_t spi,uint32_t addr,uint8_t cmd) {
  *********************************************************************/
 
 void
-spi_setup(
+w25_spi_setup(
   uint32_t spi,		// SPI1 or SPI2
   bool bits8,		// True for 8-bits else 16-bits
   bool msbfirst,	// True if MSB first else LSB first

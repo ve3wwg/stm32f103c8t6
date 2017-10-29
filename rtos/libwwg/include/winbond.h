@@ -46,7 +46,7 @@ unsigned w25_write_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes);
 bool w25_chip_erase(uint32_t spi);
 bool w25_erase_block(uint32_t spi,uint32_t addr,uint8_t cmd);
 
-void spi_setup(
+void w25_spi_setup(
   uint32_t spi,		// SPI1 or SPI2
   bool bits8,		// True for 8-bits else 16-bits
   bool msbfirst,	// True if MSB first else LSB first
