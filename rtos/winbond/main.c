@@ -62,7 +62,7 @@ w25_read_sr1(uint32_t spi) {
 
 	spi_enable(spi);
 	spi_xfer(spi,W25_CMD_READ_SR1);
-	sr1 = spi_xfer(spi,0x00);
+	sr1 = spi_xfer(spi,DUMMY);
 	spi_disable(spi);
 	return sr1;
 }
@@ -73,7 +73,7 @@ w25_read_sr2(uint32_t spi) {
 
 	spi_enable(spi);
 	spi_xfer(spi,W25_CMD_READ_SR2);
-	sr1 = spi_xfer(spi,0x00);
+	sr1 = spi_xfer(spi,DUMMY);
 	spi_disable(spi);
 	return sr1;
 }
@@ -98,7 +98,7 @@ w25_write_en(uint32_t spi,bool en) {
 	w25_wait(spi);
 
 	spi_enable(spi);
-	spi_xfer(spi,en ? W25_CMD_WRITE_EN : W25_CMD_WRITE_DI);
+	spi_send(spi,en ? W25_CMD_WRITE_EN : W25_CMD_WRITE_DI);
 	spi_disable(spi);
 }
 
@@ -199,7 +199,7 @@ w25_read_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	spi_xfer(spi,addr & 0xFF);
 
 	for ( ; bytes-- > 0; ++addr )
-		*udata++ = spi_xfer(spi,0x00);
+		*udata++ = spi_xfer(spi,DUMMY);
 
 	spi_disable(spi);
 	return addr;	
@@ -227,6 +227,43 @@ w25_write_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 		spi_xfer(spi,*udata++);
 	spi_disable(spi);
 	return addr;	
+}
+
+static void
+w25_erase_block(uint32_t spi,uint32_t addr,uint8_t cmd) {
+	const char *what;
+	
+	if ( w25_is_wprotect(spi) ) {
+		std_printf("Write protected. Erase not performed.\n");
+		return;
+	}
+
+	switch ( cmd ) {
+	case W25_CMD_ERA_SECTOR:
+		what = "sector";
+		addr &= ~(4*1024-1);
+		break;
+	case W25_CMD_ERA_32K:
+		what = "32K block";
+		addr &= ~(32*1024-1);
+		break;
+	case W25_CMD_ERA_64K:
+		what = "64K block";
+		addr &= ~(64*1024-1);
+		break;
+	default:
+		return;	// Should not happen
+	}
+
+	spi_enable(spi);
+	spi_xfer(spi,cmd);
+	spi_xfer(spi,addr >> 16);
+	spi_xfer(spi,(addr >> 8) & 0xFF);
+	spi_xfer(spi,addr & 0xFF);
+	spi_disable(spi);
+
+	std_printf("%s erased, starting at %06X\n",
+		what,(unsigned)addr);
 }
 
 static void
@@ -321,43 +358,6 @@ get_data8(const char *prompt) {
 	if ( !count )
 		return 0xFFFF;	// No data
 	return v & 0xFF;
-}
-
-static void
-w25_erase_block(uint32_t spi,uint32_t addr,uint8_t cmd) {
-	const char *what;
-	
-	if ( w25_is_wprotect(spi) ) {
-		std_printf("Write protected. Erase not performed.\n");
-		return;
-	}
-
-	switch ( cmd ) {
-	case W25_CMD_ERA_SECTOR:
-		what = "sector";
-		addr &= ~(4*1024-1);
-		break;
-	case W25_CMD_ERA_32K:
-		what = "32K block";
-		addr &= ~(32*1024-1);
-		break;
-	case W25_CMD_ERA_64K:
-		what = "64K block";
-		addr &= ~(64*1024-1);
-		break;
-	default:
-		return;	// Should not happen
-	}
-
-	spi_enable(spi);
-	spi_xfer(spi,cmd);
-	spi_xfer(spi,addr >> 16);
-	spi_xfer(spi,(addr >> 8) & 0xFF);
-	spi_xfer(spi,addr & 0xFF);
-	spi_disable(spi);
-
-	std_printf("%s erased, starting at %06X\n",
-		what,(unsigned)addr);
 }
 
 static uint32_t
@@ -658,8 +658,6 @@ spi_setup(void) {
 		GPIO6				// MISO=PA6
 	);
 	spi_reset(SPI1); 
-	gpio_set(GPIOA,GPIO4);			// Set high
-
 	spi_init_master(
 		SPI1,
                 SPI_CR1_BAUDRATE_FPCLK_DIV_256,
@@ -668,11 +666,8 @@ spi_setup(void) {
 	        SPI_CR1_DFF_8BIT,
 	        SPI_CR1_MSBFIRST
 	);
-
 	spi_disable_software_slave_management(SPI1);
 	spi_enable_ss_output(SPI1);
-
-	gpio_set(GPIOC,GPIO13);				// PC13 = on
 }
 
 int
@@ -689,6 +684,7 @@ main(void) {
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
 	spi_setup();
+	gpio_set(GPIOC,GPIO13);				// PC13 = on
 
 	usb_start(1);
 	std_set_device(mcu_usb);			// Use USB for std I/O
