@@ -129,8 +129,13 @@ clean:
 clobber: clean
 	rm -f *.elf *.bin *.hex *.srec *.list *.map $(CLOBBER)
 
+# Flash 64k Device
 flash:	$(BINARY).bin
-	$(STFLASH) write $(BINARY).bin 0x8000000
+	$(STFLASH) $(FLASHSIZE) write $(BINARY).bin 0x8000000
+
+# Flash 128k Device
+bigflash: $(BINARY).bin
+	$(STFLASH) --flash=128k write $(BINARY).bin 0x8000000
 
 .PHONY: images clean elf bin hex srec list all
 
