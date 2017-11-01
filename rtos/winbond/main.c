@@ -98,8 +98,10 @@ w25_write_en(uint32_t spi,bool en) {
 	w25_wait(spi);
 
 	spi_enable(spi);
-	spi_send(spi,en ? W25_CMD_WRITE_EN : W25_CMD_WRITE_DI);
+	spi_xfer(spi,en ? W25_CMD_WRITE_EN : W25_CMD_WRITE_DI);
 	spi_disable(spi);
+
+	w25_wait(spi);
 }
 
 static uint16_t
@@ -435,8 +437,8 @@ erase(uint32_t spi,uint32_t addr) {
 static void
 load_ihex(uint32_t spi) {
 	s_ihex ihex;
-	char buf[600];
-	unsigned rtype, count = 0, start = 0, ux;
+	char buf[600], ch;
+	unsigned rtype, count = 0, ux;
 
 	if ( w25_is_wprotect(spi) ) {
 		std_printf("Flash is write protected.\n");
@@ -451,11 +453,13 @@ load_ihex(uint32_t spi) {
 
 		for ( ux=0; ux+1<sizeof buf; ++ux ) {
 			do	{
-				buf[ux] = std_getc();
-			} while ( ux == 0 && ( buf[ux] == '\r' || buf[ux] == '\n' ) );
-			if ( buf[ux] == '\r' || buf[ux] == '\n' )
+				buf[ux] = ch = std_getc();
+			} while ( ux == 0 && ( ch == '\r' || ch == '\n' ) );
+			if ( ch == '\r' || ch == '\n' )
 				break;
-			std_putc(buf[ux]);
+			if ( ch == 0x1A || ch == 0x04 )
+				return;		// ^Z or ^D ends transmission
+			std_putc(ch);
 		}
 		buf[ux] = 0;		
 		std_putc('\n');
@@ -480,7 +484,6 @@ load_ihex(uint32_t spi) {
 			ihex.compaddr = ihex.baseaddr + ihex.addr;
 			break;
 		case IHEX_RT_SLADDR:	// start linear address record (MDK-ARM)
-			start = ihex.compaddr;
 			break;
 		default:
 			std_printf("Error %02X: '%s'\n",(unsigned)rtype,buf);
@@ -494,9 +497,6 @@ load_ihex(uint32_t spi) {
 			break;			// EOF from ascii-xfr
 
 	}
-		
-	vTaskDelay(pdMS_TO_TICKS(1500));
-	std_printf("\nRead %u ihex records: entry at %08X \n",count,start);
 }
 
 /*
@@ -633,6 +633,7 @@ monitor_task(void *arg __attribute((unused))) {
 			break;
 		case 'H':
 			load_ihex(SPI1);
+			vTaskDelay(pdMS_TO_TICKS(1500));
 			break;
 		default:
 			std_printf(" ???\n");
