@@ -1,11 +1,11 @@
-/* Demonstration of overlays: proof of concept
+/* Demonstration of overlays from external SPI Flash
  * Warren Gay ve3wwg@gmail.com
  * Sat Oct 28 20:32:50 2017
  *
  * This program demonstrates the loading of overlay code
  * from an external SPI flash device (w25Q32).
  *
- * Communication is via USB to minicom.
+ * Communication session is via USB to minicom.
  */
 #include <string.h>
 
