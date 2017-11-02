@@ -677,9 +677,7 @@ main(void) {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();	// Blue pill
 
 	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOC);
-	rcc_periph_clock_enable(RCC_AFIO);
 
 	// LED on PC13
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
