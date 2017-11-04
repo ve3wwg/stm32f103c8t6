@@ -165,7 +165,6 @@ w25_chip_erase(uint32_t spi) {
 	if ( w25_is_wprotect(spi) )
 		return false;
 
-	w25_write_en(spi,true);
 	spi_enable(spi);
 	spi_xfer(spi,W25_CMD_CHIP_ERASE);
 	spi_disable(spi);
