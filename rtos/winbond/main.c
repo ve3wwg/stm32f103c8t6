@@ -172,7 +172,6 @@ w25_chip_erase(uint32_t spi) {
 		return false;
 	}
 
-	w25_write_en(spi,true);
 	spi_enable(spi);
 	spi_xfer(spi,W25_CMD_CHIP_ERASE);
 	spi_disable(spi);
@@ -329,6 +328,7 @@ get_data8(const char *prompt) {
 	while ( (ch = std_getc()) != '\r' && ch != '\n' && !strchr(",./;\t",ch) ) {
 		if ( ch == '"' || ch == '\'' ) {
 			v = std_getc();
+			count = 1;
 			break;
 		}
 		if ( ch == '\b' || ch == 0x7F ) {
