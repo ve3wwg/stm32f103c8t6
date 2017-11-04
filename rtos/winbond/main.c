@@ -327,7 +327,9 @@ get_data8(const char *prompt) {
 
 	while ( (ch = std_getc()) != '\r' && ch != '\n' && !strchr(",./;\t",ch) ) {
 		if ( ch == '"' || ch == '\'' ) {
+			std_putc(ch);
 			v = std_getc();
+			std_putc(v);
 			count = 1;
 			break;
 		}
