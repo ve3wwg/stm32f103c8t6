@@ -50,6 +50,9 @@ ihex_parse(s_ihex *ihex,const char *text) {
 	ihex->addr   = to_hex(cp,4,&cp);
 	ihex->rtype  = to_hex(cp,2,&cp);
 
+	if ( ihex->length > sizeof ihex->data )
+		return IHEX_FAIL;
+
 	csum = ihex->length + ((ihex->addr >> 8) & 0xFF) + (ihex->addr & 0xFF)
 		+ ihex->rtype;
 
