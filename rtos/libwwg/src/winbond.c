@@ -183,10 +183,11 @@ w25_read_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	w25_wait(spi);
 
 	spi_enable(spi);
-	spi_xfer(spi,W25_CMD_READ_DATA);
+	spi_xfer(spi,W25_CMD_FAST_READ);
 	spi_xfer(spi,addr >> 16);
 	spi_xfer(spi,(addr >> 8) & 0xFF);
 	spi_xfer(spi,addr & 0xFF);
+	spi_xfer(spi,DUMMY);
 
 	for ( ; bytes-- > 0; ++addr )
 		*udata++ = spi_xfer(spi,0x00);
@@ -203,21 +204,30 @@ unsigned		// New address is returned
 w25_write_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	uint8_t *udata = (uint8_t*)data;
 
-	w25_wait(spi);
 	w25_write_en(spi,true);
 	w25_wait(spi);
 
 	if ( w25_is_wprotect(spi) )
 		return 0xFFFFFFFF;	// Indicate error
 
-	spi_enable(spi);
-	spi_xfer(spi,W25_CMD_WRITE_DATA);
-	spi_xfer(spi,addr >> 16);
-	spi_xfer(spi,(addr >> 8) & 0xFF);
-	spi_xfer(spi,addr & 0xFF);
-	for ( ; bytes-- > 0; ++addr )
-		spi_xfer(spi,*udata++);
-	spi_disable(spi);
+	while ( bytes > 0 ) {
+		spi_enable(spi);
+		spi_xfer(spi,W25_CMD_WRITE_DATA);
+		spi_xfer(spi,addr >> 16);
+		spi_xfer(spi,(addr >> 8) & 0xFF);
+		spi_xfer(spi,addr & 0xFF);
+		while ( bytes > 0 ) {
+			spi_xfer(spi,*udata++);
+			--bytes;
+			if ( (++addr & 0xFF) == 0x00 )
+				break;
+		}
+		spi_disable(spi);
+	
+		if ( bytes > 0 )
+			w25_write_en(spi,true); // More to write
+	}
+
 	return addr;	
 }
 
