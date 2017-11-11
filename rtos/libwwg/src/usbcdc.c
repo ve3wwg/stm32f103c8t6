@@ -248,7 +248,7 @@ cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 static void
 usb_task(void *arg) {
 	usbd_device *udev = (usbd_device *)arg;
-	char txbuf[32];
+	char txbuf[64];
 	unsigned txlen = 0;
 
 	for (;;) {
@@ -441,7 +441,7 @@ usb_start(bool gpio_init) {
 
 	usbd_register_set_config_callback(udev,cdcacm_set_config);
 
-	xTaskCreate(usb_task,"USB",200,udev,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(usb_task,"USB",300,udev,configMAX_PRIORITIES-1,NULL);
 }
 
 /*
