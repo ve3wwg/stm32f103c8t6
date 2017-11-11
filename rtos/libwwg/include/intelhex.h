@@ -20,7 +20,7 @@ struct s_ihex {
 	uint8_t		rtype;		// Record type
 	uint8_t		checksum;	// Given checksum
 	uint8_t		compcsum;	// Computed checksum
-	uint8_t		data[256];	// Read data
+	uint8_t		data[128];	// Read data
 	uint32_t	compaddr;	// Computed address
 };
 
