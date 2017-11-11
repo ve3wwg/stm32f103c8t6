@@ -28,7 +28,7 @@ MEMORY
 	ovl (rwx) :   ORIGIN = 0x20004800, LENGTH = 2K
 
 	/* Give external flash its own storage */
-	xflash (rx) : ORIGIN = 0x00000000, LENGTH = 4M
+	xflash (r) :  ORIGIN = 0x00000000, LENGTH = 4M
 }
 
 /* Enforce emmition of the vector table. */
