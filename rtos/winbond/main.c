@@ -37,6 +37,7 @@
 #define W25_CMD_READ_SR2	0x35
 #define W25_CMD_CHIP_ERASE	0xC7
 #define W25_CMD_READ_DATA	0x03
+#define W25_CMD_FAST_READ	0x0B
 #define W25_CMD_WRITE_DATA	0x02
 #define W25_CMD_READ_UID	0x4B
 #define W25_CMD_PWR_ON		0xAB
@@ -194,10 +195,11 @@ w25_read_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	w25_wait(spi);
 
 	spi_enable(spi);
-	spi_xfer(spi,W25_CMD_READ_DATA);
+	spi_xfer(spi,W25_CMD_FAST_READ);
 	spi_xfer(spi,addr >> 16);
 	spi_xfer(spi,(addr >> 8) & 0xFF);
 	spi_xfer(spi,addr & 0xFF);
+	spi_xfer(spi,DUMMY);
 
 	for ( ; bytes-- > 0; ++addr )
 		*udata++ = spi_xfer(spi,DUMMY);
@@ -210,7 +212,6 @@ static unsigned		// New address is returned
 w25_write_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 	uint8_t *udata = (uint8_t*)data;
 
-	w25_wait(spi);
 	w25_write_en(spi,true);
 	w25_wait(spi);
 
@@ -219,14 +220,23 @@ w25_write_data(uint32_t spi,uint32_t addr,void *data,uint32_t bytes) {
 		return 0xFFFFFFFF;	// Indicate error
 	}
 
-	spi_enable(spi);
-	spi_xfer(spi,W25_CMD_WRITE_DATA);
-	spi_xfer(spi,addr >> 16);
-	spi_xfer(spi,(addr >> 8) & 0xFF);
-	spi_xfer(spi,addr & 0xFF);
-	for ( ; bytes-- > 0; ++addr )
-		spi_xfer(spi,*udata++);
-	spi_disable(spi);
+	while ( bytes > 0 ) {
+		spi_enable(spi);
+		spi_xfer(spi,W25_CMD_WRITE_DATA);
+		spi_xfer(spi,addr >> 16);
+		spi_xfer(spi,(addr >> 8) & 0xFF);
+		spi_xfer(spi,addr & 0xFF);
+		while ( bytes > 0 ) {
+			spi_xfer(spi,*udata++);
+			--bytes;
+			if ( (++addr & 0xFF) == 0x00 )
+				break;
+		}
+		spi_disable(spi);
+	
+		if ( bytes > 0 )
+			w25_write_en(spi,true); // More to write
+	}
 	return addr;	
 }
 
@@ -439,7 +449,7 @@ erase(uint32_t spi,uint32_t addr) {
 static void
 load_ihex(uint32_t spi) {
 	s_ihex ihex;
-	char buf[600], ch;
+	char buf[200], ch;
 	unsigned rtype, count = 0, ux;
 
 	if ( w25_is_wprotect(spi) ) {
@@ -453,14 +463,23 @@ load_ihex(uint32_t spi) {
 	for (;;) {
 		std_printf("%08X ",(unsigned)ihex.compaddr);
 
-		for ( ux=0; ux+1<sizeof buf; ++ux ) {
-			do	{
-				buf[ux] = ch = std_getc();
-			} while ( ux == 0 && ( ch == '\r' || ch == '\n' ) );
+		while ( (ch = std_getc()) != ':' ) {
+			if ( ch == 0x1A || ch == 0x04 ) {
+				std_printf("EOF\n");
+				return;		// ^Z or ^D ends transmission
+			}
+		}
+		buf[0] = ch;
+		std_putc(ch);
+
+		for (  ux=1; ux+1<sizeof buf; ++ux ) {
+			buf[ux] = ch = std_getc();
 			if ( ch == '\r' || ch == '\n' )
 				break;
-			if ( ch == 0x1A || ch == 0x04 )
+			if ( ch == 0x1A || ch == 0x04 ) {
+				std_printf("(EOF)\n");
 				return;		// ^Z or ^D ends transmission
+			}
 			std_putc(ch);
 		}
 		buf[ux] = 0;		
@@ -497,7 +516,6 @@ load_ihex(uint32_t spi) {
 			break;
 		if ( strchr(buf,0x1A) || strchr(buf,0x04) )
 			break;			// EOF from ascii-xfr
-
 	}
 }
 
