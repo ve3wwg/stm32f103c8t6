@@ -262,6 +262,8 @@ usb_task(void *arg) {
 			} else	{
 				taskYIELD();		/* Then give up CPU */
 			}
+		} else	{
+			taskYIELD();
 		}
 	}
 }
@@ -331,10 +333,8 @@ usb_write(const char *buf,unsigned bytes) {
 int
 usb_getc(void) {
 	char ch;
-	uint32_t rc;
 
-	rc = xQueueReceive(usb_rxq,&ch,portMAX_DELAY);
-	if ( rc != pdPASS )
+	if ( xQueueReceive(usb_rxq,&ch,portMAX_DELAY) != pdPASS )
 		return -1;
 	return ch;
 }
@@ -421,7 +421,7 @@ usb_getline(char *buf,unsigned maxbuf) {
  *	gpio_init	When true, setup RCC and GPIOA for USB
  */
 void
-usb_start(bool gpio_init) {
+usb_start(bool gpio_init,unsigned priority) {
 	usbd_device *udev = 0;
 
 	usb_txq = xQueueCreate(128,sizeof(char));
@@ -441,7 +441,7 @@ usb_start(bool gpio_init) {
 
 	usbd_register_set_config_callback(udev,cdcacm_set_config);
 
-	xTaskCreate(usb_task,"USB",300,udev,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(usb_task,"USB",300,udev,priority,NULL);
 }
 
 /*
@@ -450,6 +450,15 @@ usb_start(bool gpio_init) {
 int
 usb_ready(void) {
 	return initialized;
+}
+
+/*
+ * Yield until USB ready:
+ */
+void
+usb_yield(void) {
+	while ( !initialized )
+		taskYIELD();
 }
 
 /* End libusbcdc.c */
