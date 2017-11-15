@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void usb_start(bool gpio_init);
+void usb_start(bool gpio_init,unsigned priority);
 int usb_ready(void);
 
 void usb_putc(char ch);
@@ -22,6 +22,8 @@ int usb_getc(void);
 int usb_peek(void);
 int usb_gets(char *buf,unsigned maxbuf);
 int usb_getline(char *buf,unsigned maxbuf);
+
+void usb_yield(void);
 
 #endif /* LIBUSBCDC_H */
 
