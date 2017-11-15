@@ -101,6 +101,9 @@
 #define configUSE_16_BIT_TICKS			0
 #define configIDLE_SHOULD_YIELD			1
 #define configUSE_MUTEXES			1
+#define configUSE_TASK_NOTIFICATIONS            1
+#define configUSE_TIME_SLICING                  1
+#define configUSE_RECURSIVE_MUTEXES             0
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 			0
@@ -119,7 +122,7 @@ to exclude the API function. */
 
 /* This is the raw value as per the Cortex-M3 NVIC.  Values can be 255
 (lowest) to 0 (1?) (highest). */
-#define configKERNEL_INTERRUPT_PRIORITY 		255
+#define configKERNEL_INTERRUPT_PRIORITY 	255
 /* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
 See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	191 /* equivalent to 0xb0, or priority 11. */
