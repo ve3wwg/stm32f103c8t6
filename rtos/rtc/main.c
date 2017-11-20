@@ -17,7 +17,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 
-#define USE_USB		0		// Set to 1 for UART
+#define USE_USB		0		// Set to 1 for USB
 
 static TaskHandle_t h_task2=0, h_task3=0;
 static SemaphoreHandle_t h_mutex;
@@ -171,13 +171,12 @@ rtc_setup(void) {
 	rtc_interrupt_disable(RTC_ALR);
 	rtc_interrupt_disable(RTC_OW);
 
-	// RCC_PLL, RCC_PLL2, RCC_PLL3, RCC_HSE, RCC_HSI, RCC_LSE, RCC_LSI
+	// RCC_HSE, RCC_LSE, RCC_LSI
 	rtc_awake_from_off(RCC_HSE); 
 	rtc_set_prescale_val(62500);
-	rtc_set_counter_val(0xFFFFFFE8);
+	rtc_set_counter_val(0xFFFFFFF0);
 
 	nvic_enable_irq(NVIC_RTC_IRQ);
-	nvic_enable_irq(NVIC_RTC_ALARM_IRQ);
 
 	cm_disable_interrupts();
 	rtc_clear_flag(RTC_SEC);
@@ -268,7 +267,7 @@ main(void) {
 	usb_start(1,1);
 	std_set_device(mcu_usb);		// Use USB for std I/O
 #else
-	rcc_periph_clock_enable(RCC_GPIOA);	// TX=A9, RX=A10, CTS=A11, CTS=A12
+	rcc_periph_clock_enable(RCC_GPIOA);	// TX=A9, RX=A10, CTS=A11, RTS=A12
 	rcc_periph_clock_enable(RCC_USART1);
 	
 	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,
