@@ -87,7 +87,7 @@ main(void) {
 	gpio_set_mode(GPIO_PORT_LED,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO_LED);
 	gpio_clear(GPIO_PORT_LED,GPIO_LED);
 
-	xTaskCreate(demo_task,"demo",300,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(demo_task,"demo",300,NULL,1,NULL);
 
 	// Initialize ADC:
 	rcc_peripheral_enable_clock(&RCC_APB2ENR,RCC_APB2ENR_ADC1EN);
@@ -106,7 +106,7 @@ main(void) {
 	adc_calibrate_async(ADC1);
 	while ( adc_is_calibrating(ADC1) );
 
-	usb_start(1);
+	usb_start(1,1);
 
 	vTaskStartScheduler();
 	for (;;);

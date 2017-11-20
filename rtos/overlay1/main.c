@@ -251,12 +251,12 @@ main(void) {
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	usb_start(1);
+	usb_start(1,1);
 	std_set_device(mcu_usb);			// Use USB for std I/O
 
 	w25_spi_setup(SPI1,true,true,true,SPI_CR1_BAUDRATE_FPCLK_DIV_256);
 
-	xTaskCreate(task1,"task1",100,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(task1,"task1",100,NULL,1,NULL);
 	vTaskStartScheduler();
 	for (;;);
 	return 0;

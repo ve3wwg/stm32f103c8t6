@@ -270,8 +270,8 @@ main(void) {
 
 	timer_setup();
 
-	xTaskCreate(task1,"I2C",800,NULL,configMAX_PRIORITIES-1,NULL);
-	usb_start(1);
+	xTaskCreate(task1,"I2C",800,NULL,1,NULL);
+	usb_start(1,1);
 
 	vTaskStartScheduler();
 	for (;;);

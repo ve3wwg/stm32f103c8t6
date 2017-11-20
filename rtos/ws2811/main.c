@@ -1719,9 +1719,9 @@ main(void) {
 	rcc_periph_clock_enable(RCC_GPIOC);
 	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
 
-	xTaskCreate(monitor_task,"monitor",350,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(monitor_task,"monitor",350,NULL,1,NULL);
 
-	usb_start(1);
+	usb_start(1,1);
 	gpio_clear(GPIOC,GPIO13);
 
 	vTaskStartScheduler();

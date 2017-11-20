@@ -705,11 +705,11 @@ main(void) {
 	spi_setup();
 	gpio_set(GPIOC,GPIO13);				// PC13 = on
 
-	usb_start(1);
+	usb_start(1,1);
 	std_set_device(mcu_usb);			// Use USB for std I/O
 	gpio_clear(GPIOC,GPIO13);			// PC13 = off
 
-	xTaskCreate(monitor_task,"monitor",500,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(monitor_task,"monitor",500,NULL,1,NULL);
 	vTaskStartScheduler();
 	for (;;);
 	return 0;
