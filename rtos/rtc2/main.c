@@ -179,13 +179,10 @@ rtc_setup(void) {
  	// Initialize 16 counts to overflow
   	rtc_set_counter_val(0xFFFFFFF0);
 
-  	nvic_enable_irq(NVIC_RTC_IRQ);
- 	nvic_enable_irq(NVIC_RTC_ALARM_IRQ);
-
   	EXTI_IMR |= EXTI17;
   	exti_set_trigger(EXTI17,EXTI_TRIGGER_RISING);
-
-	nvic_enable_irq(NVIC_RTC_IRQ);
+ 	nvic_enable_irq(NVIC_RTC_ALARM_IRQ);
+  	nvic_enable_irq(NVIC_RTC_IRQ);
 
 	cm_disable_interrupts();
 	rtc_clear_flag(RTC_SEC);
