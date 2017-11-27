@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 void usb_start(bool gpio_init,unsigned priority);
 int usb_ready(void);
