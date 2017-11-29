@@ -170,4 +170,56 @@ i2c_read(I2C_Control *dev,bool lastf) {
 	return i2c_get_data(dev->device);
 }
 
+/*********************************************************************
+ * Write one byte of data, then initiate a repeated start for a
+ * read to follow.
+ *********************************************************************/
+
+void
+i2c_write_restart(I2C_Control *dev,uint8_t byte,uint8_t addr) {
+	TickType_t t0 = systicks();
+
+	taskENTER_CRITICAL();
+	i2c_send_data(dev->device,byte);
+	// Must set start before byte has written out
+	i2c_send_start(dev->device);
+	taskEXIT_CRITICAL();
+
+	// Wait for transmit to complete
+	while ( !(I2C_SR1(dev->device) & (I2C_SR1_BTF)) ) {
+		if ( diff_ticks(t0,systicks()) > dev->timeout )
+			longjmp(i2c_exception,I2C_Write_Timeout);
+		taskYIELD();
+	}
+
+	// Loop until restart ready:
+	t0 = systicks();
+        while ( !((I2C_SR1(dev->device) & I2C_SR1_SB) 
+	  && (I2C_SR2(dev->device) & (I2C_SR2_MSL|I2C_SR2_BUSY))) ) {
+		if ( diff_ticks(t0,systicks()) > dev->timeout )
+			longjmp(i2c_exception,I2C_Addr_Timeout);
+		taskYIELD();
+	}
+
+	// Send Address & Read command bit
+	i2c_send_7bit_address(dev->device,addr,I2C_READ);
+
+	// Wait until completion, NAK or timeout
+	t0 = systicks();
+	while ( !(I2C_SR1(dev->device) & I2C_SR1_ADDR) ) {
+		if ( I2C_SR1(dev->device) & I2C_SR1_AF ) {
+			i2c_send_stop(dev->device);
+			(void)I2C_SR1(dev->device);
+			(void)I2C_SR2(dev->device); 	// Clear flags
+			// NAK Received (no ADDR flag will be set here)
+			longjmp(i2c_exception,I2C_Addr_NAK); 
+		}
+		if ( diff_ticks(t0,systicks()) > dev->timeout )
+			longjmp(i2c_exception,I2C_Addr_Timeout); 
+		taskYIELD();
+	}
+
+	(void)I2C_SR2(dev->device);		// Clear flags
+}
+
 // i2c.c

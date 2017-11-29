@@ -36,6 +36,7 @@ void i2c_configure(I2C_Control *dev,uint32_t i2c,uint32_t ticks);
 void i2c_wait_busy(I2C_Control *dev);
 void i2c_start_addr(I2C_Control *dev,uint8_t addr,enum I2C_RW rw);
 void i2c_write(I2C_Control *dev,uint8_t byte);
+void i2c_write_restart(I2C_Control *dev,uint8_t byte,uint8_t addr);
 uint8_t i2c_read(I2C_Control *dev,bool lastf);
 
 inline void i2c_stop(I2C_Control *dev) { i2c_send_stop(dev->device); }
