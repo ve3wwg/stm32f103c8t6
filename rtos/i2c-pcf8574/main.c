@@ -78,20 +78,30 @@ task1(void *args __attribute__((unused))) {
 			usb_printf("Writing $%02X -> I2C @ $%02X\n",value,addr);
 
 			gpio_clear(GPIOC,GPIO13);	// PC13 LED lit
-
-			// Write to PCF8574P
+#if 0
+			/*********************************************
+			 * This example performs a write transaction,
+			 * followed by a separate read transaction:
+			 *********************************************/
 			i2c_start_addr(&i2c,addr,Write);
 			i2c_write(&i2c,value&0x0FF);
 			i2c_stop(&i2c);
 
-			gpio_set(GPIOC,GPIO13);		// PC13 LED dark
-
-			// Read back from PCF8574P
-			usb_printf("Reading     <- I2C @ $%02X\n",addr);
-
 			i2c_start_addr(&i2c,addr,Read);
 			byte = i2c_read(&i2c,true);
 			i2c_stop(&i2c);
+#else
+			/*********************************************
+			 * This example performs a write followed
+			 * immediately by a read in one I2C transaction,
+			 * using a "Repeated Start"
+			 *********************************************/
+			i2c_start_addr(&i2c,addr,Write);
+			i2c_write_restart(&i2c,value&0x0FF,addr);
+			byte = i2c_read(&i2c,true);
+			i2c_stop(&i2c);
+#endif
+			gpio_set(GPIOC,GPIO13);		// PC13 LED dark
 
 			// Report what we read back:
 			usb_printf("Read byte = $%02X vs $%02X\n",
