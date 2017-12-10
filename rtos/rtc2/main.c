@@ -179,8 +179,8 @@ rtc_setup(void) {
  	// Initialize 16 counts to overflow
   	rtc_set_counter_val(0xFFFFFFF0);
 
-  	EXTI_IMR |= EXTI17;
   	exti_set_trigger(EXTI17,EXTI_TRIGGER_RISING);
+	exti_enable_request(EXTI17);
  	nvic_enable_irq(NVIC_RTC_ALARM_IRQ);
   	nvic_enable_irq(NVIC_RTC_IRQ);
 
