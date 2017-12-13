@@ -6,7 +6,15 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int getline(char *buf,unsigned bufsiz,int (*getc)(void),void (*putc)(char ch));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // GETLINE_H
 

@@ -9,6 +9,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*********************************************************************
  * Intel Hex Struct:
  *********************************************************************/
@@ -36,6 +40,10 @@ typedef struct s_ihex s_ihex;
 
 void ihex_init(s_ihex *ihex);
 unsigned ihex_parse(struct s_ihex *ihex,const char *text);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // INTELHEX_H
 

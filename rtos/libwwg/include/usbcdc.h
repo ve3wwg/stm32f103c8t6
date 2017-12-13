@@ -9,6 +9,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif	
+
 void usb_start(bool gpio_init,unsigned priority);
 int usb_ready(void);
 
@@ -25,6 +29,10 @@ int usb_gets(char *buf,unsigned maxbuf);
 int usb_getline(char *buf,unsigned maxbuf);
 
 void usb_yield(void);
+
+#ifdef __cplusplus
+}
+#endif	
 
 #endif /* LIBUSBCDC_H */
 

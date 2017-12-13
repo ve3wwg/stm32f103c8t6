@@ -12,6 +12,10 @@
 #include <usbcdc.h>
 #include <getline.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*********************************************************************
  * IMPORTANT NOTE:
  *
@@ -85,6 +89,10 @@ inline int std_peek(void) { return mcu_peek(mcu_stdio); }
 inline int std_gets(char *buf,unsigned maxbuf) { return mcu_gets(mcu_stdio,buf,maxbuf); }
 inline void std_write(const char *buf,unsigned bytes) { mcu_write(mcu_stdio,buf,bytes); }
 inline int std_getline(char *buf,unsigned maxbuf) { return mcu_getline(mcu_stdio,buf,maxbuf); }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MCUIO_H
 // End mcuio.h
