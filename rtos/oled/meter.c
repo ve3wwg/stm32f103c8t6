@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 // meter.c -- Implementation for Analog Meter
 // Date: Wed Dec  6 22:51:32 2017   (C) ve3wwg@gmail.com
 ///////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ static int
 ug_to_pen(UG_COLOR c) {
 
 	switch ( c ) {
-	case C_WHITE:
+	case C_BLACK:
 		return 0;
 	case C_RED:
 		return 2;
@@ -74,11 +74,11 @@ pen_to_ug(int pen) {
 
 	switch ( pen ) {
 	case 0:
-		return C_WHITE;
+		return C_BLACK;
 	case 2:
 		return C_RED;
 	default:
-		return C_BLACK;
+		return C_WHITE;
 	}	
 }
 
@@ -105,6 +105,8 @@ meter_init(struct Meter *m,float range) {
 	m->cy = 64 - 1;
 	m->ocr = m->cr + m->rd;
 	m->icr = m->cr - m->rd;
+	UG_SetBackcolor(pen_to_ug(1));
+	UG_SetForecolor(pen_to_ug(0));
 	meter_redraw(m);
 }
 
@@ -126,7 +128,7 @@ ticks(struct Meter *m,int t) {
 		fm = incr * t * 10.0;
 		fr = fm % 10;
 		fm /= 10;
-		mini_snprintf(buf,sizeof buf,"%d.%01d",fm,fr);
+		mini_snprintf(buf,sizeof buf,"%d.%1d",fm,fr);
 		UG_PutString(x-m->tw,y-m->dy,buf);
 
 		UG_DrawLine(m->cx+x1,m->cy-y1,x=m->cx+x2,y=m->cy-y2,pen_to_ug(2));
@@ -134,7 +136,7 @@ ticks(struct Meter *m,int t) {
 		fm = incr * (8 - t) * 10.0;
 		fr = fm % 10;
 		fm /= 10;
-		mini_snprintf(buf,sizeof buf,"%d.%01d",fm,fr);
+		mini_snprintf(buf,sizeof buf,"%d.%1d",fm,fr);
 		UG_PutString(x+3,y-m->dy,buf);
 	}
 }
