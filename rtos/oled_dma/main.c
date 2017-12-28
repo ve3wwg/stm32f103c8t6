@@ -197,7 +197,6 @@ dma_init(void) {
         dma_set_memory_size(DMA1,DMA_CHANNEL3,DMA_CCR_MSIZE_8BIT);
         dma_set_priority(DMA1,DMA_CHANNEL3,DMA_CCR_PL_HIGH);
 	dma_enable_transfer_complete_interrupt(DMA1,DMA_CHANNEL3);
-	dma_enable_channel(DMA1,DMA_CHANNEL3);
 }
 
 /*********************************************************************
@@ -237,7 +236,7 @@ pummel_test(struct Meter *m1) {
 	meter_set_value(m1,v);
 	meter_update();
 	while ( (xTaskGetTickCount() - t0) < 5000 ) {
-		vTaskDelay(10);
+		vTaskDelay(6);
 		v += incr;
 		if ( v > 3.3 ) {
 			incr = -0.05;
