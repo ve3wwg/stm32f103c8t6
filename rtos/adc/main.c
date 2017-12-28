@@ -1,5 +1,12 @@
 /* ADC1 - Read Temperature, Vref and a Single ADC input
  * Warren W. Gay	Thu Jul 13 22:25:31 2017
+ *
+ *	GPIO	Function
+ *	A0	Analog In
+ *	A1	Analog In
+ *
+ *	Console on USB
+ *
  */
 #include <string.h>
 
@@ -13,8 +20,6 @@
 
 #include "mcuio.h"
 #include "miniprintf.h"
-
-#define mainECHO_TASK_PRIORITY				( tskIDLE_PRIORITY + 1 )
 
 #define GPIO_PORT_LED		GPIOC		// Builtin LED port
 #define GPIO_LED		GPIO13		// Builtin LED
@@ -80,11 +85,17 @@ main(void) {
         rcc_clock_setup_in_hse_8mhz_out_72mhz();        // Use this for "blue pill"
 
         rcc_periph_clock_enable(RCC_GPIOA);		// Enable GPIOA for ADC
-	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_ANALOG,GPIO1);
+	gpio_set_mode(GPIOA,
+		GPIO_MODE_INPUT,
+		GPIO_CNF_INPUT_ANALOG,
+		GPIO0|GPIO1);				// PA0 & PA1
 
         rcc_periph_clock_enable(RCC_GPIOC);		// Enable GPIOC for LED
-	gpio_set_mode(GPIO_PORT_LED,GPIO_MODE_OUTPUT_2_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO_LED);
-	gpio_clear(GPIO_PORT_LED,GPIO_LED);
+	gpio_set_mode(GPIOC,
+		GPIO_MODE_OUTPUT_2_MHZ,
+		GPIO_CNF_OUTPUT_PUSHPULL,
+		GPIO13);				// PC13
+	gpio_clear(GPIO_PORT_LED,GPIO_LED);		// LED off
 
 	xTaskCreate(demo_task,"demo",300,NULL,1,NULL);
 
@@ -105,12 +116,12 @@ main(void) {
 	adc_calibrate_async(ADC1);
 	while ( adc_is_calibrating(ADC1) );
 
+	std_set_device(mcu_usb);
 	usb_start(1,1);
-
 	vTaskStartScheduler();
 	for (;;);
 
 	return 0;
 }
 
-// End
+// End main.c
