@@ -80,7 +80,6 @@ main(void) {
         rcc_clock_setup_in_hse_8mhz_out_72mhz();        // Use this for "blue pill"
 
         rcc_periph_clock_enable(RCC_GPIOA);		// Enable GPIOA for ADC
-;	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_ANALOG,GPIO0);
 	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_ANALOG,GPIO1);
 
         rcc_periph_clock_enable(RCC_GPIOC);		// Enable GPIOC for LED
