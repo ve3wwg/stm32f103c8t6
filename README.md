@@ -134,7 +134,7 @@ See ./rtos/README.md for more details.
 LICENSE:
 --------
 
-All files covered by _this_ repo (_except_ those files copied from
-libopencm3 and FreeRTOS), are covered by the Gnu Lesser General Public
-License Version 3. See the file named LICENSE.
+All files covered by _this_ repo (_except_ those copied from libopencm3
+and FreeRTOS, or otherwise marked), are covered by the GNU Lesser
+General Public License Version 3. See the file named LICENSE.
 
