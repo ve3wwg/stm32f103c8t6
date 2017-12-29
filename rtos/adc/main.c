@@ -110,6 +110,7 @@ main(void) {
 	adc_set_right_aligned(ADC1);
 	adc_set_single_conversion_mode(ADC1);
 	adc_set_sample_time(ADC1,ADC_CHANNEL_TEMP,ADC_SMPR_SMP_239DOT5CYC);
+	adc_set_sample_time(ADC1,ADC_CHANNEL_VREF,ADC_SMPR_SMP_239DOT5CYC);
 	adc_enable_temperature_sensor();
 	adc_power_on(ADC1);
 	adc_reset_calibration(ADC1);
