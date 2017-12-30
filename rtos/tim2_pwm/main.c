@@ -26,6 +26,9 @@ task1(void *args __attribute__((unused))) {
 
 	gpio_set(GPIOC,GPIO13);				// LED on
 
+	rcc_periph_clock_enable(RCC_TIM2);		// Need TIM2 clock
+	rcc_periph_clock_enable(RCC_AFIO);		// Need AFIO clock
+
 	// PA1 == TIM2.CH2	
 	rcc_periph_clock_enable(RCC_GPIOA);		// Need GPIOA clock
 	gpio_primary_remap(
@@ -35,16 +38,14 @@ task1(void *args __attribute__((unused))) {
 		GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO1);	// GPIOA1=TIM2.CH2
 
 	// TIM2:
-	rcc_periph_clock_enable(RCC_TIM2);		// Need TIM2 clock
-	rcc_periph_clock_enable(RCC_AFIO);		// Need AFIO clock
-	timer_disable_counter(TIM2);			// Start timer
-	timer_reset(TIM2);				// Reset timer 2
+	timer_disable_counter(TIM2);
+	timer_reset(TIM2);
 
 	timer_set_mode(TIM2,
 		TIM_CR1_CKD_CK_INT,
 		TIM_CR1_CMS_EDGE,
 		TIM_CR1_DIR_UP);
-	timer_set_prescaler(TIM2,36000000/(50*75));
+	timer_set_prescaler(TIM2,36000000*2/150/50);
 	// Only needed for advanced timers:
 	// timer_set_repetition_counter(TIM2,0);
 	timer_enable_preload(TIM2);
@@ -53,7 +54,6 @@ task1(void *args __attribute__((unused))) {
 
 	timer_disable_oc_output(TIM2,TIM_OC2);
 	timer_set_oc_mode(TIM2,TIM_OC2,TIM_OCM_PWM1);
-	timer_set_oc_value(TIM2,TIM_OC2,0);
 	timer_enable_oc_output(TIM2,TIM_OC2);
 
 	timer_set_oc_value(TIM2,TIM_OC2,10);
