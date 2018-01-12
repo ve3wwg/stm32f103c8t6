@@ -1,4 +1,4 @@
-/* Input PWM to Timer 4, PB3 demo:
+/* Input PWM to Timer 4, PB3:
  * Warren Gay	Mon Jan  1 10:49:51 2018
  *
  * PC13		LED
@@ -63,8 +63,9 @@ task1(void *args __attribute__((unused))) {
 	timer_ic_set_prescaler(TIM4,TIM_IC1,TIM_IC_PSC_OFF);
 	timer_slave_set_mode(TIM4,TIM_SMCR_SMS_RM);
 	timer_slave_set_trigger(TIM4,TIM_SMCR_TS_TI1FP1);
-	TIM_CCER(TIM4) &= 0b110011;
-	TIM_CCER(TIM4) |= 0b110001;
+	TIM_CCER(TIM4) &= ~(TIM_CCER_CC2P|TIM_CCER_CC2E
+		|TIM_CCER_CC1P|TIM_CCER_CC1E);
+	TIM_CCER(TIM4) |= TIM_CCER_CC2P|TIM_CCER_CC2E|TIM_CCER_CC1E;
 	timer_ic_enable(TIM4,TIM_IC1);
 	timer_ic_enable(TIM4,TIM_IC2);
 	timer_enable_irq(TIM4,TIM_DIER_CC1IE|TIM_DIER_CC2IE);
@@ -74,7 +75,7 @@ task1(void *args __attribute__((unused))) {
 		vTaskDelay(1000);
 		gpio_toggle(GPIOC,GPIO13);
 
-		std_printf("cc1f=%u (%u), cc2f=%u (%u)\n",
+		std_printf("cc1if=%u (%u), cc2if=%u (%u)\n",
 			(unsigned)cc1if,(unsigned)c1count,
 			(unsigned)cc2if,(unsigned)c2count);
 	}

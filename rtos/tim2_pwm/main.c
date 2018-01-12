@@ -52,7 +52,7 @@ task1(void *args __attribute__((unused))) {
 	// timer_set_repetition_counter(TIM2,0);
 	timer_enable_preload(TIM2);
 	timer_continuous_mode(TIM2);
-	timer_set_period(TIM2,33000);
+	timer_set_period(TIM2,33333);
 
 	timer_disable_oc_output(TIM2,TIM_OC2);
 	timer_set_oc_mode(TIM2,TIM_OC2,TIM_OCM_PWM1);
