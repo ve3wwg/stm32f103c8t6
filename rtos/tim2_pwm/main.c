@@ -23,6 +23,8 @@
 
 static void
 task1(void *args __attribute__((unused))) {
+	static const int ms[4] = { 500, 1200, 2500, 1200 };
+	int msx = 0;
 
 	gpio_set(GPIOC,GPIO13);				// LED on
 
@@ -45,27 +47,25 @@ task1(void *args __attribute__((unused))) {
 		TIM_CR1_CKD_CK_INT,
 		TIM_CR1_CMS_EDGE,
 		TIM_CR1_DIR_UP);
-	timer_set_prescaler(TIM2,36000000*2/150/50);
+	timer_set_prescaler(TIM2,72);
 	// Only needed for advanced timers:
 	// timer_set_repetition_counter(TIM2,0);
 	timer_enable_preload(TIM2);
 	timer_continuous_mode(TIM2);
-	timer_set_period(TIM2,50);
+	timer_set_period(TIM2,33000);
 
 	timer_disable_oc_output(TIM2,TIM_OC2);
 	timer_set_oc_mode(TIM2,TIM_OC2,TIM_OCM_PWM1);
 	timer_enable_oc_output(TIM2,TIM_OC2);
 
-	timer_set_oc_value(TIM2,TIM_OC2,10);
+	timer_set_oc_value(TIM2,TIM_OC2,ms[msx=0]);
 	timer_enable_counter(TIM2);
 
 	for (;;) {
 		vTaskDelay(1000);
 		gpio_toggle(GPIOC,GPIO13);
-		timer_set_oc_value(TIM2,TIM_OC2,
-			gpio_get(GPIOC,GPIO13)
-				? 10   // 20%
-				: 20); // 40%
+		msx = (msx+1) % 4;
+		timer_set_oc_value(TIM2,TIM_OC2,ms[msx]);
 	}
 }
 
