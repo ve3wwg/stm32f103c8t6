@@ -1,6 +1,12 @@
 /* rear.c : CAN rear contoller
  * Mon Jul  3 08:49:40 2017	Warren W. Gay VE3WWG
  * Uses CAN on PA11/PA12:
+ *
+ * GPIO		Description
+ * ----		-----------
+ * PB14		Left turn signal
+ * PB13		Right turn signal
+ * PB12		Parking lights
  */
 #include <stdlib.h>
 #include <string.h>

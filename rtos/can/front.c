@@ -1,6 +1,12 @@
 /* front.c : CAN front contoller
  * Mon May 22 08:45:51 2017	Warren W. Gay VE3WWG
  * Uses CAN on PA11/PA12
+ *
+ * GPIO		Description
+ * ----		-----------
+ * PB14		Left turn signal
+ * PB13		Right turn signal
+ * PB12		Parking lights
  */
 #include <stdlib.h>
 #include <string.h>
