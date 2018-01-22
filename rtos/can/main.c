@@ -2,11 +2,14 @@
  * Tue May  9 20:58:59 2017	Warren W. Gay VE3WWG
  * Uses CAN on PB8/PB9, UART1 115200,"8N1","rw",1,1
  *
- * UART1:
- *      TX:     A9  ====> TX of TTL serial
- *      RX:     A10 <==== RX of TTL serial
- *      CTS:    A11 ====> RTS of TTL serial
- *      RTS:    A12 <==== CTS of TTL serial
+ * GPIO:
+ * ----
+ * TX	A9  ====> TX of TTL serial
+ * RX	A10 <==== RX of TTL serial
+ * CTS	A11 ====> RTS of TTL serial
+ * RTS	A12 <==== CTS of TTL serial
+ * PB8	CAN_RX (NOTE: Differs from front/rear.c)
+ * PB9	CAN_TX (NOTE: Differs from front/rear.c)
  */
 #include <stdlib.h>
 #include <string.h>
