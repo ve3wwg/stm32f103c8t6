@@ -7,6 +7,8 @@
  * PB14		Left turn signal
  * PB13		Right turn signal
  * PB12		Parking lights
+ * PA11		CAN_RX (NOTE: Differs from main.c)
+ * PA12		CAN_TX (NOTE: Differs from main.c)
  */
 #include <stdlib.h>
 #include <string.h>
