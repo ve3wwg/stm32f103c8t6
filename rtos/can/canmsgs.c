@@ -39,9 +39,10 @@ can_rx_isr(uint8_t fifo,unsigned msgcount) {
                         &cmsg.msgid,
                         &xmsgidf,               // true if msgid is extended
                         &rtrf,                  // true if requested transmission
-                        &cmsg.fmi,              // Matched filter index
+                        (uint8_t *)&cmsg.fmi,   // Matched filter index
                         &cmsg.length,           // Returned length
-                        cmsg.data);
+                        cmsg.data,
+                        NULL);			// Unused timestamp
                 cmsg.xmsgidf = xmsgidf;
                 cmsg.rtrf = rtrf;
                 cmsg.fifo = fifo;
