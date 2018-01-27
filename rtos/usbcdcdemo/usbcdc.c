@@ -200,19 +200,17 @@ cdcacm_control_request(
 ) {
 
 	switch (req->bRequest) {
-	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
+	case USB_CDC_REQ_SET_CONTROL_LINE_STATE:
 		/*
 		 * The Linux cdc_acm driver requires this to be implemented
 		 * even though it's optional in the CDC spec, and we don't
 		 * advertise it in the ACM functional descriptor.
 		 */
 		return 1;
-		}
 	case USB_CDC_REQ_SET_LINE_CODING:
 		if ( *len < sizeof(struct usb_cdc_line_coding) ) {
 			return 0;
 		}
-
 		return 1;
 	}
 	return 0;
