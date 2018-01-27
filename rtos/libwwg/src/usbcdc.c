@@ -429,10 +429,7 @@ usb_start(bool gpio_init,unsigned priority) {
 
 	if ( gpio_init ) {
 		rcc_periph_clock_enable(RCC_GPIOA);
-		rcc_periph_clock_enable(RCC_CRC);
 		rcc_periph_clock_enable(RCC_USB);
-		gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO11);
-		gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO12);
 	}
 
 	udev = usbd_init(&st_usbfs_v1_usb_driver,&dev,&config,
