@@ -382,9 +382,6 @@ usb_getline(char *buf,unsigned bufsiz) {
 
 /*
  * Start USB driver:
- *
- * ARGUMENTS:
- *	gpio_init	When true, setup RCC and GPIOA for USB
  */
 void
 usb_start(void) {
