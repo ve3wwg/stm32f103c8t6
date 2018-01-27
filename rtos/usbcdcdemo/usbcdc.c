@@ -1,8 +1,12 @@
 /* USB Serial interface
  * This module inspired by libopencm3/libopencm3-examples usbcdc.c
  * by Gareth McMullin <gareth@blacksphere.co.nz>
- *
  * Warren W. Gay VE3WWG
+ *
+ * GPIO
+ * ----
+ * PA11		USB_DM
+ * PA12		USB_DP
  */
 #include <stdlib.h>
 #include <string.h>
@@ -390,17 +394,9 @@ usb_start(void) {
 	usb_rxq = xQueueCreate(128,sizeof(char));
 
 	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_CRC);
 	rcc_periph_clock_enable(RCC_USB);
-	gpio_set_mode(GPIOA,
-		GPIO_MODE_OUTPUT_50_MHZ,
-		GPIO_CNF_OUTPUT_PUSHPULL,
-		GPIO11);
-	gpio_set_mode(GPIOA,
-		GPIO_MODE_OUTPUT_50_MHZ,
-		GPIO_CNF_OUTPUT_PUSHPULL,
-		GPIO12);
 
+	// PA11=USB_DM, PA12=USB_DP
 	udev = usbd_init(&st_usbfs_v1_usb_driver,&dev,&config,
 		usb_strings,3,
 		usbd_control_buffer,sizeof(usbd_control_buffer));
