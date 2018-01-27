@@ -202,7 +202,7 @@ cdcacm_control_request(
 	switch (req->bRequest) {
 	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
 		/*
-		 * This Linux cdc_acm driver requires this to be implemented
+		 * The Linux cdc_acm driver requires this to be implemented
 		 * even though it's optional in the CDC spec, and we don't
 		 * advertise it in the ACM functional descriptor.
 		 */
