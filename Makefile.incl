@@ -27,7 +27,7 @@ STFLASH		= $(shell which st-flash)
 STYLECHECK	:= /checkpatch.pl
 STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
 STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
-OPT		:= -Os -g
+OPT		:= -Os -g $(APPOPT)
 CSTD		?= -std=c99
 
 TEMP1 		= $(patsubst %.c,%.o,$(SRCFILES))
