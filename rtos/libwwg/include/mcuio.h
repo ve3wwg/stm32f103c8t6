@@ -64,31 +64,31 @@ extern const struct s_mcuio
  * Perform I/O to the chosen device:
  *********************************************************************/
 
-inline void mcu_putc(const struct s_mcuio *dev,char ch) { dev->putc(ch); }
-inline void mcu_puts(const struct s_mcuio *dev,const char *buf) { dev->puts(buf); }
-inline int mcu_vprintf(const struct s_mcuio *dev,const char *format,va_list ap) { return dev->vprintf(format,ap); }
+static inline void mcu_putc(const struct s_mcuio *dev,char ch) { dev->putc(ch); }
+static inline void mcu_puts(const struct s_mcuio *dev,const char *buf) { dev->puts(buf); }
+static inline int mcu_vprintf(const struct s_mcuio *dev,const char *format,va_list ap) { return dev->vprintf(format,ap); }
 int mcu_printf(const struct s_mcuio *dev,const char *format,...) __attribute((format(printf,2,3)));
-inline int mcu_getc(const struct s_mcuio *dev) { return dev->getc(); }
-inline int mcu_peek(const struct s_mcuio *dev) { return dev->peek(); }
-inline int mcu_gets(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return dev->gets(buf,maxbuf); }
-inline void mcu_write(const struct s_mcuio *dev,const char *buf,unsigned bytes) { dev->write(buf,bytes); }
-inline int mcu_getline(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return getline(buf,maxbuf,dev->getc,dev->putc); }
+static inline int mcu_getc(const struct s_mcuio *dev) { return dev->getc(); }
+static inline int mcu_peek(const struct s_mcuio *dev) { return dev->peek(); }
+static inline int mcu_gets(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return dev->gets(buf,maxbuf); }
+static inline void mcu_write(const struct s_mcuio *dev,const char *buf,unsigned bytes) { dev->write(buf,bytes); }
+static inline int mcu_getline(const struct s_mcuio *dev,char *buf,unsigned maxbuf) { return getline(buf,maxbuf,dev->getc,dev->putc); }
 
 /*********************************************************************
  * These I/O to the currently set std_set_device() device:
  *********************************************************************/
 
-inline void std_set_device(const struct s_mcuio *device) { mcu_stdio = device; }
+static inline void std_set_device(const struct s_mcuio *device) { mcu_stdio = device; }
 
-inline void std_putc(char ch) { mcu_putc(mcu_stdio,ch); }
-inline void std_puts(const char *buf) { mcu_puts(mcu_stdio,buf); }
-inline int std_vprintf(const char *format,va_list ap) { return mcu_stdio->vprintf(format,ap); }
+static inline void std_putc(char ch) { mcu_putc(mcu_stdio,ch); }
+static inline void std_puts(const char *buf) { mcu_puts(mcu_stdio,buf); }
+static inline int std_vprintf(const char *format,va_list ap) { return mcu_stdio->vprintf(format,ap); }
 int std_printf(const char *format,...) __attribute((format(printf,1,2)));
-inline int std_getc(void) { return mcu_getc(mcu_stdio); }
-inline int std_peek(void) { return mcu_peek(mcu_stdio); }
-inline int std_gets(char *buf,unsigned maxbuf) { return mcu_gets(mcu_stdio,buf,maxbuf); }
-inline void std_write(const char *buf,unsigned bytes) { mcu_write(mcu_stdio,buf,bytes); }
-inline int std_getline(char *buf,unsigned maxbuf) { return mcu_getline(mcu_stdio,buf,maxbuf); }
+static inline int std_getc(void) { return mcu_getc(mcu_stdio); }
+static inline int std_peek(void) { return mcu_peek(mcu_stdio); }
+static inline int std_gets(char *buf,unsigned maxbuf) { return mcu_gets(mcu_stdio,buf,maxbuf); }
+static inline void std_write(const char *buf,unsigned bytes) { mcu_write(mcu_stdio,buf,bytes); }
+static inline int std_getline(char *buf,unsigned maxbuf) { return mcu_getline(mcu_stdio,buf,maxbuf); }
 
 #ifdef __cplusplus
 }
