@@ -1569,9 +1569,9 @@ setup(void) {
 static void
 run_pulse(int on __attribute((unused))) {
 
-  gpio_set(GPIOC,GPIO13);
+	gpio_set(GPIOC,GPIO13);
 	timer_enable_counter(TIM2);				// Start timer
-  gpio_clear(GPIOC,GPIO13);
+	gpio_clear(GPIOC,GPIO13);
 
 #if 0
 	while ( !timer_get_flag(TIM2,TIM_SR_CC2IF) )
