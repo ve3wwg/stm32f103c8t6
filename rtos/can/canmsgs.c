@@ -133,7 +133,6 @@ initialize_can(bool nart,bool locked,bool altcfg) {
 		false);					// Silent
 
 	can_filter_id_mask_16bit_init(
-		CAN1,
 		0,					// Filter bank 0
 		0x000 << 5, 0x001 << 5,			// LSB == 0
 		0x000 << 5, 0x001 << 5,			// Not used
@@ -141,7 +140,6 @@ initialize_can(bool nart,bool locked,bool altcfg) {
 		true);
 
 	can_filter_id_mask_16bit_init(
-		CAN1,
 		1,					// Filter bank 1
 		0x010 << 5, 0x001 << 5,			// LSB == 1 (no match)
 		0x001 << 5, 0x001 << 5,			// Match when odd
