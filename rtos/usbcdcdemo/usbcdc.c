@@ -187,7 +187,7 @@ static uint8_t usbd_control_buffer[128];
 /*
  * USB Control Requests:
  */
-static int
+static enum usbd_request_return_codes
 cdcacm_control_request(
   usbd_device *usbd_dev __attribute__((unused)),
   struct usb_setup_data *req,
@@ -206,14 +206,14 @@ cdcacm_control_request(
 		 * even though it's optional in the CDC spec, and we don't
 		 * advertise it in the ACM functional descriptor.
 		 */
-		return 1;
+		return USBD_REQ_HANDLED;
 	case USB_CDC_REQ_SET_LINE_CODING:
 		if ( *len < sizeof(struct usb_cdc_line_coding) ) {
-			return 0;
+			return USBD_REQ_NOTSUPP;
 		}
-		return 1;
+		return USBD_REQ_HANDLED;
 	}
-	return 0;
+	return USBD_REQ_NOTSUPP;
 }
 
 /*
