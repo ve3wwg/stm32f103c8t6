@@ -67,6 +67,7 @@ static const struct usb_endpoint_descriptor data_endp[] = {
 	}
 };
 
+#if 0
 static const struct usb_interface_descriptor iface = {
 	.bLength = USB_DT_INTERFACE_SIZE,
 	.bDescriptorType = USB_DT_INTERFACE,
@@ -78,6 +79,7 @@ static const struct usb_interface_descriptor iface = {
 	.bInterfaceProtocol = 0,
 	.iInterface = 0,
 };
+#endif
 
 static const struct usb_interface_descriptor data_iface[] = {
 	{
@@ -125,7 +127,7 @@ static const char * usb_strings[] = {
  */
 uint8_t usbd_control_buffer[128];
 
-static int
+static enum usbd_request_return_codes
 custom_control_request(
   usbd_device *usbd_dev,
   struct usb_setup_data *req,
@@ -140,16 +142,16 @@ custom_control_request(
 
 	switch ( req->bRequest ) {
 	case USB_REQ_GET_STATUS:
-		return 1;
+		return USBD_REQ_HANDLED;
 
 	case USB_REQ_SET_FEATURE:
 		led(req->wValue&1);	// Set/reset LED
-		return 1;
+		return USBD_REQ_HANDLED;
 	default:
 		;
 	}
 
-	return 0;
+	return USBD_REQ_NOTSUPP;
 }
 
 /*
