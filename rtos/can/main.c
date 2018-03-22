@@ -4,8 +4,8 @@
  *
  * GPIO:
  * ----
- * TX	A9  ====> TX of TTL serial
- * RX	A10 <==== RX of TTL serial
+ * TX	A9  ====> RX of TTL serial adapter
+ * RX	A10 <==== TX of TTL serial adapter
  * CTS	A11 ====> RTS of TTL serial
  * RTS	A12 <==== CTS of TTL serial
  * PB8	CAN_RX (NOTE: Differs from front/rear.c)
