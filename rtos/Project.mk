@@ -116,7 +116,7 @@ group3:
 
 group4:
 	@for f in FreeRTOS.h mpu_prototypes.h projdefs.h stdint.readme StackMacros.h event_groups.h mpu_wrappers.h queue.h task.h croutine.h list.h \
-		portable.h semphr.h timers.h deprecated_definitions.h ; do \
+		portable.h semphr.h timers.h deprecated_definitions.h stack_macros.h ; do \
 		cp $(FREERTOSDIR)/FreeRTOS/Source/include/$$f $(PROJRTOS)/. ; \
 	done
 
