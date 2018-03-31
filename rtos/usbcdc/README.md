@@ -8,4 +8,4 @@ assumed). Pressing '?' or RETURN will prompt with a menu. Entering
 a single character like 'g' will display [GPIO configuration] register
 settings.
 
-This project makes use of libwwg/usbcdc.c (from libwwg.a)
+This project makes use of libwwg/src/usbcdc.c (from libwwg.a)
