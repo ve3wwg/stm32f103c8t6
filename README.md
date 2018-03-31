@@ -8,7 +8,7 @@ Beginning STM32 : Developing with FreeRTOS, libopencm3 and GCC
     ISBN: 978-1-4842-3623-9 Soft cover
           978-1-4842-3624-6 eBook
 
-https://www.apress.com/jp/book/9781484236239
+https://www.apress.com/us/book/9781484236239
 
 This git repo contains libopencm3 and FreeRTOS+libopencm3 projects.
 This provides a ready development environment for those who want to
