@@ -1,16 +1,25 @@
 Project stm32f103c8t6
 ---------------------
 
-This git project contains libopencm3 (only) and FreeRTOS+libopencm3
-projects. This provides a ready development environment for those who
-want to apply the economical STM32F103 to using libopencm3 alone or in
+This is the source code for the book:
+
+Beginning STM32 : Developing with FreeRTOS, libopencm3 and GCC
+
+ISBN: 978-1-4842-3623-9 Soft cover
+      978-1-4842-3624-6 eBook
+
+https://www.apress.com/jp/book/9781484236239
+
+This git repo contains libopencm3 and FreeRTOS+libopencm3 projects.
+This provides a ready development environment for those who want to
+apply the economical STM32F103 to using libopencm3 alone or in
 concert with FreeRTOS.
 
 THIS PROJECT ONLY USES OPEN SOURCE TOOLS
 ----------------------------------------
 
 No Windows based IDE environments are used or implied! Cygwin, Linux,
-MacOS and *BSD environments should be suitable.
+MacOS and *BSD environments are suitable.
 
 This project exists to bring several components together in a manner
 that just works for the STM32F103.
@@ -35,30 +44,30 @@ libopencm3).
         |- Makefile             makes all top-level projects
         |- Makefile.incl        rules for make file builds
         |- miniblink/           simple blink: libopencm3 only
-            |- *                miniblink files
+        |   |- *                miniblink files
         |- uart/                UART example (no flow control)
-            |- *        
+        |   |- *        
         |- uarthwfc/            UART example with hardware flow control
             |- *
         |- rtos/                FreeRTOS projects
-            |- FreeRTOSv9.0.0   Unzipped FreeRTOS sources (you create this)
+            |- FreeRTOSv10.0.0  Unzipped FreeRTOS sources (you create this)
             |- Makefile         Used for creating new rtos projects
             |- Makefile.rtos    Rules for rtos project builds
             |- src/
-                |- *            Files used for project creation
+            |   |- *            Files used for project creation
             |- libwwg
-                |- Makefile
-                |- include/*.h
-                |- src/*.c
-                |- libwwg.a
+            |   |- Makefile
+            |   |- include/*.h
+            |   |- src/*.c
+            |   |- libwwg.a
             |- blinky           Test FreeRTOS project
-                |- *            Blinky project related files
-                |- rtos
-                    |- *        RTOS Support files for blinky
+            |   |- *            Blinky project related files
+            |   |- rtos
+            |       |- *        RTOS Support files for blinky
             |- uart3            Another project..
-                |- *
-                |- rtos
-                    |- *
+            |   |- *
+            |   |- rtos
+            |       |- *
             |- usbcdc           USB CDC Demo
                 |- etc.
         
@@ -89,7 +98,7 @@ PREREQUISITES:
         go to the libopencm3 community.
     
     3.  For FreeRTOS, cd into ./rtos and unzip your FreeRTOS download
-        there. It should create a subdirectory FreeRTOSv9.0.0 or 
+        there. It should create a subdirectory FreeRTOSv10.0.0 or 
         similar. If the release differs, you'll need to change the
         variable assignment in rtos/Makefile FREERTOS ?= ....
         to match, or use the shell: export FREERTOS=whatever
@@ -97,6 +106,8 @@ PREREQUISITES:
     4.  Do NOT compile FreeRTOS, since portions of it will be copied
         to your project subdirectory for further customization. Each
         project is capable of running a different FreeRTOS configuration.
+
+    All of this is explained in the book.
 
 TEST EXAMPLES:
 --------------
