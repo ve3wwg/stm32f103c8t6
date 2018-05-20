@@ -107,7 +107,11 @@ PREREQUISITES:
         to your project subdirectory for further customization. Each
         project is capable of running a different FreeRTOS configuration.
 
-    All of this is explained in the book.
+    5.  At the top level, do a "make" so that the libwwg and other
+        projects get built.  Do a "make clobber" first, if you need
+        to rebuild.
+
+    All of this is explained in detail in the book.
 
 TEST EXAMPLES:
 --------------
