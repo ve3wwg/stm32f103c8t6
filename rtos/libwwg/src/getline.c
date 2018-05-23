@@ -2,7 +2,13 @@
  * Warren W. Gay VE3WWG
  */
 #include <getline.h>
+
+/* If you experience memory.h does not exist, uncomment
+ * the #include <string.h> instead (comment out memory.h)
+ */
+
 #include <memory.h>
+/* #include <string.h> */
 
 #define CONTROL(c) ((c) & 0x1F)
 
