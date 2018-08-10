@@ -1524,7 +1524,7 @@ setup(void) {
 		rcc_periph_clock_enable(RCC_AFIO);		// Need AFIO clock
 
 		timer_disable_counter(TIM2);			// Start timer
-		timer_reset(TIM2);				// Reset timer 2
+		rcc_periph_reset_pulse(RST_TIM2);				// Reset timer 2
 		timer_set_prescaler(TIM2,0);			// Clock counts every 13.9 ns
 
 		timer_set_mode(TIM2,TIM_CR1_CKD_CK_INT_MUL_4,

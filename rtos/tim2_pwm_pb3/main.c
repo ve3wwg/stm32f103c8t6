@@ -39,7 +39,7 @@ task1(void *args __attribute__((unused))) {
 
 	// TIM2:
 	timer_disable_counter(TIM2);
-	timer_reset(TIM2);
+	rcc_periph_reset_pulse(RST_TIM2);
 
 	timer_set_mode(TIM2,
 		TIM_CR1_CKD_CK_INT,
