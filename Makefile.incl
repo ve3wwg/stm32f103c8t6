@@ -139,4 +139,6 @@ bigflash: $(BINARY).bin
 
 .PHONY: images clean elf bin hex srec list all
 
+-include $(OBJS:.o=.d)
+
 # End
