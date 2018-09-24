@@ -35,7 +35,7 @@ clobber_libopencm3:
 libopencm3: libopencm3/lib/libopencm3_stm32f1.a
 
 libopencm3/lib/libopencm3_stm32f1.a:
-	$(MAKE) -C libopencm3
+	$(MAKE) -C libopencm3 TARGETS=stm32/f1
 
 libwwg:
 	$(MAKE) -C rtos/libwwg
