@@ -3,7 +3,7 @@
 ######################################################################
 
 PROJS = blinky blinky2 timer1 timer2 uart uart2 uart3 usbcdc usbbulk i2c-pcf8574 \
-	windbond rtc rtc2
+	winbond rtc rtc2
 
 all:	libwwg 
 	for proj in $(PROJS) ; do \
