@@ -34,7 +34,7 @@ static void
 timer_setup(void) {
 
 	rcc_periph_clock_enable(RCC_TIM2);
-	timer_reset(TIM2);
+	rcc_periph_reset_pulse(RST_TIM2);
 	timer_set_mode(TIM2,TIM_CR1_CKD_CK_INT_MUL_4,TIM_CR1_CMS_EDGE,TIM_CR1_DIR_UP);
 	timer_set_prescaler(TIM2,360);		// Clock counts every 5 usec
 	timer_one_shot_mode(TIM2);

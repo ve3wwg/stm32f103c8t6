@@ -49,7 +49,7 @@ task1(void *args __attribute__((unused))) {
 
 	// TIM4:
 	timer_disable_counter(TIM4);
-	timer_reset(TIM4);
+	rcc_periph_reset_pulse(RST_TIM4);
 	nvic_set_priority(NVIC_DMA1_CHANNEL3_IRQ,2);
 	nvic_enable_irq(NVIC_TIM4_IRQ);
 	timer_set_mode(TIM4,
