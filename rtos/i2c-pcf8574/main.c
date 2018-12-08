@@ -83,7 +83,7 @@ wait_start(void) {
 /*********************************************************************
  * Wait until:
  *	1. The ISR has set flag readf == True
- * or	2. Two seconds has timed out
+ * or	2. One seconds has timed out
  *
  * RETURNS:
  *	Returns true if ISR flag is set.
