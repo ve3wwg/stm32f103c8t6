@@ -43,12 +43,12 @@ read_adc(uint8_t channel) {
  *********************************************************************/
 static int
 degrees_C100(void) {
-	static const int v25 = 143;
+	static const int v25 = 1365; // see https://github.com/ve3wwg/stm32f103c8t6/issues/11
 	int vtemp;
 
 	vtemp = (int)read_adc(ADC_CHANNEL_TEMP) * 3300 / 4095;
 
-	return (v25 - vtemp) / 45 + 2500; // temp = (1.43 - Vtemp) / 4.5 + 25.00
+	return (v25 - vtemp) * 1000 / 45 + 2500; // temp = (1.43 - Vtemp) / 4.5 + 25.00
 }
 
 /*********************************************************************
