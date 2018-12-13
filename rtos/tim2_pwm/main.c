@@ -47,7 +47,7 @@ task1(void *args __attribute__((unused))) {
 		TIM_CR1_CKD_CK_INT,
 		TIM_CR1_CMS_EDGE,
 		TIM_CR1_DIR_UP);
-	timer_set_prescaler(TIM2,72-1);
+	timer_set_prescaler(TIM2,72-1); //see https://github.com/ve3wwg/stm32f103c8t6/pull/12/
 	// Only needed for advanced timers:
 	// timer_set_repetition_counter(TIM2,0);
 	timer_enable_preload(TIM2);
