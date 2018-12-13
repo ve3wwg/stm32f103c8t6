@@ -47,12 +47,12 @@ task1(void *args __attribute__((unused))) {
 		TIM_CR1_CKD_CK_INT,
 		TIM_CR1_CMS_EDGE,
 		TIM_CR1_DIR_UP);
-	timer_set_prescaler(TIM2,72);
+	timer_set_prescaler(TIM2,72-1);
 	// Only needed for advanced timers:
 	// timer_set_repetition_counter(TIM2,0);
 	timer_enable_preload(TIM2);
 	timer_continuous_mode(TIM2);
-	timer_set_period(TIM2,33333);
+	timer_set_period(TIM2,33333-1);
 
 	timer_disable_oc_output(TIM2,TIM_OC2);
 	timer_set_oc_mode(TIM2,TIM_OC2,TIM_OCM_PWM1);
