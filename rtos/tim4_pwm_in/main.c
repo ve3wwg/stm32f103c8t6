@@ -56,7 +56,7 @@ task1(void *args __attribute__((unused))) {
 		TIM_CR1_CKD_CK_INT,
 		TIM_CR1_CMS_EDGE,
 		TIM_CR1_DIR_UP);
-	timer_set_prescaler(TIM4,72);
+	timer_set_prescaler(TIM4,72-1);
 	timer_ic_set_input(TIM4,TIM_IC1,TIM_IC_IN_TI1);
 	timer_ic_set_input(TIM4,TIM_IC2,TIM_IC_IN_TI1);
 	timer_ic_set_filter(TIM4,TIM_IC_IN_TI1,TIM_IC_CK_INT_N_2);
