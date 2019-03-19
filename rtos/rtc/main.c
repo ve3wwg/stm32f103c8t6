@@ -115,7 +115,7 @@ set_alarm(unsigned secs) {
 	alarm = (rtc_get_counter_val() + secs) & 0xFFFFFFFF;
 
 	rtc_disable_alarm();
-	rtc_set_alarm_time(rtc_get_counter_val()+10);
+	rtc_set_alarm_time(rtc_get_counter_val() + secs);
 	rtc_enable_alarm();
 }
 
