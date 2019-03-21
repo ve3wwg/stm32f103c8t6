@@ -1,7 +1,7 @@
 /* Task based UART demo, using queued communication.
  *
- *	TX:	A9  ====> TX of TTL serial
- *	RX:	A10 <==== RX of TTL serial (not used)
+ *	TX:	A9  ====> RX of TTL serial
+ *	RX:	A10 <==== TX of TTL serial (not used)
  *	CTS:	A11 (not used)
  *	RTS:	A12 (not used)
  *	Config:	8N1
@@ -112,7 +112,7 @@ main(void) {
 	uart_setup();
 
 	xTaskCreate(uart_task,"UART",100,NULL,configMAX_PRIORITIES-1,NULL);
-	xTaskCreate(demo_task,"DEMO",100,NULL,configMAX_PRIORITIES-2,NULL);
+	xTaskCreate(demo_task,"DEMO",100,NULL,configMAX_PRIORITIES-1,NULL);
 
 	vTaskStartScheduler();
 	for (;;);
