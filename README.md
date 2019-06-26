@@ -100,7 +100,7 @@ PREREQUISITES:
     3.  For FreeRTOS, cd into ./rtos and unzip your FreeRTOS download
         there. It should create a subdirectory FreeRTOSv10.0.0 or 
         similar. If the release differs, you'll need to change the
-        variable assignment in rtos/Makefile FREERTOS ?= ....
+        variable assignment in rtos/Project.mk FREERTOS ?= ....
         to match, or use the shell: export FREERTOS=whatever
     
     4.  Do NOT compile FreeRTOS, since portions of it will be copied
