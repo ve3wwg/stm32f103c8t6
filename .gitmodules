@@ -4,4 +4,4 @@
 
 [submodule "stlink"]
 	path = stlink
-	url = git@github.com:ve3wwg/stlink.git
+	url = https@github.com:ve3wwg/stlink.git
