@@ -440,7 +440,7 @@ uart2_puts(const char *buf) {
 
 int
 uart2_vprintf(const char *format,va_list ap) {
-	return mini_vprintf_cooked(uart1_putc,format,ap);
+	return mini_vprintf_cooked(uart2_putc,format,ap);
 }
 
 int
@@ -497,7 +497,7 @@ uart3_puts(const char *buf) {
 
 int
 uart3_vprintf(const char *format,va_list ap) {
-	return mini_vprintf_cooked(uart1_putc,format,ap);
+	return mini_vprintf_cooked(uart3_putc,format,ap);
 }
 
 int
