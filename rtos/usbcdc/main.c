@@ -1460,7 +1460,7 @@ monitor(void) {
 			std_printf(
 				"\nSTM32F103C8T6 Menu:\n"
 				"  a ... ADC Registers\n"
-				"  b ... Backupe Registers\n"
+				"  b ... Backup Registers\n"
 				"  d ... DMA Registers\n"
 				"  f ... AFIO Registers\n"
 				"  r ... RCC Registers\n"
