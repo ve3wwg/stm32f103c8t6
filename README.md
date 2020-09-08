@@ -46,11 +46,11 @@ libopencm3).
         |- miniblink/           simple blink: libopencm3 only
         |   |- *                miniblink files
         |- uart/                UART example (no flow control)
-        |   |- *        
+        |   |- *
         |- uarthwfc/            UART example with hardware flow control
             |- *
         |- rtos/                FreeRTOS projects
-            |- FreeRTOSv10.0.0  Unzipped FreeRTOS sources (you create this)
+            |- FreeRTOS-latest  git submodule
             |- Makefile         Used for creating new rtos projects
             |- Makefile.rtos    Rules for rtos project builds
             |- src/
@@ -70,7 +70,7 @@ libopencm3).
             |       |- *
             |- usbcdc           USB CDC Demo
                 |- etc.
-        
+
 PREREQUISITES:
 --------------
 
@@ -80,7 +80,7 @@ PREREQUISITES:
         gcc for example will be arm-none-eabi-gcc etc. If your 
         prefix differs, edit Makefile.incl at the top level to
         match, or use the shell: export PREFIX=whatever
-    
+
     0b. It is also assumed that you have the st-link command installed
         on your system. You may need to download and install it. 
         Google is your friend.
@@ -88,21 +88,21 @@ PREREQUISITES:
     1.  If you didn't use a --recursive git clone, then you need to make
         sure that libopencm3 is fetched now. From the top level apply
         one of:
-    
+
             $ git submodule update --init --recursive   # First time
 
             $ git submodule update --recursive          # Subsequent
-    
+
     2.  Go into ./libopencm3 and type "make". This should build the 
         static libraries that will be needed. Any issues there should
         go to the libopencm3 community.
-    
+
     3.  For FreeRTOS, cd into ./rtos and unzip your FreeRTOS download
         there. It should create a subdirectory FreeRTOSv10.0.0 or 
         similar. If the release differs, you'll need to change the
         variable assignment in rtos/Project.mk FREERTOS ?= ....
         to match, or use the shell: export FREERTOS=whatever
-    
+
     4.  Do NOT compile FreeRTOS, since portions of it will be copied
         to your project subdirectory for further customization. Each
         project is capable of running a different FreeRTOS configuration.

@@ -7,8 +7,8 @@
  * the #include <string.h> instead (comment out memory.h)
  */
 
-#include <memory.h>
-/* #include <string.h> */
+//#include <memory.h>
+#include <string.h>
 
 #define CONTROL(c) ((c) & 0x1F)
 
