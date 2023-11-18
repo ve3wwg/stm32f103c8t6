@@ -678,7 +678,7 @@ spi_setup(void) {
 		GPIO_CNF_INPUT_FLOAT,
 		GPIO6				// MISO=PA6
 	);
-	spi_reset(SPI1); 
+	rcc_periph_reset_pulse(RST_SPI1);
 	spi_init_master(
 		SPI1,
                 SPI_CR1_BAUDRATE_FPCLK_DIV_256,
