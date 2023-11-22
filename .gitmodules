@@ -1,7 +1,9 @@
-[submodule "libopencm3"]
-	path = libopencm3
-	url = https://github.com/libopencm3/libopencm3.git
-
 [submodule "stlink"]
 	path = stlink
 	url = https://github.com/ve3wwg/stlink.git
+[submodule "libopencm3"]
+	path = libopencm3
+	url = https://github.com/libopencm3/libopencm3
+[submodule "rtos/FreeRTOS-latest"]
+	path = rtos/FreeRTOS-latest
+	url = https://github.com/FreeRTOS/FreeRTOS
